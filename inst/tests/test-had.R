@@ -36,6 +36,16 @@ test_that("@examples and @example combine", {
   expect_match(examples, fixed("a <- 2"), all = FALSE)
 })
 
+test_that("@example does not introduce extra empty lines", {
+  out <- roc_proc_text(roc, "
+    #' @name a
+    #' @example Rd-example-3.R
+    NULL")[[1]]
+  
+  examples <- get_tag(out, "examples")$values
+  expect_identical(length(examples), 2L)
+})
+
 
 test_that("empty file gives empty list", {
   out <- roc_proc_text(roc, "")
@@ -52,6 +62,16 @@ test_that("name captured from assignment", {
   out <- roc_proc_text(roc, "
     #' Title.
     a <- function() {} ")[[1]]
+  
+  expect_equal(get_tag(out, "name")$values, "a")
+  expect_equal(get_tag(out, "alias")$values, "a")
+  expect_equal(get_tag(out, "title")$values, "Title.")
+})
+
+test_that("name also captured from assignment by =", {
+  out <- roc_proc_text(roc, "
+    #' Title.
+    a = function() {} ")[[1]]
   
   expect_equal(get_tag(out, "name")$values, "a")
   expect_equal(get_tag(out, "alias")$values, "a")
@@ -221,3 +241,13 @@ test_that("multiple @inheritParam inherits from existing topics", {
   expect_equal(length(params), 2)
   expect_equal(sort(names(params)), c("trim", "x"))
 })
+
+test_that("`$` not to be parsed as assignee in foo$bar(a = 1)", {
+  out <- roc_proc_text(roc, "
+    #' foo object
+    foo <- list(bar = function(a) a)
+    foo$bar(a = 1)")[[1]]
+    
+    expect_equal(get_tag(out, "name")$values, "foo")
+})
+

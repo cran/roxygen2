@@ -1,3 +1,30 @@
+roxygen2 2.1
+------------
+
+NEW FEATURES
+
+* package dependencies loaded automatically
+
+* added support for the `@source` tag
+
+BUG FIXES
+
+* `NAMESPACE` file no longer needs to exist
+
+* `Collate` field in `DESCRIPTION` no longer needs to exist
+
+* `=` now recognised as way of assigning functions
+
+* `x$y <- function() {...}` no longer causes error
+
+* `@example` no longer added extra new-lines.
+
+* Correct directory normalisation under windows fixes broken test.
+
+* A special thanks goes to Yihui Xie who contributed all of the fixes and
+  improvements (bar one) in this version!
+
+
 roxygen2 2.0
 ------------
 
@@ -66,3 +93,6 @@ NEW TAGS
   any other installed package (`package:function`). Currently only supports
   single inheritance (i.e. you can't inherit from a function that inherits
   from another function), but you can have multiple @inheritParams tags.
+  
+* `@format` has been implemented; it existed in the roxygen package but was 
+  actually ignored
