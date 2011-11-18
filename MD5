@@ -1,6 +1,6 @@
-ffb38cdf472c4b0a16b35f4ee1971fc1 *DESCRIPTION
+c36c69c6be5feee862aaf965b48997dc *DESCRIPTION
 306f9ea33302ce5f09cce9d5bdca1f86 *NAMESPACE
-6d9e6eee5075c5a37c9cb03d04edccbd *NEWS
+f76f1800882177243cdb5e40c6e2bf30 *NEWS
 a03dd1132ae56a0aebed35adb5cc2e05 *R/cache.R
 06edaa250dec2c17da19a8a42585503d *R/description.R
 4aaf4c5e5dffbbe11f11dae0c52abdaa *R/parse-preref.R
@@ -9,7 +9,7 @@ dfe6f4f3037847524196e57ab2490fc0 *R/parse-srcref.R
 a48b5f803059ef010c9ca006e1c95a01 *R/parse.R
 afaa22729b9079ef7b2903a80b1c9817 *R/rd-file-api.R
 adc2d88baf1e81835a52812f62ccec5d *R/rd-parse.R
-8efe8050c410af115290e15b2a77b3bf *R/rd-tag-api.R
+c9092b38594bd8665dedba62b3b3aa37 *R/rd-tag-api.R
 77f5d47c4a4ab1a986e9d01a5e72d795 *R/roclet-collate.R
 d0228f19b0af3b1266a5a204aecaae99 *R/roclet-namespace.R
 95f59790b91a6f5be0a5b0946a26462d *R/roclet-rd.R
@@ -18,7 +18,7 @@ f233d55c5329d961ad88b41ef2bebfba *R/roclet.R
 6b50d40b57cc01b7dd4f21617fc4c08f *R/roxygenize.R
 03ee6773792fd7275c719d55db1b6d91 *R/template.R
 53cec32b7d20c08d1e3cd0dfa0958a81 *R/topo-sort.R
-2e06273c7e02e9db91fdad0581b4999b *R/utils.R
+e4b67af77e9b55a78597a64e5edbe873 *R/utils.R
 59e887c81a1c30ed26f69e8193a5b91f *README.md
 7d336e373c595feba75451cca62b877e *doc/Compose-callgraph.pdf
 49fb5c5e806c6a3262b322e81df49292 *doc/GSoC-idea.pdf
@@ -59,7 +59,7 @@ a56313f94011e845e4d7f94e7a51a263 *inst/tests/description-example.txt
 7936f044ba1c9b8099a0f047ba9fc40f *inst/tests/test-namespace.R
 db774ac356efbd442be8779e13fff50e *inst/tests/test-rd-doctype.R
 813bd68cc3125ac0dbe75a6bb212ef84 *inst/tests/test-rd-examples.R
-73ca4e3dcf5bf7724779d250f79082b8 *inst/tests/test-rd-usage.R
+bc80b0ed61403f50335830dc17c74169 *inst/tests/test-rd-usage.R
 f8799fb98529269d0c3e327fee1cd0b5 *inst/tests/test-rd.R
 7d160b71017d33c2a1a242ce0b1ebd74 *inst/tests/test-wrapFieldIfNecessary.R
 b1da5c8dc9e59a4140864558151535bb *man-roxygen/template.R

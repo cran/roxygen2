@@ -1,5 +1,5 @@
 Package: roxygen2
-Version: 2.2
+Version: 2.2.1
 License: GPL (>= 2)
 Description: A Doxygen-like in-source documentation system
     for Rd, collation, and NAMESPACE.
@@ -16,6 +16,6 @@ Collate: 'cache.R' 'description.R' 'parse.R' 'parse-preref.R'
         'rd-tag-api.R' 'roclet-collate.R' 'roclet-namespace.R'
         'roclet-rd.R' 'roclet.R' 'roxygen.R' 'roxygenize.R'
         'topo-sort.R' 'utils.R' 'template.R' 'rd-parse.R'
-Packaged: 2011-11-11 20:18:38 UTC; hadley
+Packaged: 2011-11-18 16:17:35 UTC; hadley
 Repository: CRAN
-Date/Publication: 2011-11-12 16:15:38
+Date/Publication: 2011-11-19 09:56:42
