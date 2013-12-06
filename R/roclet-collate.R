@@ -3,15 +3,21 @@ NULL
 
 register.preref.parsers(parse.value, 'include')
 
-#' Roclet: make Collate field in DESCRIPTION.
+#' Update Collate field in DESCRIPTION.
 #'
-#' Topologically sort R files and record in Collate field.
+#' Topologically sort R files and record in Collate field. The topological 
+#' sort is based on the \code{@@include} tag, which should specify the filenames 
+#' (space separated) that should be loaded before the current file - these are
+#' typically necessary if you're using S4 or RC classes (because super classes
+#' must be defined before subclasses).  If there are no \code{@@include} tags
+#' Collate will be left blank, indicating that the order of loading does not
+#' matter.
 #'
-#' Each \code{@@include} tag should specify the filename of one intrapackage
-#' dependency; multiple \code{@@include} tags may be given.
+#' This is not a roclet because roclets need the values of objects in a package,
+#' and those values can not be generated unless you've sourced the files,
+#' and you can't source the files unless you know the correct order.
 #'
-#' @family roclets
-#' @return Rd roclet
+#' @param base_path Path to package directory
 #' @examples
 #' #' `example-a.R', `example-b.R' and `example-c.R' reside
 #' #' in the `example' directory, with dependencies
@@ -20,46 +26,59 @@ register.preref.parsers(parse.value, 'include')
 #' #' @@include example-c.R
 #' NULL
 #'
-#' roclet <- collate_roclet()
 #' \dontrun{
-#'   roc_proc(roclet, dir('example'))
-#'   roc_out(roclet, dir('example'), "example")
+#'   update_collate("my_package")
 #' }
 #' @export
-collate_roclet <- function() {
-  new_roclet(list(), "collate")
+update_collate <- function(base_path) {
+  collate <- generate_collate(file.path(base_path, "R"))
+  if (!is.null(collate)) {
+    collate <- paste0("'", collate, "'", collapse = " ")
+  }
+
+  desc_path <- file.path(base_path, "DESCRIPTION")
+  old <- read.description(desc_path)
+
+  new <- old
+  new$Collate <- collate
+  write.description(new, desc_path)
+
+  if (!identical(old, read.description(desc_path))) {
+    cat('Updating collate directive in ', desc_path, "\n")
+  }
 }
 
-#' @S3method roc_process collate
-roc_process.collate <- function(roclet, partita, base_path) {
-  topo <- topo_sort()
+generate_collate <- function(base_path) {
+  paths <- sort_c(dir(base_path, pattern = "[.][Rr]$", full.names = TRUE))
+  includes <- lapply(paths, find_includes)
+  names(includes) <- paths
 
-  for (partitum in partita) {
-    file <- base_path(partitum$srcref$filename, base_path)
+  n <- sum(vapply(includes, length, integer(1)))
+  if (n == 0) return()
+
+  topo <- topo_sort()
+  for (path in paths) {
+    file <- base_path(path, base_path)
     vertex <- topo$add(file)
 
-    includes <- partitum[names(partitum) == "include"]
-    if (length(includes) > 0) {
-      for (include in includes) {
-        topo$add_ancestor(vertex, include)
-      }
+    for (include in includes[[path]]) {
+      topo$add_ancestor(vertex, include)
     }
   }
 
-  unique(basename(topo$sort()))
+  unique(topo$sort())
 }
 
-#' @S3method roc_output collate
-roc_output.collate <- function(roclet, results, base_path) {
-  DESCRIPTION <- file.path(base_path, "DESCRIPTION")
-  old <- read.description(DESCRIPTION)
-  new <- old
-  new$Collate <- str_c("'", results, "'", collapse = " ")
-  write.description(new, DESCRIPTION)
+find_includes <- function(path) {
+  lines <- readLines(path, warn = FALSE)
+  re <- regexec("^\\s*#+' @include (.*)$", lines)
+  matches <- regmatches(lines, re)
+  matches <- Filter(function(x) length(x) == 2, matches)
+  
+  if (length(matches) == 0) return()
 
-  if (!identical(old, read.description(DESCRIPTION))) {
-    cat('Updating collate directive in ', DESCRIPTION, "\n")
-  }
+  includes <- vapply(matches, "[[", 2, FUN.VALUE = character(1))
+  sort_c(unlist(strsplit(includes, " ", fixed = TRUE)))
 }
 
 base_path <- function(path, base) {
@@ -68,4 +87,3 @@ base_path <- function(path, base) {
 
   str_replace(path, fixed(str_c(base, "/")), "")
 }
-

@@ -3,103 +3,74 @@
 #' This is the workhorse function that uses roclets, the built-in document
 #' tranformation functions, to build all documentation for a package.  See
 #' the documentation for the individual roclets, \code{\link{rd_roclet}},
-#' \code{\link{namespace_roclet}} and \code{\link{collate_roclet}}, for 
-#' documentation on how to use each one.
+#' \code{\link{namespace_roclet}}, and for \code{\link{update_collate}},
+#' for more details.
 #'
 #' @param package.dir the package's top directory
-#' @param roxygen.dir where to create roxygen output; defaults to
-#'   \file{package.dir}.
-#' @param copy.package copies the package over before adding/manipulating
-#'    files.
-#' @param overwrite overwrite target files?
-#' @param unlink.target unlink target directory before processing files?
-#' @param roclets character vector of roclet names to apply to package
+#' @param roxygen.dir,copy.package,overwrite,unlink.target deprecated
+#' @param roclets character vector of roclet names to apply to package. 
+#'   This defaults to \code{NULL}, which will use the \code{roclets} fields in 
+#'   the list provided in the \code{Roxygen} DESCRIPTION field. If none are 
+#'   specified, defaults to \code{c("collate", "namespace", "rd")}.
+#' @param load_code A function used to load all the R code in the package
+#'   directory. It is called with the path to the package, and it should return
+#'   an environment containing all the sourced code.
 #' @return \code{NULL}
-#' @rdname roxygenize
 #' @export
-roxygenize <- function(package.dir,
+roxygenize <- function(package.dir = ".",
                        roxygen.dir=package.dir,
                        copy.package=package.dir != roxygen.dir,
                        overwrite=TRUE,
                        unlink.target=FALSE,
-                       roclets=c("collate", "namespace", "rd")) {
-
-  skeleton <- c(roxygen.dir, file.path(roxygen.dir, c("man", "inst")))
-
+                       roclets = NULL,
+                       load_code = source_package) {
   if (copy.package) {
-    copy.dir(package.dir, roxygen.dir, unlink.target = unlink.target,
-      overwrite = overwrite, verbose = FALSE)
+    stop("Non-inplace roxygen no longer supported")
   }
 
-  for (dir in skeleton) {
-    dir.create(dir, recursive=TRUE, showWarnings=FALSE)
-  }
-
-  roxygen.dir <- normalizePath(roxygen.dir)
-  r_files <- dir(file.path(roxygen.dir, "R"), "[.Rr]$", full.names = TRUE)
-
-  # If description present, use Collate to order the files 
-  # (but still include them all, and silently remove missing)
-  DESCRIPTION <- file.path(package.dir, "DESCRIPTION")
-  if (file.exists(DESCRIPTION)) {
-    desc <- read.description(DESCRIPTION)
-    raw_collate <- desc$Collate %||% ""
-    con <- textConnection(raw_collate)
-    on.exit(close(con))
-    collate <- scan(con, "character", sep = " ", quiet = TRUE)
-    
-    collate_path <- file.path(roxygen.dir, "R", collate)
-    collate_exists <- Filter(file.exists, collate_path)
-    r_files <- c(collate_exists, setdiff(r_files, collate_exists))
-    # load the dependencies
-    pkgs <- paste(c(desc$Depends, desc$Imports), collapse = ", ")
-    if (pkgs != "") {
-      pkgs <- gsub("\\s*\\(.*?\\)", "", pkgs)
-      pkgs <- strsplit(pkgs, ",")[[1]]
-      pkgs <- gsub("^\\s+|\\s+$", "", pkgs)
-      lapply(pkgs[pkgs != "R"], require, character.only = TRUE)
-    }
-  }
+  base_path <- normalizePath(package.dir)
+  man_path <- file.path(base_path, "man")
+  dir.create(man_path, recursive = TRUE, showWarnings = FALSE)
   
-  parsed <- parse.files(r_files)
+  options <- load_options(base_path)
+  roclets <- roclets %||% options$roclets
+
+  # Special case collate: it doesn't need to execute code, and must be run
+  # first to ensure that code can be executed
+  if ("collate" %in% roclets) {
+    update_collate(base_path)
+    roclets <- setdiff(roclets, "collate")
+  }
+
+  parsed <- parse_package(base_path, load_code)
 
   roclets <- str_c(roclets, "_roclet", sep = "")
   for (roclet in roclets) {
-    roc <- match.fun(roclet)()
-    results <- roc_process(roc, parsed, roxygen.dir)
-    roc_output(roc, results, roxygen.dir)
+    roc <- get(roclet, mode = "function")()
+    results <- roc_process(roc, parsed, base_path, options = options)
+    roc_output(roc, results, base_path, options = options)
   }
+  
+  invisible()
 }
 
 #' @rdname roxygenize
 #' @export
 roxygenise <- roxygenize
 
-# Recursively copy a directory thither; optionally unlinking
-# the target first; optionally overwriting; optionally
-# verbalizing.
-#
-# @note Not tested on non-linux platforms
-copy.dir <- function(source,
-                     target = source,
-                     unlink.target=FALSE,
-                     overwrite=FALSE,
-                     verbose=FALSE) {
-  if (unlink.target)
-    unlink(target, recursive=TRUE)
-  files <- list.files(source,
-                      full.name=TRUE,
-                      recursive=TRUE,
-                      all.files=TRUE)
-  for (source.file in files) {
-    promoted.file <- sub('[^/\\]*(/|\\\\)', '', source.file)
-    target.file <- file.path(target, promoted.file)
-    target.dir <- dirname(target.file)
-    ## Could create, instead, a list of unique directories in
-    ## Theta(n).
-    dir.create(target.dir, recursive=TRUE, showWarnings=FALSE)
-    if (verbose)
-      cat(sprintf('%s -> %s', source.file, target.file), '\n')
-    file.copy(source.file, target.file, overwrite=overwrite)
+load_options <- function(base_path) {
+  desc_path <- file.path(base_path, "DESCRIPTION")
+  desc_opts <- read.dcf(desc_path, fields = "Roxygen")[[1, 1]]
+  
+  if (is.na(desc_opts)) {
+    opts <- list()
+  } else {
+    opts <- eval(parse(text = desc_opts))
   }
+  
+  defaults <- list(
+    wrap = TRUE,
+    roclets = c("collate", "namespace", "rd")
+  )
+  modifyList(defaults, opts)
 }

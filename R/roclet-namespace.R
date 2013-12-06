@@ -1,38 +1,40 @@
 #' @include parse-registry.R
 NULL
 
-register.preref.parsers(parse.default, 'export')
-
-register.preref.parsers(parse.value, 'exportClass', 'exportMethod',
+register.preref.parsers(parse.words, 'export', 'exportClass', 'exportMethod',
   'exportPattern', 'S3method', 'import', 'importFrom', 'importClassesFrom',
   'importMethodsFrom', 'useDynLib')
 
+ns_tags <- c('export', 'exportClass', 'exportMethod', 'exportPattern',
+  'S3method', 'import', 'importFrom', 'importClassesFrom', 
+  'importMethodsFrom', 'useDynLib')
+
 #' Roclet: make NAMESPACE.
-#' 
-#' This roclet automates the production of a \file{NAMESPACE} file, 
+#'
+#' This roclet automates the production of a \file{NAMESPACE} file,
 #' see \cite{Writing R Extensions}
 #' (\url{http://cran.r-project.org/doc/manuals/R-exts.pdf}) for details.
 #'
 #' @section Tags:
 #'
 #' There are four tags for exporting objects from the package:
-#' 
+#'
 #' \describe{
 #'
-#' \item{\code{@@export}}{Roxygen guesses the directive: \code{export} for 
+#' \item{\code{@@export}}{Roxygen guesses the directive: \code{export} for
 #'   functions, \code{exportMethod} for S4 methods, \code{S3method} for S3
 #'   methods, \code{exportClass} for S4 classes.
-#'   
+#'
 #'   This is the only directive you should need for documented function,
 #'   the other directives are useful if you want to export (e.g.) methods
-#'   but not document them.} 
+#'   but not document them.}
 #'
-#' \item{\code{@@export f g ...}}{overrides auto-detection and 
-#'   produces multiple export directives: \code{export(f)}, \code{export(g)} 
+#' \item{\code{@@export f g ...}}{overrides auto-detection and
+#'   produces multiple export directives: \code{export(f)}, \code{export(g)}
 #'   ...}
-#'    
+#'
 #' \item{\code{@@exportClass x}}{produces \code{exportClasses(x)} directive.}
-#' 
+#'
 #' \item{\code{@@exportMethod x}}{produces \code{exportMethods(x)} directive.}
 #'
 #' \item{\code{@@S3method generic class}}{produces
@@ -47,15 +49,15 @@ register.preref.parsers(parse.value, 'exportClass', 'exportMethod',
 #' \item{\code{@@import package}}{produces \code{import(package) directive
 #'   to import all functions from the given package}}
 #'
-#' \item{\code{@@importFrom package functiona functionb ...}}{produces 
+#' \item{\code{@@importFrom package functiona functionb ...}}{produces
 #'    multiple \code{importFrom(package, function)} directives to import
 #'    selected functions from a package.}
 #'
-#' \item{\code{@@importClassesFrom package classa classb ...}}{produces 
+#' \item{\code{@@importClassesFrom package classa classb ...}}{produces
 #'   multiple \code{importClassesFrom(package, class)} directives to import
 #'   selected classes from a package.}
 #'
-#' \item{\code{@@importMethodsFrom package methoda methodb ...}}{produces 
+#' \item{\code{@@importMethodsFrom package methoda methodb ...}}{produces
 #'   multiple \code{importMethodsFrom(package, method)} directives to import
 #'   selected methods from a package.}
 #'
@@ -64,14 +66,14 @@ register.preref.parsers(parse.value, 'exportClass', 'exportMethod',
 #'   the specified package}
 #'
 #' \item{\code{@@useDynLib paackage routinea routineb}}{produces multiple
-#'   \code{useDynLib(package,routine)} directions to import specified 
+#'   \code{useDynLib(package,routine)} directions to import specified
 #'   compiled routines from a package.}
 #' }
 #'
 #' Only unique directives are saved to the \file{NAMESPACE} file, so you can
 #' repeat them as needed to maintain a close link between the functions where
 #' they are needed and the namespace file..
-#' 
+#'
 #' @family roclets
 #' @examples
 #' #' An example file, example.R, which imports
@@ -93,30 +95,26 @@ namespace_roclet <- function() {
   new_roclet(list, "namespace")
 }
 
-#' @S3method roc_process namespace
-roc_process.namespace <- function(roclet, partita, base_path) {
-  ns <- character()
-  for (partitum in partita) {
-    ns_one <- c( 
-      process_tag(partitum, "export", ns_export),
-      process_tag(partitum, "S3method", ns_S3method),
-      process_tag(partitum, "importFrom", ns_collapse),
-      process_tag(partitum, 'exportClass', ns_exportClass),
-      process_tag(partitum, 'exportMethod', ns_exportMethod),
-      process_tag(partitum, 'exportPattern', ns_default),
-      process_tag(partitum, 'import', ns_default),
-      process_tag(partitum, 'importClassesFrom', ns_collapse),
-      process_tag(partitum, 'importMethodsFrom', ns_collapse),
-      process_tag(partitum, 'useDynLib', ns_collapse)
-    )
-    ns <- c(ns, ns_one)
-  }
-  sort(unique(ns))
+#' @export
+roc_process.namespace <- function(roclet, partita, base_path, options = list()) {
+  ns <- unlist(lapply(partita, ns_process_partitum)) %||% character()
+  sort_c(unique(ns))
 }
 
+ns_process_partitum <- function(partitum) {
+  tags <- intersect(names(partitum), ns_tags)
+  unlist(lapply(tags, ns_process_tag, partitum = partitum))
+}
 
-#' @S3method roc_output namespace
-roc_output.namespace <- function(roclet, results, base_path) { 
+ns_process_tag <- function(tag_name, partitum) {
+  f <- get(paste0("ns_", tag_name), mode = "function")
+  tags <- partitum[names(partitum) == tag_name]
+  
+  lapply(tags, f, part = partitum)
+}
+
+#' @export
+roc_output.namespace <- function(roclet, results, base_path, options = list()) {
   NAMESPACE <- file.path(base_path, "NAMESPACE")
   
   old <- if (file.exists(NAMESPACE)) readLines(NAMESPACE) else ""
@@ -127,76 +125,78 @@ roc_output.namespace <- function(roclet, results, base_path) {
   }
 }
 
-
-ns_directive <- function(tag, parms) {
-  str_c(tag, "(", str_trim(parms), ")")
+# Functions that take complete partitum and return NAMESPACE lines
+ns_export <- function(tag, part) {
+  if (!is.null.string(tag)) return(export(tag))
+  # FIXME: check for empty exports (i.e. no name)
+  
+  default_export(part$object, part)
 }
+default_export <- function(x, block) UseMethod("default_export")
+#' @export
+default_export.s4class   <- function(x, block) export_class(x$name)
+#' @export
+default_export.s4method  <- function(x, block) export_s4_method(x$name)
+#' @export
+default_export.s3method  <- function(x, block) export_s3_method(attr(x$value, "s3method"))
+#' @export
+default_export.rcclass   <- function(x, block) export_class(x$name)
+#' @export
+default_export.default   <- function(x, block) export(x$name)
+#' @export
+default_export.NULL      <- function(x, block) export(block$name)
 
-ns_default <- function(tag, parms, all) {
-  ns_directive(tag, words(parms))
-}
-ns_collapse <- function(tag, parms, all) {
-  params <- words(parms)
-  if (length(params) == 1) {
-    ns_directive(tag, params)
+ns_S3method          <- function(tag, part) export_s3_method(tag)
+ns_exportClass       <- function(tag, part) export_class(tag)
+ns_exportMethod      <- function(tag, part) export_s4_method(tag)
+ns_exportPattern     <- function(tag, part) one_per_line("exportPattern", tag)
+ns_import            <- function(tag, part) one_per_line("import", tag)
+ns_importFrom        <- function(tag, part) repeat_first("importFrom", tag)
+ns_importClassesFrom <- function(tag, part) repeat_first("importClassesFrom", tag)
+ns_importMethodsFrom <- function(tag, part) repeat_first("importMethodsFrom", tag)
+ns_useDynLib         <- function(tag, part) {
+  if (length(tag) == 1) {
+    return(paste0("useDynLib(", quote_if_needed(tag), ")"))
+  }
+  
+  if (any(grepl(",", tag))) {
+    # If there's a comma in list, don't quote output. This makes it possible
+    # for roxygen2 to support other NAMESPACE forms not otherwise mapped
+    args <- paste0(tag, collapse = " ")
+    paste0("useDynLib(", args, ")")
   } else {
-    ns_directive(tag, str_c(params[1], ",", params[-1]))
+    repeat_first("useDynLib", tag)  
   }
 }
 
-ns_exportClass <- function(tag, parms, all) {
-  ns_directive('exportClasses', quote_if_needed(parms))
+# Functions used by both default_export and ns_* functions
+export           <- function(x) one_per_line("export", x)
+export_class     <- function(x) one_per_line("exportClasses", x)
+export_s4_method <- function(x) one_per_line("exportMethods", x)
+export_s3_method <- function(x) fun_args("S3method", x)
+
+one_per_line <- function(name, x) {
+  paste0(name, "(", quote_if_needed(x), ")")
 }
-ns_exportMethod <- function(tag, parms, all) {
-  ns_directive('exportMethods', quote_if_needed(parms))
+repeat_first <- function(name, x) {
+  paste0(name, "(", quote_if_needed(x[1]), ",", quote_if_needed(x[-1]), ")")
 }
-ns_export <- function(tag, parms, all) {
-  if (!is.null.string(parms)) {
-    return(ns_directive('export', words(parms)))
-  }
-  
-  if (!is.null(all$S4method)) {
-    ns_exportMethod(NULL, all$S4method)
-  } else if (!is.null(all$S4class)) {
-    ns_exportClass(NULL, all$S4class)
-  } else if (!is.null(all$S4generic)){
-    ns_exportMethod(NULL, all$S4generic)
-  } else if (!is.null(all$method)) {
-    ns_S3method(parms = str_c(unlist(all$method), collapse = " "))
+fun_args <- function(name, x) {
+  if (any(grepl(",", x))) {
+    # If there's a comma in list, don't quote output. This makes it possible
+    # for roxygen2 to support other NAMESPACE forms not otherwise mapped
+    args <- paste0(x, collapse = ", ")
   } else {
-    name <- all$name %||% all$assignee
-    if (is.null(name)) {
-      warning('Empty export directive', call. = FALSE)
-      NULL
-    } else {
-      ns_directive('export', quote_if_needed(name))
-    }
+    args <- paste0(quote_if_needed(x), collapse = ",")  
   }
-}
-ns_S3method <- function(tag, parms, all) {
-  params <- words(parms)
-  if (length(params) != 2) {
-    warning("Invalid @S3method: ", parms, call. = FALSE)
-  }
-  ns_directive("S3method", str_c(quote_if_needed(params), collapse = ","))
+  
+  paste0(name, "(", args, ")")
 }
 
-
-process_tag <- function(partitum, tag, f) {
-  matches <- partitum[names(partitum) == tag]
-  if (length(matches) == 0) return()
-  
-  unlist(lapply(matches, f, tag = tag, all = partitum), use.names = FALSE)
-}
-  
-words <- function(x) {
-  quote_if_needed(str_split(str_trim(x), "\\s+")[[1]])
-}
-is.syntactic <- function(x) make.names(x) == x
-has.quotes <- function(x) str_detect(x, "'|\"")
 quote_if_needed <- function(x) {
   needs_quotes <- !has.quotes(x) & !is.syntactic(x)
-  x[needs_quotes] <- str_c('"', x[needs_quotes], '"')
+  x[needs_quotes] <- str_c('"', str_replace_all(x[needs_quotes], '(["\\])', "\\\\\\1"), '"')
   x
 }
-
+is.syntactic <- function(x) make.names(x) == x
+has.quotes <- function(x) str_detect(x, "^('|\").*\\1$")

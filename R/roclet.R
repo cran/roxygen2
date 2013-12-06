@@ -8,57 +8,28 @@ new_roclet <- function(obj, subclass = NULL) {
 
 is.roclet <- function(x) inherits(x, "roclet")
 
-#' Process roclet and capture results.
-#' 
-#' @param roclet to use for processing
-#' @param input character vector of paths to files to process
-#' @param base_path base directory 
-#' @seealso \code{\link{roxygenise}} for user-friendly interface
-#' @keywords internal
-#' @export
-roc_proc <- function(roclet, paths, base_path) {
-  stopifnot(is.roclet(roclet))
-  
-  parsed <- parse.files(paths)
-  roc_process(roclet, parsed, base_path)
-} 
-
 #' Process roclet on string and capture results.
 #' Useful for testing.
 #'
 #' @param roclet to use for processing
 #' @param input source string
+#' @param options a list of options to control roxygen behaviour.
+#'   Currently only \code{wrap} is recognised.
 #' @export
 #' @keywords internal
-roc_proc_text <- function(roclet, input) {
+roc_proc_text <- function(roclet, input, options = list()) {
   stopifnot(is.roclet(roclet))
   
-  parsed <- parse.text(input)
-  roc_process(roclet, parsed, base_path = ".")
+  parsed <- parse_text(input)
+  roc_process(roclet, parsed, base_path = ".", options = options)
 } 
-
-
-#' Process roclet and output results.
-#' 
-#' @param roclet to use for processing
-#' @param input character vector of paths to files to process
-#' @param base_path base directory in which to save output
-#' @keywords internal
-#' @seealso \code{\link{roxygenise}} for user-friendly interface
-#' @export
-roc_out <- function(roclet, input, base_path) {
-  stopifnot(is.roclet(roclet))
-
-  results <- roc_proc(roclet, input, base_path)
-  roc_output(roclet, results, base_path)
-}
 
 # Internal methods for processing and output
 
-roc_output <- function(roclet, results, base_path) {
+roc_output <- function(roclet, results, base_path, options = list()) {
   UseMethod("roc_output", roclet)
 }
 
-roc_process <- function(roclet, partita, base_path) {
+roc_process <- function(roclet, partita, base_path, options = list()) {
   UseMethod("roc_process", roclet)
 }

@@ -2,17 +2,16 @@
 \alias{rd_roclet}
 \title{Roclet: make Rd files.}
 \usage{
-  rd_roclet()
+rd_roclet()
 }
 \description{
-  This roclet is the workhorse of \pkg{roxygen}, producing
-  the Rd files that document that functions in your
-  package.
+This roclet is the workhorse of \pkg{roxygen}, producing the Rd files that
+document that functions in your package.
 }
 \details{
-  This roclet also automatically runs
-  \code{\link[tools]{checkRd}} on all generated Rd files so
-  that you know as early as possible if there's a problem.
+This roclet also automatically runs \code{\link[tools]{checkRd}} on all
+generated Rd files so that you know as early as possible if there's a
+problem.
 }
 \section{Required tags}{
   As well as a title and description, extracted from the
@@ -111,16 +110,10 @@
 \section{Template tags}{
   Templates make it possible to substantially reduce
   documentation duplication. A template is an \file{R} file
-  processed with \code{\link[brew]{brew}} and then inserted
-  into the roxygen block. Templates can use variables,
-  accessible from within brew with \code{<=\% varname =>}.
-
-  Templates are not parsed recursively, so you can not
-  include templates from within other templates.
-
-  Templates must be composed of complete tags - becuase all
-  roxygen tags are current block tags, they can not be used
-  for inline insertions.
+  in the \code{man-roxygen/} directory. It is processed
+  with \code{\link[brew]{brew}} and then inserted into the
+  roxygen block. You can run any R code with brew; you can
+  insert template variables with \code{<\%= varname \%>}.
 
   \describe{
 
@@ -131,6 +124,16 @@
   for template use.}
 
   }
+
+  Limitations:
+
+  \itemize{ \item Templates are not parsed recursively, so
+  you can not include templates from within other
+  templates.
+
+  \item Templates must be composed of complete tags -
+  becuase all roxygen tags are current block tags, they can
+  not be used for inline insertions. }
 }
 
 \section{Optional tags that override defaults}{
@@ -180,6 +183,10 @@
   \item{\code{@source text}}{The original source of the
   data.}
 
+  \item{\code{@slot name description}}{Describe the slots
+  of an S4 class in a standard way. Slots will be listed in
+  their own section.}
+
   }
 }
 \examples{
@@ -188,7 +195,12 @@ roclet <- rd_roclet()
 \dontrun{roc_out(roclet, "example.R", ".")}
 }
 \seealso{
-  Other roclets: \code{\link{collate_roclet}},
+Other roclets: \code{\link{S3method}},
+  \code{\link{export}}, \code{\link{exportClass}},
+  \code{\link{exportMethod}}, \code{\link{import}},
+  \code{\link{importClassesFrom}},
+  \code{\link{importFrom}},
+  \code{\link{importMethodsFrom}},
   \code{\link{namespace_roclet}}
 }
 

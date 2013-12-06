@@ -3,7 +3,7 @@
 NULL
 
 register.preref.parsers(parse.value,
-                        'name', 
+                        'name',
                         'rdname',
                         'aliases',
                         'title',
@@ -21,13 +21,14 @@ register.preref.parsers(parse.value,
                         'family',
                         'inheritParams',
                         'format',
-                        'source', 
+                        'source',
                         'encoding',
                         'description',
                         'details')
 
 register.preref.parsers(parse.name.description,
                         'param',
+                        'slot',
                         'method')
 
 register.preref.parsers(parse.name,
@@ -37,71 +38,35 @@ register.preref.parsers(parse.default,
                         'noRd')
 
 
-register.srcref.parsers(function(call, env) {
-  assignee <- as.character(call[[2]])
-  
-  # If it doesn't exist (any more), don't document it.
-  if (!exists(assignee, env)) return()
-  value <- get(assignee, env)
-  
-  out <- list(assignee = as.character(assignee))
-  out$fun <- is.function(value)
-  
-  if (out$fun) {
-    out$formals <- formals(value)
-  } else if (inherits(value, "refObjectGenerator")) {
-    # Reference class
-  } else {
-    if (is.null(out$docType)) out$docType <- "data"
-    out$str <- str_c(capture.output(str(value, max.level = 1)), 
-      collapse = "\n")
-  }
-  out
-}, '<-', '=')
-
-
-register.srcref.parser('setClass', function(call, env) {
-  list(S4class = as.character(call$Class))
-})
-
-register.srcref.parser('setGeneric', function(call, env) {
-  list(S4generic = as.character(call$name))
-})
-
-register.srcref.parser('setMethod', function(call, env) {
-  list(
-    S4method = as.character(call$f), 
-    signature = as.character(call$signature))
-})
 
 #' Roclet: make Rd files.
 #'
 #' This roclet is the workhorse of \pkg{roxygen}, producing the Rd files that
-#' document that functions in your package.  
+#' document that functions in your package.
 #'
 #' This roclet also automatically runs \code{\link[tools]{checkRd}} on all
 #' generated Rd files so that you know as early as possible if there's a
 #' problem.
 #'
 #' @section Required tags:
-#' 
+#'
 #' As well as a title and description, extracted from the first sentence and
 #' first paragraph respectively, all functions must have the following tags:
 #'
 #' \describe{
 #'
-#'  \item{\code{@@param name description}}{Document a parameter.  
+#'  \item{\code{@@param name description}}{Document a parameter.
 #'    Documentation is required for every parameter.}
 #'
 #'  \item{\code{@@inheritParams source_function}}{Alternatively, you can
 #'    inherit parameter description from another function. This tag will
 #'    bring in all documentation for parameters that are undocumented in the
-#'    current function, but documented in the source function. The source 
+#'    current function, but documented in the source function. The source
 #'    can be a function in the current package, \code{function}, or another
 #'    package \code{package::function}.}
 #'
 #'  \item{\code{@@method generic class}}{Required if your function is an S3
-#'    method.  This helps R to distinguish between (e.g.) \code{t.test} and 
+#'    method.  This helps R to distinguish between (e.g.) \code{t.test} and
 #'    the \code{t} method for the \code{test} class.}
 #'
 #'  }
@@ -109,35 +74,35 @@ register.srcref.parser('setMethod', function(call, env) {
 #' @section Optional tags that add extra information:
 #'
 #' Valid tags for \code{rd_roclet} are:
-#' 
+#'
 #' \describe{
 #'
 #'  \item{\code{@@examples R code...}}{Highly recommended: example code that
 #'    demonstrates how to use your function.  Use \\dontrun{} to tag code
 #'    that should not automatically be run.}
-#' 
+#'
 #'  \item{\code{@@example path/relative/to/packge/root}}{Instead of including
-#'    examples directly in the documentation, you can include them as 
+#'    examples directly in the documentation, you can include them as
 #'    separate files, and use the \code{@@example} tag to insert them into
 #'    the documentation.}
 #'
-#'  \item{\code{@@return}}{Used to document the object returned by the 
-#'    function. For lists, use the \code{\\item{name a}{description a}} 
+#'  \item{\code{@@return}}{Used to document the object returned by the
+#'    function. For lists, use the \code{\\item{name a}{description a}}
 #'    describe each component of the list}
 #'
-#'  \item{\code{@@author authors...}}{A free text string describing the 
+#'  \item{\code{@@author authors...}}{A free text string describing the
 #'    authors of the function.  This is typically only necessary if the
 #'    author is not the same as the package author.}
 #'
 #'  \item{\code{@@note contents}}{Create a note section containing additional
 #'    information.}
-#' 
+#'
 #'  \item{\code{@@section Name: contents}}{Use to add to an arbitrary section
 #'    to the documentation. The name of the section will be the content before
-#'    the first colon, and the contents will be everything after the colon.} 
+#'    the first colon, and the contents will be everything after the colon.}
 #'
-#'  \item{\code{@@keywords keyword1 keyword2 ...}}{Keywords are optional, 
-#'    but if present, must be taken from the list in 
+#'  \item{\code{@@keywords keyword1 keyword2 ...}}{Keywords are optional,
+#'    but if present, must be taken from the list in
 #'    \file{file.path(R.home(), "doc/KEYWORDS")}.  Use the \code{internal}
 #'    keyword for functions that should not appear in the main function
 #'    listing.}
@@ -148,10 +113,10 @@ register.srcref.parser('setMethod', function(call, env) {
 #'
 #' \describe{
 #'
-#'  \item{\code{@@aliases space separated aliases}}{Add additional aliases, 
-#'    through which the user can find the documentation with \code{?}. 
+#'  \item{\code{@@aliases space separated aliases}}{Add additional aliases,
+#'    through which the user can find the documentation with \code{?}.
 #'    The topic name is always included in the list of aliases.}
-#' 
+#'
 #'  \item{\code{@@concepts space separated concepts}}{Similar to
 #'    \code{@@aliases} but for \code{\link{help.search}}}
 #'
@@ -169,20 +134,20 @@ register.srcref.parser('setMethod', function(call, env) {
 #' @template template
 #' @section Optional tags that override defaults:
 #'
-#' These tags all override the default values that roxygen guess from 
+#' These tags all override the default values that roxygen guess from
 #' inspecting the source code.
-#' 
+#'
 #' \describe{
 #'
 #'  \item{\code{@@rdname filename}}{Overrides the output file name (without
 #'    extension). This is useful if your function has a name that is not
 #'    a valid filename (e.g. \code{[[<-}), or you want to merge documentation
 #'    for multiple function into a single file.}
-#' 
-#'  \item{\code{@@title Topic title}}{Specify the topic title, which by 
+#'
+#'  \item{\code{@@title Topic title}}{Specify the topic title, which by
 #'    by default is taken from the first sentence of the roxygen block.}
 #'
-#'  \item{\code{@@usage usage_string}}{Override the default usage string. 
+#'  \item{\code{@@usage usage_string}}{Override the default usage string.
 #'    You should not need to use this tag - if you are trying to document
 #'    multiple functions in the same topic, use \code{@@rdname}.}
 #'
@@ -190,7 +155,7 @@ register.srcref.parser('setMethod', function(call, env) {
 #'
 #' @section Tags for non-functions:
 #'
-#' These tags are useful when documenting things that aren't functions, 
+#' These tags are useful when documenting things that aren't functions,
 #' datasets and packages.
 #'
 #' \describe{
@@ -200,15 +165,18 @@ register.srcref.parser('setMethod', function(call, env) {
 #'    immediately following the roxygen block. This tag is useful when
 #'    documenting datasets, and other non-function elements.}
 #'
-#'  \item{\code{@@docType type}}{Type of object being documented. Useful 
+#'  \item{\code{@@docType type}}{Type of object being documented. Useful
 #'    values are \code{data} and \code{package}. Package doc type will
 #'    automatically add a \code{package-} alias if needed.}
-#' 
+#'
 #'  \item{\code{@@format description}}{A textual description of the format
 #'    of the object.}
 #'
 #'  \item{\code{@@source text}}{The original source of the data.}
-#' 
+#'
+#'  \item{\code{@@slot name description}}{Describe the slots of an S4 class
+#'    in a standard way. Slots will be listed in their own section.}
+#'
 #'}
 #' @family roclets
 #' @examples
@@ -220,139 +188,76 @@ rd_roclet <- function() {
   new_roclet(list(), "had")
 }
 
-#' @S3method roc_process had
-roc_process.had <- function(roclet, partita, base_path) {
+#' @export
+#' @importFrom digest digest
+roc_process.had <- function(roclet, partita, base_path, options = list()) {
   # Remove srcrefs with no attached roxygen comments
   partita <- Filter(function(x) length(x) > 1, partita)
-  templates <- dir(file.path(base_path, "max-roxygen"), full = TRUE)
-  template_hash <- digest(lapply(templates, readLines))
-  
+
   topics <- list()
   for (partitum in partita) {
-    key <- c(template_hash, digest(partitum))
-    new <- rd_proc_cache$compute(key, roclet_rd_one(partitum, base_path)) 
-    if (is.null(new)) next; 
-    # Clone output so cached object isn't modified
-    new$rd[[1]] <- list2env(as.list(new$rd[[1]]))
+    new <- roclet_rd_one(partitum, base_path)
+    if (is.null(new)) next
     
     old <- topics[[new$filename]]
     topics[[new$filename]] <- if (is.null(old)) new$rd else merge(old, new$rd)
   }
-  
+
   # Second parse through to process @family
-  invert <- function(x) {
-    if (length(x) == 0) return()
-    unstack(rev(stack(x)))
-  }
-  get_values <- function(topics, tag) {
-    tags <- lapply(topics, get_tag, tag)
-    tags <- Filter(Negate(is.null), tags)
-    lapply(tags, "[[", "values")
-  }
-  
-  family_lookup <- invert(get_values(topics, "family"))
-  name_lookup <- get_values(topics, "name")
+  topics <- process_family(topics)
+  # Final parse to process @inheritParams
+  process_inherit_params(topics)
+}
 
-  for(family in names(family_lookup)) {
-    related <- family_lookup[[family]]
-    
-    for(topic_name in related) {
-      topic <- topics[[topic_name]]
-      others <- setdiff(related, topic_name)
-      
-      if (length(others) < 1) next;
-      
-      other_topics <- sort(unlist(name_lookup[others], use.names = FALSE))
+invert <- function(x) {
+  if (length(x) == 0) return()
+  unstack(rev(stack(x)))
+}
+get_values <- function(topics, tag) {
+  tags <- lapply(topics, get_tag, tag)
+  tags <- Filter(Negate(is.null), tags)
+  lapply(tags, "[[", "values")
+}
 
-      links <- paste("\\code{\\link{", other_topics, "}}", 
-        collapse =", ", sep = "")
-      seealso <- paste("Other ", family, ": ", links, sep = "")
-      
-      add_tag(topic, new_tag("seealso", seealso))
-    }
-  }
-  
-  # And to process @inheritParams
-  
-  # Currently no topological sort, so @inheritParams will only traverse
-  # one-level - you can't inherit params that have been inherited from
-  # another function (and you can't currently use multiple inherit tags)
-  inherits <- get_values(topics, "inheritParams")
-  
-  for(topic_name in names(inherits)) {
-    topic <- topics[[topic_name]]
-    
-    for(inheritor in inherits[[topic_name]]) {
-      if (grepl("::", inheritor, fixed = TRUE)) {
-        # Reference to another package
-        pieces <- strsplit(inheritor, "::", fixed = TRUE)[[1]]
-        params <- rd_arguments(get_rd(pieces[2], pieces[1]))
-        
-      } else {
-        # Reference within this package        
-        rd_name <- names(Filter(function(x) inheritor %in% x, name_lookup))
-        
-        if (length(rd_name) != 1) {
-          warning("@inheritParams: can't find topic ", inheritor, 
-            call. = FALSE, immediate. = TRUE)
-          next
-        }
-        params <- get_tag(topics[[rd_name]], "arguments")$values  
-      }
-      params <- unlist(params)
 
-      missing_params <- setdiff(get_tag(topic, "formals")$values,
-        names(get_tag(topic, "arguments")$values))
-      matching_params <- intersect(missing_params, names(params))
-      
-      add_tag(topic, new_tag("arguments", params[matching_params]))
-    }
-    
-  }
-  
-  
-  topics
+hash_partitum <- function(partitum) {
+  partitum$object <- hash_object(partitum$object)
+  digest(partitum)
 }
 
 roclet_rd_one <- function(partitum, base_path) {
   rd <- new_rd_file()
-  
+
   # Add in templates
   partitum <- process_templates(partitum, base_path)
-  
+
   has_rd <- any(names(partitum) %in% c("description", "param", "return",
     "title", "example", "examples", "name", "rdname", "usage",
     "details", "introduction"))
   if (!has_rd) return()
-  
+
   if (any(names(partitum) == "noRd")) return()
-  
+
   # Figure out topic name
-  name <- partitum$name %||% partitum$S4class %||% partitum$S4method %||%
-    partitum$S4generic
-  # Only use assignee if it's a single element
-  if (is.null(name) && length(partitum$assignee) == 1) {
-     name <- partitum$assignee
-  }
-  if (is.null(name)) roxygen_stop("Missing name", srcref = partitum$srcref)
+  name <- partitum$name %||% default_topic_name(partitum$object) %||% 
+    roxygen_stop("Missing name", srcref = partitum$srcref)
 
   # Work out file name and initialise Rd object
   filename <- str_c(partitum$merge %||% partitum$rdname %||% nice_name(name),
     ".Rd")
-    
-  
+
   add_tag(rd, new_tag("encoding", partitum$encoding))
   add_tag(rd, new_tag("name", name))
-  add_tag(rd, new_tag("alias", name))
-  add_tag(rd, new_tag("formals", names(partitum$formals)))
+  add_tag(rd, alias_tag(partitum, name))
+  
+  formals <- formals(partitum$object$value)
+  add_tag(rd, new_tag("formals", names(formals)))
 
   add_tag(rd, process_description(partitum, base_path))
 
-  add_tag(rd, process_had_tag(partitum, 'aliases', function(tag, param) {
-    new_tag('alias', str_split(str_trim(param), "\\s+")[[1]])
-  }))
-  add_tag(rd, process.usage(partitum))
+  add_tag(rd, usage_tag(partitum))
   add_tag(rd, process.arguments(partitum))
+  add_tag(rd, process.slot(partitum))
   add_tag(rd, process.docType(partitum))
   add_tag(rd, process_had_tag(partitum, 'note'))
   add_tag(rd, process_had_tag(partitum, 'family'))
@@ -375,77 +280,30 @@ roclet_rd_one <- function(partitum, base_path) {
   list(rd = rd, filename = filename)
 }
 
-#' @S3method roc_output had
+#' @export
 #' @importFrom tools checkRd
-roc_output.had <- function(roclet, results, base_path) { 
+roc_output.had <- function(roclet, results, base_path, options = list()) {
   man <- normalizePath(file.path(base_path, "man"))
-  
-  contents <- vapply(results, FUN.VALUE = character(1), function(x) {
-    rd_out_cache$compute(x, format(x))
-  })
-  
-  write_out <- function(filename, contents) {
-    if (the_same(filename, contents)) return()
-    
-    name <- basename(filename)
-    if (!str_detect(name, "^[a-zA-Z][a-zA-Z0-9_.-]*$")) {
-      cat("Skipping invalid filename: ", name, "\n")
-    } else {
-      cat(sprintf('Writing %s\n', name))
-      writeLines(contents, filename)    
-      try(checkRd(filename))
-    }
-    
-  }
-  the_same <- function(path, new) {
-    if (!file.exists(path)) return(FALSE)
 
-    old <- str_c(readLines(path), collapse = "\n")
-    return(identical(old, new))
-  }
-  
+  contents <- vapply(results, format, wrap = options$wrap, 
+    FUN.VALUE = character(1))
+
   paths <- file.path(man, names(results))
-  mapply(write_out, paths, contents)    
+  mapply(write_if_different, paths, contents)
 }
 
-
-# Prefer explicit \code{@@usage} to a \code{@@formals} list.
-process.usage <- function(partitum) {
-  if (is.null(partitum$fun) || !partitum$fun) {
-    return(new_tag("usage", NULL))
-  }
-  
-  if (!is.null(partitum$usage)) {
-    return(new_tag("usage", partitum$usage))
-  }
-    
-  fun_name <- if (!is.null(partitum$method)) {
-    rd_tag('method', partitum$method[[1]], partitum$method[[2]])
-  } else {
-    partitum$assignee
-  }
-  args <- usage(partitum$formals)
-  
-  if (str_detect(fun_name, fixed("<-"))) {
-    fun_name <- str_replace(fun_name, fixed("<-"), "")
-    new_tag("usage", str_c(fun_name, "(", args, ") <- value"))
-  } else {
-    new_tag("usage", str_c(fun_name, "(", args, ")"))
-  }
-}
-
-# Process title, description and details. 
+# Process title, description and details.
 #
 # Split the introductory matter into its description followed
 # by details (separated by a blank line).
 process_description <- function(partitum, base_path) {
   intro <- partitum$introduction
-  
+
   if (!is.null(intro)) {
     paragraphs <- str_trim(str_split(intro, fixed('\n\n'))[[1]])
   } else {
     paragraphs <- NULL
-  } 
+  }
 
   # 1st paragraph = title (unless has @title)
   if (!is.null(partitum$title)) {
@@ -456,8 +314,8 @@ process_description <- function(partitum, base_path) {
   } else {
     title <- NULL
   }
-  
-  
+
+
   # 2nd paragraph = description (unless has @description)
   if (!is.null(partitum$description)) {
     description <- partitum$description
@@ -478,78 +336,75 @@ process_description <- function(partitum, base_path) {
   }
 
   c(new_tag("title", title),
-    new_tag("description", description), 
+    new_tag("description", description),
     new_tag("details", details))
 }
 
 process.arguments <- function(partitum) {
   params <- partitum[names(partitum) == "param"]
+  if (length(params) == 0) return()
+
+  desc <- str_trim(sapply(params, "[[", "description"))
+  names(desc) <- sapply(params, "[[", "name")
+
+  new_tag("arguments", desc)
+}
+
+process.slot <- function(partitum) {
+  params <- partitum[names(partitum) == "slot"]
   if (length(params) == 0) return() 
 
   desc <- str_trim(sapply(params, "[[", "description"))
   names(desc) <- sapply(params, "[[", "name")
   
-  new_tag("arguments", desc)
+  new_tag("slot", desc)
 }
 
 # If \code{@@examples} is provided, use that; otherwise, concatenate
 # the files pointed to by each \code{@@example}.
 process.examples <- function(partitum, base_path) {
   out <- list()
-  if (!is.null(partitum$examples)) {      
-    ex <- partitum$examples
-    ex <- gsub("([%\\])", "\\\\\\1", ex)
-    ex <- gsub("\\\\dont", "\\dont", ex)
+  if (!is.null(partitum$examples)) {
+    ex <- escape_examples(partitum$examples)
     out <- c(out, new_tag("examples", ex))
-  } 
-  
+  }
+
   paths <- unlist(partitum[names(partitum) == "example"])
   if (length(paths) > 0) {
     paths <- file.path(base_path, str_trim(paths))
     examples <- unlist(lapply(paths, readLines))
-    examples <- gsub("([%\\])", "\\\\\\1", examples)                        
-    
+    examples <- escape_examples(examples)
+
     out <- c(out, new_tag("examples", examples))
   }
   out
 }
+
 process.section <- function(key, value) {
   pieces <- str_split_fixed(value, ":", n = 2)[1, ]
-  
+
   new_tag("section", list(list(name = pieces[1], content = pieces[2])))
 }
 
 process.docType <- function(partitum) {
   doctype <- partitum$docType
-  
+
   if (is.null(doctype)) return()
   tags <- list(new_tag("docType", doctype))
-  
+
   if (doctype == "package") {
     name <- partitum$name
     if (!str_detect(name, "-package")) {
       tags <- c(tags, new_tag("alias", str_c(name, "-package")))
     }
-  } else if (doctype == "data") {
-    if (is.null(partitum$format)) {
-      tags <- c(tags, new_tag("format", partitum$str))
-    }
-    if (is.null(partitum$usage)) {
-      tags <- c(tags, new_tag("usage", partitum$assignee))
-    }
-    tags <- c(tags, new_tag("keyword", "datasets"))
   }
-  
+
   tags
 }
 
 process_had_tag <- function(partitum, tag, f = new_tag) {
-  matches <- partitum[names(partitum) == tag]
+  matches <- partitum[names(partitum) == tag]  
   if (length(matches) == 0) return()
 
   unlist(lapply(matches, function(p) f(tag, p)), recursive = FALSE)
 }
-
-# warning("All roxygen elements must have name: ",
-#   partitum$srcref$filename, ":", partitum$srcref$lloc[1], ":",
-#   partitum$srcref$lloc[2], call. = FALSE)

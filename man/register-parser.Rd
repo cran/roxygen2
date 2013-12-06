@@ -1,11 +1,8 @@
 \name{register.preref.parser}
 \alias{register.preref.parser}
-\alias{register.srcref.parser}
 \title{Register parsers.}
 \usage{
-  register.preref.parser(key, parser)
-
-  register.srcref.parser(key, parser)
+register.preref.parser(key, parser)
 }
 \arguments{
   \item{key}{the key upon which to register}
@@ -14,10 +11,10 @@
   taking \code{key} and \code{expression}}
 }
 \value{
-  \code{NULL}
+\code{NULL}
 }
 \description{
-  Register parsers.
+Register parsers.
 }
 \keyword{internal}
 

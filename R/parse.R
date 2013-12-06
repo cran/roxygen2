@@ -1,56 +1,76 @@
-#' Parse a source file containing roxygen directives.
-#'
-#' @param file string naming file to be parsed
-#' @return List containing parsed directives
-#' @keywords internal
-#' @export
-parse.file <- function(file, env, env_hash) {
-  srcfile <- srcfile(file)
+parse_package <- function(base_path, load_code) {
+  env <- load_code(base_path)
+  parsed <- lapply(r_files(base_path), parse_file, env = env)
   
-  parse_cache$compute(c(env_hash, readLines(file, warn = FALSE)), {
-    src_refs <- attributes(parse(srcfile$filename, srcfile = srcfile))$srcref
-    pre_refs <- prerefs(srcfile, src_refs)
-
-    if (length(src_refs) == 0) return(list())
-
-    src_parsed <- lapply(src_refs, parse.srcref, env = env)
-    pre_parsed <- lapply(pre_refs, parse.preref)
-
-    stopifnot(length(src_parsed) == length(pre_parsed))
-
-    mapply(c, src_parsed, pre_parsed, SIMPLIFY = FALSE)    
-  })
+  unlist(parsed, recursive = FALSE)
 }
 
-#' Parse many files at once.
-#'
-#' @param \dots files to be parsed
-#' @return List containing parsed directives
-#' @seealso \code{\link{parse.file}}
-#' @keywords internal
-#' @export
-parse.files <- function(paths) {
-  # Source all files into their own environment so that parsing code can
-  # access them.
-  env <- new.env(parent = parent.env(globalenv()))
-  env_hash <- suppressWarnings(digest(env))
-  
-  setPackageName("test", env)
-  lapply(paths, sys.source, chdir = TRUE, envir = env)
-  
-  unlist(lapply(paths, parse.file, env = env, env_hash = env_hash), 
-    recursive = FALSE)
-}
-  
-#' Text-parsing hack using tempfiles for more facility.
-#'
-#' @param text stringr containing text to be parsed
-#' @return The parse tree
-#' @keywords internal
-#' @export
-parse.text <- function(text) {
+
+parse_text <- function(text) {
   file <- tempfile()
   writeLines(text, file)
   on.exit(unlink(file))
-  parse.files(file)
+
+  env <- new.env(parent = parent.env(globalenv()))
+  attr(env, "hash") <- suppressWarnings(digest(env))
+  setPackageName("roxygen_devtest", env)
+  
+  sys.source(file, envir = env)
+  parse_file(file, env)
+}
+
+parse_file <- function(file, env, env_hash = attr(env, "hash")) {
+  parsed <- parse(file = file, keep.source = TRUE)
+  if (length(parsed) == 0) return()
+  
+  refs <- getSrcref(parsed)
+  comment_refs <- comments(refs)
+  
+  extract <- function(call, ref, comment_ref) {
+    preref <- parse.preref(as.character(comment_ref))
+    if (is.null(preref)) return()
+
+    preref$object <- object_from_call(call, env, preref)
+    preref$srcref <- list(filename = file, lloc = as.vector(ref))
+
+    add_defaults(preref)
+  }
+
+  Map(extract, parsed, refs, comment_refs)
+}
+
+# For each src ref, find the comment block preceeding it
+comments <- function(refs) {
+  srcfile <- attr(refs[[1]], "srcfile")
+  
+  # first_line, first_byte, last_line, last_byte
+  com <- vector("list", length(refs))
+  for(i in seq_along(refs)) {
+    # Comments begin after last line of last block, and continue to
+    # first line of this block
+    if (i == 1) {
+      first_byte <- 1
+      first_line <- 1
+    } else {
+      first_byte <- refs[[i - 1]][4] + 1
+      first_line <- refs[[i - 1]][3]
+    }
+    
+    last_line <- refs[[i]][1]
+    last_byte <- refs[[i]][2] - 1
+    if (last_byte == 0) {
+      if (last_line == 1) {
+        last_byte <- 1
+        last_line <- 1
+      } else {
+        last_line <- last_line - 1
+        last_byte <- 1e3
+      }
+    }
+    
+    lloc <- c(first_line, first_byte, last_line, last_byte)
+    com[[i]] <- srcref(srcfile, lloc)
+  }
+  
+  com
 }
