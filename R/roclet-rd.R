@@ -196,7 +196,15 @@ roc_process.had <- function(roclet, partita, base_path, options = list()) {
 
   topics <- list()
   for (partitum in partita) {
-    new <- roclet_rd_one(partitum, base_path)
+    withCallingHandlers({
+      new <- roclet_rd_one(partitum, base_path)
+    }, error = function(e) {
+      loc <- srcref_location(partitum$srcref)
+      msg <- paste0("Roclet processing error", loc, "\n", e$message)
+      call <- sys.call(-2)
+      stop(simpleError(msg, call))
+    })
+    
     if (is.null(new)) next
     
     old <- topics[[new$filename]]
@@ -250,11 +258,14 @@ roclet_rd_one <- function(partitum, base_path) {
   add_tag(rd, new_tag("name", name))
   add_tag(rd, alias_tag(partitum, name))
   
-  formals <- formals(partitum$object$value)
-  add_tag(rd, new_tag("formals", names(formals)))
+  if (is.function(partitum$object$value)) {
+    formals <- formals(partitum$object$value)
+    add_tag(rd, new_tag("formals", names(formals)))    
+  }
 
   add_tag(rd, process_description(partitum, base_path))
-
+  add_tag(rd, process_methods(partitum))
+  
   add_tag(rd, usage_tag(partitum))
   add_tag(rd, process.arguments(partitum))
   add_tag(rd, process.slot(partitum))
@@ -290,6 +301,8 @@ roc_output.had <- function(roclet, results, base_path, options = list()) {
 
   paths <- file.path(man, names(results))
   mapply(write_if_different, paths, contents)
+  
+  paths
 }
 
 # Process title, description and details.
@@ -339,6 +352,26 @@ process_description <- function(partitum, base_path) {
     new_tag("description", description),
     new_tag("details", details))
 }
+
+
+process_methods <- function(block) {
+  obj <- block$object
+  if (!inherits(obj, "rcclass")) return()
+  
+  methods <- obj$methods
+  if (is.null(obj$methods)) return()
+  
+  method_desc <- function(obj) {
+    desc <- docstring(obj$value@.Data)
+    if (is.null(desc)) return()
+    
+    paste0("\\code{", function_usage(obj$name, formals(obj$value@.Data)),  "}: ", desc)
+  }
+
+  descs <- unlist(lapply(methods, method_desc))
+  new_tag("rcmethods", descs)
+}
+
 
 process.arguments <- function(partitum) {
   params <- partitum[names(partitum) == "param"]

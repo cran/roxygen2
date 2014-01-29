@@ -43,10 +43,12 @@ parser_assignment <- function(call, env, block) {
   
   if (inherits(value, "refObjectGenerator")) {
     class <- as.character(value@className)
-    object("rcclass", class, getRefClass(class), alias = assignee)
+    object("rcclass", class, getRefClass(class, where = env), 
+      methods = rc_methods(value), 
+      alias = assignee)
   } else if (inherits(value, "classGeneratorFunction")) {
     class <- as.character(value@className)
-    object("s4class", class, getClass(class), alias = assignee)
+    object("s4class", class, getClass(class, where = env), alias = assignee)
   } else if (is.function(value)) {
     method <- unlist(block$method, use.names = FALSE)
     value <- add_s3_metadata(value, assignee, env, method)
@@ -67,7 +69,7 @@ parser_assignment <- function(call, env, block) {
 #' @importFrom methods getClass
 parser_setClass <- function(call, env, block) {
   name <- as.character(call$Class)
-  value <- getClass(name)
+  value <- getClass(name, where = env)
 
   object("s4class", name, value)
 }
@@ -75,9 +77,9 @@ parser_setClass <- function(call, env, block) {
 #' @importFrom methods getRefClass
 parser_setRefClass <- function(call, env, block) {
   name <- as.character(call$Class)
-  value <- getRefClass(name)
+  value <- getRefClass(name, where = env)
   
-  object("rcclass", name, value)
+  object("rcclass", name, value, methods = rc_methods(value))
 }
 
 #' @importFrom methods getGeneric
