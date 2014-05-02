@@ -1,5 +1,5 @@
 #' In-line documentation for R.
-#' 
+#'
 #' Roxygen is a Doxygen-like documentation system for R; allowing
 #' in-source specification of Rd files, collation and namespace
 #' directives.
@@ -16,8 +16,11 @@
 #' @name roxygen
 #' @docType package
 #' @useDynLib roxygen2
+#' @importFrom Rcpp sourceCpp
 #' @examples
 #' \dontrun{roxygenize('pkg')}
-#' @seealso See \code{\link{namespace_roclet}}, \code{\link{rd_roclet}}, 
-#' for an overview of roxygen tags.
+#' @seealso See \code{vignette("roxygen2", package = "roxygen2")} for an overview
+#'   of the package, \code{vignette("rd", package = "roxygen2")} for generating
+#'   documentation, and \code{vignette("namespace", package = "roxygen2")} for
+#'   generating the namespace specification.
 NULL

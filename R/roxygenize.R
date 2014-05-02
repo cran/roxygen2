@@ -6,32 +6,37 @@
 #' \code{\link{namespace_roclet}}, and for \code{\link{update_collate}},
 #' for more details.
 #'
-#' @param package.dir the package's top directory
-#' @param roxygen.dir,copy.package,overwrite,unlink.target deprecated
-#' @param roclets character vector of roclet names to apply to package. 
-#'   This defaults to \code{NULL}, which will use the \code{roclets} fields in 
-#'   the list provided in the \code{Roxygen} DESCRIPTION field. If none are 
+#' Note that roxygen2 is a dynamic documentation system: it works using
+#' by inspecting loaded objects in the package. This means that you must
+#' be able to load the package in order to document it.
+#' \code{\link{source_package}} provides a simple simulation of package
+#' loading that works if you only have R files in your package. For more
+#' complicated packages, I recommend using \code{devtools::document} which
+#' does a much better job at simulating package install and load.
+#'
+#' @param package.dir Location of package top level directory. Default is
+#'   working directory.
+#' @param roclets Character vector of roclet names to use with package.
+#'   This defaults to \code{NULL}, which will use the \code{roclets} fields in
+#'   the list provided in the \code{Roxygen} DESCRIPTION field. If none are
 #'   specified, defaults to \code{c("collate", "namespace", "rd")}.
 #' @param load_code A function used to load all the R code in the package
 #'   directory. It is called with the path to the package, and it should return
 #'   an environment containing all the sourced code.
+#' @param clean If \code{TRUE}, roxygen will delete all files previously
+#'   created by roxygen before running each roclet.
 #' @return \code{NULL}
 #' @export
 roxygenize <- function(package.dir = ".",
-                       roxygen.dir=package.dir,
-                       copy.package=package.dir != roxygen.dir,
-                       overwrite=TRUE,
-                       unlink.target=FALSE,
                        roclets = NULL,
-                       load_code = source_package) {
-  if (copy.package) {
-    stop("Non-inplace roxygen no longer supported")
-  }
+                       load_code = source_package,
+                       clean = FALSE) {
+  first_time_check(package.dir)
 
   base_path <- normalizePath(package.dir)
   man_path <- file.path(base_path, "man")
   dir.create(man_path, recursive = TRUE, showWarnings = FALSE)
-  
+
   options <- load_options(base_path)
   roclets <- roclets %||% options$roclets
 
@@ -44,11 +49,15 @@ roxygenize <- function(package.dir = ".",
 
   parsed <- parse_package(base_path, load_code)
 
-  roclets <- str_c(roclets, "_roclet", sep = "")
+  roclets <- paste0(roclets, "_roclet", sep = "")
   roc_out <- function(roclet) {
     roc <- get(roclet, mode = "function")()
+
+    if (clean) {
+      clean(roc, base_path)
+    }
     results <- roc_process(roc, parsed, base_path, options = options)
-    roc_output(roc, results, base_path, options = options)    
+    roc_output(roc, results, base_path, options = options)
   }
   invisible(unlist(lapply(roclets, roc_out)))
 }
@@ -60,15 +69,20 @@ roxygenise <- roxygenize
 load_options <- function(base_path) {
   desc_path <- file.path(base_path, "DESCRIPTION")
   desc_opts <- read.dcf(desc_path, fields = "Roxygen")[[1, 1]]
-  
+
   if (is.na(desc_opts)) {
     opts <- list()
   } else {
     opts <- eval(parse(text = desc_opts))
   }
-  
+  if (!("wrap" %in% names(opts)))
+    message("Using the default option wrap = FALSE ",
+            "since it was not specified in the Roxygen field in DESCRIPTION. ",
+            "To configure this explicitly, add the following line to the DESCRIPTION file: ",
+            "`Roxygen: list(wrap = FALSE)`")
+
   defaults <- list(
-    wrap = TRUE,
+    wrap = FALSE,
     roclets = c("collate", "namespace", "rd")
   )
   modifyList(defaults, opts)

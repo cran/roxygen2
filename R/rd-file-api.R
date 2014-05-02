@@ -12,7 +12,7 @@ copy_env <- function(x) {
 
 #' @export
 print.rd_file <- function(x, ...) {
-  cat("Rd file with tags ", str_c(names(x), collapse = ", "), "\n", sep = "")
+  cat("Rd file with tags ", paste0(names(x), collapse = ", "), "\n", sep = "")
 }
 
 #' @export
@@ -23,15 +23,17 @@ names.rd_file <- function(x) {
 #' @export
 format.rd_file <- function(x, ...) {
   tags <- as.list(x[[1]])
-  order <- c("docType", "encoding", "name", "alias", "title", "format",
-    "source", "usage", "arguments", "value", "description", 
-    "details", "slot", "rcmethods", "note", "section", "examples", 
-    "author", "references", "seealso", "concept", "keyword")
+  order <- c("docType", "encoding", "name", "alias", "title",
+    "format", "source", "usage", "param", "value", "description",
+    "details", "minidesc", "field", "slot", "rcmethods", "note",
+    "section", "examples", "author", "references", "seealso",
+    "concept", "keyword")
 
   tags <- tags[intersect(order, names(tags))]
 
   formatted <- lapply(tags, "format", ...)
-  str_c(unlist(formatted), collapse = "")
+
+  paste0(made_by("%"), paste0(unlist(formatted), collapse = ""))
 }
 
 #' @export

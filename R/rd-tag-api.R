@@ -10,7 +10,7 @@ new_tag <- function(tag, values) {
   # NULL is special sentinel value that suppresses output of that tag
   if (identical(values, "NULL")) return()
 
-  subc <- str_c(tag, "_tag")
+  subc <- paste0(tag, "_tag")
   list(structure(list(tag = tag, values = values), class = c(subc, "rd_tag")))
 }
 
@@ -25,12 +25,12 @@ print.rd_tag <- function(x, ...) {
 # own braces.
 rd_tag <- function(tag, ..., space = FALSE) {
   if (space) {
-    values <- str_c("\n", str_c(..., collapse = "\n"), "\n")
+    values <- paste0("\n", paste0(..., collapse = "\n"), "\n")
   } else {
     values <- str_trim(c(...))
   }
 
-  str_c("\\", tag, str_c("{", values, "}", collapse = ""), "\n")
+  paste0("\\", tag, paste0("{", values, "}", collapse = ""), "\n")
 }
 
 #' @export
@@ -40,6 +40,17 @@ format.rd_tag <- function(x, ...) stop("Unimplemented format")
 merge.rd_tag <- function(x, y, ...) {
   stopifnot(identical(class(x), class(y)))
   new_tag(x$tag, c(x$values, y$values))
+}
+
+#' @export
+merge.minidesc_tag <- function(x, y, ...) {
+  if (x$values$type != y$values$type) {
+    stop("Can't merge @minidesc of different types", call. = FALSE)
+  }
+
+  x$values$desc <- c(x$values$desc, y$values$desc)
+  x$values$label <- c(x$values$label, y$values$label)
+  list(x)
 }
 
 # Tags that repeat multiple times --------------------------------------------
@@ -77,7 +88,7 @@ format.encoding_tag <- format_first
 # Tags collapse their values into a single string ----------------------------
 
 format_collapse <- function(x, ..., indent = 0, exdent = 0, wrap = TRUE) {
-  values <- str_c(x$values, collapse = "\n\n")
+  values <- paste0(x$values, collapse = "\n\n")
   if (wrap) {
     values <- str_wrap(values, width = 60, indent = indent, exdent = exdent)
   }
@@ -121,48 +132,78 @@ format.usage_tag <- function(x, ...) {
 }
 
 #' @export
-format.arguments_tag <- function(x, ...) {
+format.param_tag <- function(x, ..., wrap = TRUE) {
   names <- names(x$values)
   dups <- duplicated(names)
 
-  items <- str_c("\\item{", names, "}{", x$values, "}", collapse = "\n\n")
-  rd_tag("arguments", str_wrap(items, width = 60, exdent = 2, indent = 2),
-    space = TRUE)
+  items <- paste0("\\item{", names, "}{", x$values, "}", collapse = "\n\n")
+  if (wrap) {
+    items <- str_wrap(items, width = 60, exdent = 2, indent = 2)
+  }
+
+  rd_tag("arguments", items, space = TRUE)
 }
 
 #' @export
-format.section_tag <- function(x, ...) {
+format.section_tag <- function(x, ..., wrap = TRUE) {
   names <- vapply(x$values, "[[", "name", FUN.VALUE = character(1))
 
   contents <- vapply(x$values, "[[", "content", FUN.VALUE = character(1))
-  contents <- str_wrap(str_trim(contents), width = 60, exdent = 2, indent = 2)
+  if (wrap) {
+    contents <- str_wrap(str_trim(contents), width = 60, exdent = 2, indent = 2)
+  }
 
-  setions <- str_c("\\section{", names, "}{\n", contents, "\n}\n",
+  setions <- paste0("\\section{", names, "}{\n", contents, "\n}\n",
     collapse = "\n")
 }
 
 #' @export
 format.slot_tag <- function(x, ...) {
-  names <- names(x$values)
-  items <- str_c("\\item{\\code{", names, "}}{", x$values, "}", collapse = "\n\n")
-  str_c("\\section{Slots}{\n\n",
-    "\\describe{\n", 
-    items,
-    "\n}}\n")
+  describe_section("Slots", names(x$values), x$values)
 }
 
 #' @export
+format.field_tag <- function(x, ...) {
+  describe_section("Fields", names(x$values), x$values)
+}
+
+describe_section <- function(name, dt, dd) {
+  if (length(dt) == 0) return("")
+
+  items <- paste0("\\item{\\code{", dt, "}}{", dd, "}", collapse = "\n\n")
+  paste0("\\section{", name, "}{\n\n",
+    "\\describe{\n",
+    items,
+    "\n}}\n"
+  )
+}
+
+
+
+#' @export
 format.examples_tag <- function(x, ...) {
-  values <- str_c(x$values, collapse = "\n")
+  values <- paste0(x$values, collapse = "\n")
   rd_tag(x$tag, values, space = TRUE)
 }
 
 #' @export
 format.rcmethods_tag <- function(x, ...) {
+  describe_section("Methods", names(x$values), x$values)
+}
+
+#' @export
+format.minidesc_tag <- function(x, ...) {
+  title <- switch(x$values$type,
+    generic = "Methods (by class)",
+    class = "Methods (by generic)",
+    "function" = "Functions"
+  )
+
   paste0(
-    "\\section{Methods}{\n", 
-    "\\itemize{\n", 
-    paste0("\\item ", x$values, collapse = "\n\n"),
+    "\\section{", title, "}{\n",
+    "\\itemize{\n",
+    paste0("\\item \\code{", x$values$label, "}: ", x$values$desc,
+      collapse = "\n\n"),
     "\n}}\n"
   )
 }
