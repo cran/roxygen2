@@ -155,22 +155,26 @@ roclet_rd_one <- function(partitum, base_path, env) {
 }
 
 #' @export
-roc_output.had <- function(roclet, results, base_path, options = list()) {
+roc_output.had <- function(roclet, results, base_path, options = list(),
+                           check = TRUE) {
   man <- normalizePath(file.path(base_path, "man"))
 
   contents <- vapply(results, format, wrap = options$wrap,
     FUN.VALUE = character(1))
 
   paths <- file.path(man, names(results))
-  mapply(write_if_different, paths, contents)
+  mapply(write_if_different, paths, contents, MoreArgs = list(check = check))
 
-  # Automatically delete any files in man directory that were generated
-  # by roxygen in the past, but weren't generated in this sweep.
-  old_paths <- setdiff(dir(man, full.names = TRUE), paths)
-  old_roxygen <- Filter(made_by_roxygen, old_paths)
-  if (length(old_roxygen) > 0) {
-    cat(paste0("Deleting ", basename(old_roxygen), collapse = "\n"), "\n", sep = "")
-    unlink(old_roxygen)
+  if (check) {
+    # Automatically delete any files in man directory that were generated
+    # by roxygen in the past, but weren't generated in this sweep.
+
+    old_paths <- setdiff(dir(man, full.names = TRUE), paths)
+    old_roxygen <- Filter(made_by_roxygen, old_paths)
+    if (length(old_roxygen) > 0) {
+      cat(paste0("Deleting ", basename(old_roxygen), collapse = "\n"), "\n", sep = "")
+      unlink(old_roxygen)
+    }
   }
 
   paths
