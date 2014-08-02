@@ -20,9 +20,13 @@ cat.description <- function(field, value, file='') {
 
   if (comma_sep) {
     value <- strsplit(value, ",\\s+")[[1]]
-    value <- gsub("^\\s+|\\s+$", "", value)
-    value_string <- paste("    ", value, collapse = ",\n", sep = "")
-    out <- paste(field, ":\n", value_string, sep = "")
+    if (length(value)==0) {
+    	out <- paste0(field, ":")} 
+    else {
+	    value <- gsub("^\\s+|\\s+$", "", value)
+      value_string <- paste("    ", value, collapse = ",\n", sep = "")
+      out <- paste(field, ":\n", value_string, sep = "")
+    }
   } else {
     width <- if (individual_lines) 0 else 80
     out <- wrap_field_if_necessary(field, value, wrap.threshold = width)
