@@ -1,4 +1,3 @@
-
 ## ----, echo = FALSE, message = FALSE-------------------------------------
 knitr::opts_chunk$set(
   comment = "#>",
@@ -6,13 +5,11 @@ knitr::opts_chunk$set(
   tidy = FALSE
 )
 
-
 ## ------------------------------------------------------------------------
 #' \enumerate{
 #'   \item First item
 #'   \item Second item
 #' }
-
 
 ## ------------------------------------------------------------------------
 #' \itemize{
@@ -20,13 +17,11 @@ knitr::opts_chunk$set(
 #'   \item Second item
 #' }
 
-
 ## ------------------------------------------------------------------------
 #' \describe{
 #'   \item{One}{First item}
 #'   \item{Two}{Second item}
 #' }
-
 
 ## ------------------------------------------------------------------------
 tabular <- function(df, ...) {

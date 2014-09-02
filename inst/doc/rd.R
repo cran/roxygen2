@@ -1,11 +1,9 @@
-
 ## ----, echo = FALSE, message = FALSE-------------------------------------
 knitr::opts_chunk$set(
   comment = "#>",
   error = FALSE,
   tidy = FALSE
 )
-
 
 ## ------------------------------------------------------------------------
 #' Add together two numbers
@@ -20,7 +18,6 @@ add <- function(x, y) {
   x + y
 }
 
-
 ## ------------------------------------------------------------------------
 #' Sum of vector elements.
 #'
@@ -31,7 +28,6 @@ add <- function(x, y) {
 #' the arguments \code{...} should be unnamed, and dispatch is on the
 #' first argument.
 sum <- function(..., na.rm = TRUE) {}
-
 
 ## ------------------------------------------------------------------------
 #' @title Sum of vector elements.
@@ -46,13 +42,11 @@ sum <- function(..., na.rm = TRUE) {}
 #' first argument.
 sum <- function(..., na.rm = TRUE) {}
 
-
 ## ------------------------------------------------------------------------
 #' @family aggregate functions
 #' @seealso \code{\link{prod}} for products, \code{\link{cumsum}} for
 #'  cumulative sums, and \code{\link{colSums}}/\code{\link{rowSums}}
 #'  marginal sums over high-dimensional arrays.
-
 
 ## ------------------------------------------------------------------------
 #' Sum of vector elements.
@@ -88,7 +82,6 @@ sum <- function(..., na.rm = TRUE) {}
 #' }
 sum <- function(..., na.rm = TRUE) {}
 
-
 ## ------------------------------------------------------------------------
 #' An S4 class to represent a bank account.
 #'
@@ -96,7 +89,6 @@ sum <- function(..., na.rm = TRUE) {}
 Account <- setClass("Account",
   slots = list(balance = "numeric")
 )
-
 
 ## ------------------------------------------------------------------------
 #' A Reference Class to represent a bank account.
@@ -111,7 +103,6 @@ Account <- setRefClass("Account",
     }
   )
 )
-
 
 ## ------------------------------------------------------------------------
 #' Prices of 50,000 round cut diamonds.
@@ -130,7 +121,6 @@ Account <- setRefClass("Account",
 #' @name diamonds
 NULL
 
-
 ## ------------------------------------------------------------------------
 #' Generate R documentation from inline comments.
 #'
@@ -145,7 +135,6 @@ NULL
 #' @name roxygen2
 NULL
 
-
 ## ------------------------------------------------------------------------
 #' Foo bar generic
 #'
@@ -158,7 +147,6 @@ foobar.numeric <- function(x) abs(mean(x) - median(x))
 #' @describeIn foobar First and last values pasted together in a string.
 foobar.character <- function(x) paste0(x[1], "-", x[length(x)])
 
-
 ## ------------------------------------------------------------------------
 #' Basic arithmetic
 #'
@@ -167,7 +155,6 @@ add <- function(x, y) x + y
 
 #' @rdname add
 times <- function(x, y) x * y
-
 
 ## ------------------------------------------------------------------------
 #' Basic arithmetic
@@ -182,11 +169,9 @@ add <- function(x, y) x + y
 #' @rdname arith
 times <- function(x, y) x * y
 
-
 ## ------------------------------------------------------------------------
 #' @section Warning:
 #' Do not operate heavy machinery within 8 hours of using this function.
-
 
 ## ------------------------------------------------------------------------
 #' @section Warning:

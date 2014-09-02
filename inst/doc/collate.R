@@ -1,4 +1,3 @@
-
 ## ----, echo = FALSE, message = FALSE-------------------------------------
 knitr::opts_chunk$set(
   comment = "#>",
@@ -6,9 +5,7 @@ knitr::opts_chunk$set(
   tidy = FALSE
 )
 
-
 ## ----, eval = FALSE------------------------------------------------------
-## #' @include class-a.r
-## setClass("B", contains = "A")
-
+#  #' @include class-a.r
+#  setClass("B", contains = "A")
 
