@@ -232,7 +232,7 @@ Documenting classes, generics and methods are relatively straightforward, but th
 
 S3 __generics__ are regular functions, so document them as such. S3 __classes__ have no formal definition, so document the constructor function. It is your choice whether or not to document S3 __methods__. You don't need to document methods for simple generics like `print()`. If your method is more complicated, you should document it so people know what the parameters do. In base R, you can find documentation for more complex methods like `predict.lm()`, `predict.glm()`, and `anova.glm()`.
 
-Older versions of roxygen required explicit `@method generic class` tags for all S3 methods. From 3.0.0 this is no longer needed as and roxygen2 will figure it out automatically. If you are upgrading, make sure to remove these old tags. Automatic method detection will only fail if the generic and class are ambiguous. For example is `all.equal.data.frame()` the `equal.data.frame` method for `all`, or the `data.frame` method for `all.equal`?. If this happens, you can disambiguate with (e.g.) `@method all.equal data.frame`.
+Older versions of roxygen required explicit `@method generic class` tags for all S3 methods. From 3.0.0 this is no longer needed as roxygen2 will figure it out automatically. If you are upgrading, make sure to remove these old tags. Automatic method detection will only fail if the generic and class are ambiguous. For example is `all.equal.data.frame()` the `equal.data.frame` method for `all`, or the `data.frame` method for `all.equal`?. If this happens, you can disambiguate with (e.g.) `@method all.equal data.frame`.
 
 ### S4
 
@@ -257,8 +257,7 @@ S4 __methods__ are a little more complicated. Unlike S3, all S4 methods must be 
 * In the generic. Most appropriate if the generic uses multiple dispatch
   and you control it.
 
-* In its own file. Most appropriate if the method is complex. or the
-  either two options don't apply.
+* In its own file. Most appropriate if the method is complex or the other two options don't apply.
 
 Use either `@rdname` or `@describeIn` to control where method documentation goes. See the next section for more details.
 
@@ -340,7 +339,7 @@ NULL
 
 Some notes:
 
-* Like for datasets, there isn't a object that we can document directly so
+* Like for datasets, there isn't an object that we can document directly so
   document `NULL` and use `@name` to say what we're actually documenting
 
 * `@docType package` indicates that the documentation is for the package.
@@ -357,7 +356,7 @@ Package documentation is a good place to list all `options()` that a package und
 
 There is a tension between the DRY (do not repeat yourself) principle of programming and the need for documentation to be self-contained. It's frustrating to have to navigate through multiple help files in order to pull together all the pieces you need. Roxygen2 provides three ways to avoid repeating yourself in code documentation, while assembling information from multiple places in one documentation file:
 
-* create reusable with templates with `@template` and `@templateVar`
+* create reusable templates with `@template` and `@templateVar`
 * reuse parameter documentation with `@inheritParams`
 * document multiple functions in the same place with `@describeIn` or `@rdname`
 
