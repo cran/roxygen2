@@ -1,9 +1,9 @@
 Package: roxygen2
-Title: In-source documentation for R
+Title: In-source Documentation for R
 Description: A Doxygen-like in-source documentation system
     for Rd, collation, and NAMESPACE.
 URL: https://github.com/klutometis/roxygen
-Version: 4.0.2
+Version: 4.1.0
 License: GPL (>= 2)
 Authors@R: c(
     person("Hadley", "Wickham",, "h.wickham@gmail.com", c("aut", "cre", "cph")),
@@ -25,7 +25,7 @@ Collate: 'RcppExports.R' 'alias.R' 'description.R' 'family.R'
         'roclet.R' 'roxygen.R' 'roxygenize.R' 's3.R' 'safety.R'
         'source.R' 'template.R' 'topic-name.R' 'topo-sort.R' 'usage.R'
         'util-locale.R' 'utils.R'
-Packaged: 2014-09-02 15:58:20 UTC; hadley
+Packaged: 2014-12-12 21:22:06 UTC; hadley
 Author: Hadley Wickham [aut, cre, cph],
   Peter Danenberg [aut, cph],
   Manuel Eugster [aut, cph],
@@ -33,4 +33,4 @@ Author: Hadley Wickham [aut, cre, cph],
 Maintainer: Hadley Wickham <h.wickham@gmail.com>
 NeedsCompilation: yes
 Repository: CRAN
-Date/Publication: 2014-09-02 19:05:51
+Date/Publication: 2014-12-13 08:33:23
