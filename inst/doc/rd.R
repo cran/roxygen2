@@ -181,3 +181,7 @@ times <- function(x, y) x * y
 #'    Apart from the following special cases...
 #' }
 
+## ------------------------------------------------------------------------
+#' @backref src/file.cpp
+#' @backref src/file.h
+

@@ -663,6 +663,25 @@ times &lt;- function(x, y) x * y
 #&#39; }
 </code></pre>
 
+<h2>Back references</h2>
+
+<p>The original source location is added as a comment
+to the second line of each generated <code>.Rd</code> file in the following form:</p>
+
+<pre><code>% Please edit documentation in ...
+</code></pre>
+
+<p><code>roxygen2</code> tries to capture all locations from which the documentation is assembled.
+For code that <em>generates</em> R code with Roxygen comments (e.g., the <code>Rcpp</code> package),
+the <code>@backref</code> tag is provided.
+This allows specifying the &ldquo;true&rdquo; source of the documentation,
+and will substitute the default list of source files.
+Use one tag per source file:</p>
+
+<pre><code class="r">#&#39; @backref src/file.cpp
+#&#39; @backref src/file.h
+</code></pre>
+
 </body>
 
 </html>

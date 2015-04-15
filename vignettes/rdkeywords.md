@@ -1,16 +1,15 @@
 <!--
-%\VignetteEngine{knitr}
+%\VignetteEngine{knitr::knitr}
 %\VignetteIndexEntry{Rd keywords}
 -->
 
 
 
-
-## Keywords
+# Keywords
 
 
 ```r
-cat(readLines(file.path(R.home(), "doc/KEYWORDS")), sep = "\n")
+cat(readLines(file.path(R.home("doc"), "KEYWORDS")), sep = "\n")
 ```
 
 ```
@@ -102,4 +101,3 @@ cat(readLines(file.path(R.home(), "doc/KEYWORDS")), sep = "\n")
 #> 	spatial		&	Spatial Statistics ['spatial' package]
 #> 	neural		&	Neural Networks ['nnet'	 package]
 ```
-
