@@ -18,13 +18,36 @@ object_defaults.default <- function(x) list()
 
 #' @export
 object_defaults.data <- function(x) {
-  str_out <- paste0(capture.output(str(x$value)), collapse = "\n")
-  str_pre <- build_rd("\\preformatted{", escape_preformatted(str_out), "\n}")
+  str_out <- rd(default_data_format(x$value))
 
   list(
     docType = "data",
-    format = str_pre,
+    format = str_out,
     keywords = "datasets"
+  )
+}
+
+#' @export
+object_defaults.import <- function(x) {
+  list(
+    docType = "import",
+    name = "reexports",
+    keywords = "internal",
+    title = "Objects exported from other packages",
+    reexport = list(pkg = x$value$pkg, fun = x$value$fun)
+  )
+}
+
+#' @export
+object_defaults.package <- function(x) {
+  desc <- x$value$desc
+  list(
+    docType = "package",
+    title = as.character(desc$Title),
+    description = as.character(desc$Description),
+    # "NULL" prevents addition of default aliases, see also #202
+    aliases = paste("NULL", desc$Package, package_suffix(desc$Package)),
+    name = package_suffix(desc$Package)
   )
 }
 

@@ -1,9 +1,5 @@
-## ----, echo = FALSE, message = FALSE-------------------------------------
-knitr::opts_chunk$set(
-  comment = "#>",
-  error = FALSE,
-  tidy = FALSE
-)
+## ---- include = FALSE----------------------------------------------------
+knitr::opts_chunk$set(comment = "#>", collapse = TRUE)
 
 ## ------------------------------------------------------------------------
 #' Add together two numbers
@@ -118,8 +114,7 @@ Account <- setRefClass("Account",
 #'
 #' @format A data frame with 53940 rows and 10 variables
 #' @source \url{http://www.diamondse.info/}
-#' @name diamonds
-NULL
+"diamonds"
 
 ## ------------------------------------------------------------------------
 #' Generate R documentation from inline comments.
@@ -130,10 +125,7 @@ NULL
 #' The only function you're likely to need from \pkg{roxygen2} is
 #' \code{\link{roxygenize}}. Otherwise refer to the vignettes to see
 #' how to format the documentation.
-#'
-#' @docType package
-#' @name roxygen2
-NULL
+"_PACKAGE"
 
 ## ------------------------------------------------------------------------
 #' Foo bar generic
@@ -180,6 +172,19 @@ times <- function(x, y) x * y
 #' \subsection{Exceptions}{
 #'    Apart from the following special cases...
 #' }
+
+## ------------------------------------------------------------------------
+#' Basic arithmetic
+#'
+#' @param x,y numeric vectors.
+#' @section Neutral elements:
+#'   Addition: 0.
+add <- function(x, y) x + y
+
+#' @rdname add
+#' @section Neutral elements:
+#'   Multiplication: 1.
+times <- function(x, y) x * y
 
 ## ------------------------------------------------------------------------
 #' @backref src/file.cpp

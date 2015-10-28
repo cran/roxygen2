@@ -1,10 +1,11 @@
 context("Examples")
-roc <- rd_roclet()
 
 test_that("@example loads from specified files", {
-  out <- roc_proc_text(roc, "
+  out <- roc_proc_text(rd_roclet(), "
     #' @name a
+    #'
     #' @example Rd-example-1.R
+    #'
     #' @example Rd-example-2.R
     NULL")[[1]]
 
@@ -14,9 +15,11 @@ test_that("@example loads from specified files", {
 })
 
 test_that("@examples captures examples", {
-  out <- roc_proc_text(roc, "
+  out <- roc_proc_text(rd_roclet(), "
     #' @name a
+    #'
     #' @examples a <- 2
+    #'
     NULL")[[1]]
 
   examples <- get_tag(out, "examples")$values
@@ -24,7 +27,7 @@ test_that("@examples captures examples", {
 })
 
 test_that("@examples and @example combine", {
-  out <- roc_proc_text(roc, "
+  out <- roc_proc_text(rd_roclet(), "
     #' @name a
     #' @example Rd-example-1.R
     #' @examples a <- 2
@@ -36,7 +39,7 @@ test_that("@examples and @example combine", {
 })
 
 test_that("@example does not introduce extra empty lines", {
-  out <- roc_proc_text(roc, "
+  out <- roc_proc_text(rd_roclet(), "
     #' @name a
     #' @example Rd-example-3.R
     NULL")[[1]]
@@ -46,7 +49,7 @@ test_that("@example does not introduce extra empty lines", {
 })
 
 test_that("indentation in examples preserved", {
-  out <- roc_proc_text(roc, "
+  out <- roc_proc_text(rd_roclet(), "
     #' @name a
     #' @examples a <-
     #'     2
@@ -57,7 +60,7 @@ test_that("indentation in examples preserved", {
 })
 
 test_that("% and \\ in @example escaped", {
-  out <- roc_proc_text(roc, "
+  out <- roc_proc_text(rd_roclet(), "
     #' @name a
     #' @example Rd-example-4.R
     NULL")[[1]]
@@ -67,7 +70,7 @@ test_that("% and \\ in @example escaped", {
 })
 
 test_that("\\dontrun in @example unescaped", {
-  out <- roc_proc_text(roc, "
+  out <- roc_proc_text(rd_roclet(), "
     #' @name a
     #' @example Rd-example-5.R
     NULL")[[1]]

@@ -1,8 +1,7 @@
 context("Param")
-roc <- rd_roclet()
 
 test_that("@param documents arguments", {
-  out <- roc_proc_text(roc, "
+  out <- roc_proc_text(rd_roclet(), "
     #' @param a an incipit letter
     #' @param z a terminal letter
     a <- function(a=1, z=2) {}")[[1]]
@@ -12,8 +11,17 @@ test_that("@param documents arguments", {
   expect_equivalent(args["z"], "a terminal letter")
 })
 
+test_that("grouped args get spaces", {
+  out <- roc_proc_text(rd_roclet(), "
+  #' @param a,z Two arguments an incipit letter
+  a <- function(a=1, z=2) {}")[[1]]
+
+  args <- get_tag(out, "param")
+  expect_match(format(args), "a, z")
+})
+
 test_that("multiple @inheritParam tags gathers all params", {
-  out <- roc_proc_text(roc, "
+  out <- roc_proc_text(rd_roclet(), "
     #' A.
     #'
     #' @param x X
@@ -40,7 +48,7 @@ test_that("multiple @inheritParam tags gathers all params", {
 })
 
 test_that("multiple @inheritParam inherits from existing topics", {
-  out <- roc_proc_text(roc, "
+  out <- roc_proc_text(rd_roclet(), "
     #' My mean
     #'
     #' @inheritParams base::mean
@@ -51,7 +59,7 @@ test_that("multiple @inheritParam inherits from existing topics", {
 })
 
 test_that("@inheritParam understands compound docs", {
-  out <- roc_proc_text(roc, "
+  out <- roc_proc_text(rd_roclet(), "
     #' Title
     #'
     #' @param x x
@@ -70,7 +78,7 @@ test_that("@inheritParam understands compound docs", {
 
 
 test_that("data objects don't get params", {
-  out <- roc_proc_text(roc, "
+  out <- roc_proc_text(rd_roclet(), "
     #' @rdname xy
     x <- 'x'
   ")[[1]]
@@ -85,7 +93,7 @@ test_that("find_params parses input", {
 
 
 test_that("argument order, also for incomplete documentation", {
-  out <- roc_proc_text(roc, "
+  out <- roc_proc_text(rd_roclet(), "
     #' A.
     #'
     #' @param y Y
@@ -123,7 +131,7 @@ test_that("argument order, also for incomplete documentation", {
 })
 
 test_that("argument order with @inheritParam", {
-  out <- roc_proc_text(roc, "
+  out <- roc_proc_text(rd_roclet(), "
     #' A.
     #'
     #' @param x X
@@ -162,7 +170,7 @@ test_that("argument order with @inheritParam", {
 })
 
 test_that("argument order for multi-parameter documentation", {
-  out <- roc_proc_text(roc, "
+  out <- roc_proc_text(rd_roclet(), "
     #' A.
     #'
     #' @param x,y X,Y
@@ -181,7 +189,7 @@ test_that("argument order for multi-parameter documentation", {
 })
 
 test_that("argument order for multiple usage statements", {
-  out <- roc_proc_text(roc, "
+  out <- roc_proc_text(rd_roclet(), "
     #' A.
     #'
     #' @usage a(x, w)
@@ -198,7 +206,7 @@ test_that("argument order for multiple usage statements", {
 })
 
 test_that("argument order for @rdfile", {
-  out <- roc_proc_text(roc, "
+  out <- roc_proc_text(rd_roclet(), "
     #' A
     #'
     #' @param x X

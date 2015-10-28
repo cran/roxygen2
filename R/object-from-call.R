@@ -24,6 +24,10 @@ object_from_call <- function(call, env, block) {
 }
 
 find_data <- function(name, env) {
+  if (identical(name, "_PACKAGE")) {
+    return(find_data_for_package(env))
+  }
+
   ns <- env_namespace(env)
   if (is.null(ns)) {
     get(name, envir = env)
@@ -32,15 +36,24 @@ find_data <- function(name, env) {
   }
 }
 
+find_data_for_package <- function(env) {
+  ns <- env_namespace(env)
+  base_path <- getNamespaceInfo(ns, "path")
+  desc <- read.description(file.path(base_path, "DESCRIPTION"))
+
+  if (!identical(desc$Package, utils::packageName(env))) {
+    warning("Inconsistent package names: ",
+            desc$Package, " vs. ", utils::packageName(env),
+            call. = FALSE)
+  }
+
+  structure(list(desc = desc), class = "package")
+}
+
 # Find namespace associated with environment
 env_namespace <- function(env) {
-  env_name <- attr(env, "name")
-  if (is.null(env_name)) return(NULL)
-  if (!grepl(":", env_name)) return(NULL)
-
-  ns_name <- gsub("package:", "", env_name)
   ns <- NULL
-  try(ns <- asNamespace(ns_name), silent = TRUE)
+  try(ns <- asNamespace(env), silent = TRUE)
   if (is.null(ns)) return(NULL)
 
   ns
@@ -115,4 +128,11 @@ parser_setReplaceMethod <- function(call, env, block) {
   value@.Data <- extract_method_fun(value@.Data)
 
   object(value)
+}
+
+`parser_::` <- function(call, env, block) {
+  pkg <- as.character(call[[2]])
+  fun <- as.character(call[[3]])
+
+  object(list(pkg = pkg, fun = fun), alias = fun, type = "import")
 }

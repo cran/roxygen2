@@ -27,6 +27,7 @@
 #'   created by roxygen before running each roclet.
 #' @return \code{NULL}
 #' @export
+#' @importFrom stats setNames
 roxygenize <- function(package.dir = ".",
                        roclets = NULL,
                        load_code = source_package,
@@ -40,6 +41,7 @@ roxygenize <- function(package.dir = ".",
   base_path <- normalizePath(package.dir)
   man_path <- file.path(base_path, "man")
   dir.create(man_path, recursive = TRUE, showWarnings = FALSE)
+  update_roxygen_version(base_path)
 
   options <- load_options(base_path)
   roclets <- roclets %||% options$roclets
@@ -50,6 +52,9 @@ roxygenize <- function(package.dir = ".",
     update_collate(base_path)
     roclets <- setdiff(roclets, "collate")
   }
+
+  if (length(roclets) == 0)
+    return(invisible())
 
   parsed <- parse_package(base_path, load_code)
 
@@ -70,7 +75,12 @@ roxygenize <- function(package.dir = ".",
 #' @export
 roxygenise <- roxygenize
 
-load_options <- function(base_path) {
+#' Load options from DESCRIPTION.
+#'
+#' @param base_path Path to package.
+#' @export
+#' @keywords internal
+load_options <- function(base_path = ".") {
   desc_path <- file.path(base_path, "DESCRIPTION")
   desc_opts <- read.dcf(desc_path, fields = "Roxygen")[[1, 1]]
 
@@ -84,5 +94,12 @@ load_options <- function(base_path) {
     wrap = FALSE,
     roclets = c("collate", "namespace", "rd")
   )
-  modifyList(defaults, opts)
+
+  unknown_opts <- setdiff(names(opts), names(defaults))
+  if (length(unknown_opts) > 0) {
+    warning("Unknown Roxygen options ", paste(unknown_opts, collapse = ", "),
+            ".\nSupported options: ", paste(names(defaults), collapse = ", "))
+  }
+
+  utils::modifyList(defaults, opts)
 }

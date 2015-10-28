@@ -1,5 +1,4 @@
 context("Template")
-roc <- rd_roclet()
 
 test_that("template_find finds files with .r and .R extension, and fails to find missing files", {
   my.tempdir <- "."
@@ -20,7 +19,7 @@ test_that("template_find finds files with .r and .R extension, and fails to find
 })
 
 test_that("templates replace variables with their values", {
-  out <- roc_proc_text(roc, "
+  out <- roc_proc_text(rd_roclet(), "
     #' @template values
     #' @templateVar x a
     #' @templateVar y b
@@ -29,4 +28,16 @@ test_that("templates replace variables with their values", {
 
   expect_equal(get_tag(out, "title")$values, "a")
   expect_equal(get_tag(out, "param")$values, c(b = "c"))
+})
+
+test_that("allow empty line after @template", {
+  out <- roc_proc_text(rd_roclet(), "
+    #' @template values
+    #'
+    #' @templateVar x a
+    #' @templateVar y b
+    #' @templateVar z c
+    x <- 10")[[1]]
+
+  expect_equal(get_tag(out, "title")$values, "a")
 })

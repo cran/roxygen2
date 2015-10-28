@@ -1,5 +1,7 @@
-register.preref.parsers(parse.value, "template")
-register.preref.parsers(parse.name.description, "templateVar")
+register_tags(
+  template = parse.value,
+  templateVar = parse.name.description
+)
 
 template_find <- function(base_path, template_name) {
   path <- file.path(base_path, "man-roxygen", paste0(template_name, ".", c("R", "r")))
@@ -13,7 +15,7 @@ template_find <- function(base_path, template_name) {
 }
 
 template_eval <- function(template_path, vars) {
-  capture.output(brew::brew(template_path, envir = vars))
+  utils::capture.output(brew::brew(template_path, envir = vars))
 }
 
 process_templates <- function(partitum, base_path) {
@@ -28,13 +30,13 @@ process_templates <- function(partitum, base_path) {
   var_tags <- partitum[names(partitum) == "templateVar"]
   vars <- lapply(var_tags, "[[", "description")
   names(vars) <- vapply(var_tags, "[[", "name", FUN.VALUE = character(1))
-  vars <- lapply(vars, type.convert, as.is = TRUE)
+  vars <- lapply(vars, utils::type.convert, as.is = TRUE)
 
   results <- lapply(paths, template_eval, vars = list2env(vars))
 
   # Insert templates back in the location where they came from
   partitum_pieces <- lapply(partitum, list)
-  partitum_pieces[template_locs] <- lapply(results, parse.preref)
+  partitum_pieces[template_locs] <- lapply(results, parse_preref, file = "TEMPLATE", offset = 0L)
   names(partitum_pieces)[template_locs] <- ""
 
   unlist(partitum_pieces, recursive = FALSE)

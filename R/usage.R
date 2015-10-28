@@ -1,5 +1,5 @@
 # Prefer explicit \code{@@usage} to a \code{@@formals} list.
-usage_tag <- function(partitum) {
+process_usage <- function(partitum) {
   if (is.null(partitum$usage)) {
     usage <- wrap_string(default_usage(partitum$object))
   } else if (partitum$usage == "NULL") {
@@ -25,6 +25,9 @@ wrap_string.default <- function(x) {
 default_usage <- function(x) {
   UseMethod("default_usage")
 }
+
+#' @export
+default_usage.default <- function(x) NULL
 
 #' @export
 default_usage.NULL <- function(x) NULL

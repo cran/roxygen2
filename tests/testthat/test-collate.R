@@ -18,11 +18,6 @@ test_that("collation as expected", {
   expect_equal(results, expected)
 })
 
-temp_copy_pkg <- function(pkg) {
-  file.copy(normalizePath(pkg), tempdir(), recursive = TRUE)
-  normalizePath(file.path(tempdir(), pkg))
-}
-
 test_that("Collate field unchanged when no @includes", {
   test_pkg <- temp_copy_pkg('testCollateNoIncludes')
   on.exit(unlink(test_pkg, recursive = TRUE))
@@ -35,4 +30,21 @@ test_that("Collate field unchanged when no @includes", {
   expect_identical(old_desc$Collate,new_desc$Collate)
 
 })
+
+test_that("DESCRIPTION file is re-written only if collate changes", {
+  pkg_path <- "testCollateOverwrite"
+  desc_path <- file.path(pkg_path, 'DESCRIPTION')
+  
+  # make backup copy of incomplete DESCRIPTION file (restored on exit)
+  file.copy(desc_path, tmp <- tempfile())
+  on.exit( file.copy(tmp, desc_path, overwrite = TRUE), add = TRUE)
+  
+  # load package: this should update the DESCRIPTION file (warning)
+  expect_output(update_collate(pkg_path), "Updating collate directive", info = "update_collate on incomplete package: DESCRIPTION file is updated")
+  
+  # should not update anymore
+  expect_true(!length(capture.output(update_collate(pkg_path))), info = "update_collate on complete package: DESCRIPTION file is NOT updated")
+      
+ })
+
 

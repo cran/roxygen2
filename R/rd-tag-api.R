@@ -53,6 +53,39 @@ merge.minidesc_tag <- function(x, y, ...) {
   list(x)
 }
 
+#' @export
+merge.section_tag <- function(x, y, ...) {
+  x_names <- vapply(x$values, `[[`, "name", FUN.VALUE = character(1L))
+  y_names <- vapply(y$values, `[[`, "name", FUN.VALUE = character(1L))
+  xy_names <- unique(c(x_names, y_names))
+  xy_both_names <- intersect(x_names, y_names)
+  x_contents <- setNames(lapply(x$values, `[[`, "content"), x_names)
+  y_contents <- setNames(lapply(y$values, `[[`, "content"), y_names)
+  values <- lapply(
+    xy_names,
+    function (name) {
+      if (name %in% xy_both_names) {
+        content <- paste(x_contents[[name]], y_contents[[name]], sep = "\n\n")
+      } else {
+        content <- x_contents[[name]] %||% y_contents[[name]]
+      }
+
+      list(name = name, content = content)
+    }
+  )
+  new_tag("section", values)
+}
+
+#' @export
+merge.reexport_tag <- function(x, y, ...) {
+  values <- list(
+    pkg = c(x$values$pkg, y$values$pkg),
+    fun = c(x$values$fun, y$values$fun)
+  )
+  new_tag("reexport", values)
+}
+
+
 # Comment tags -----------------------------------------------------------------------
 
 #' @export
@@ -143,7 +176,9 @@ format.usage_tag <- function(x, ...) {
 #' @export
 format.param_tag <- function(x, ..., wrap = TRUE) {
   names <- names(x$values)
-  dups <- duplicated(names)
+
+  # add space to multiple arguments so they can wrap
+  names <- gsub(",", ", ", names)
 
   items <- paste0("\\item{", names, "}{", x$values, "}", collapse = "\n\n")
   if (wrap) {
@@ -215,4 +250,31 @@ format.minidesc_tag <- function(x, ...) {
       collapse = "\n\n"),
     "\n}}\n"
   )
+}
+
+#' @export
+format.rawRd_tag <- function(x, ...) {
+  paste(x$values, collapse = "\n")
+}
+
+
+#' @export
+format.reexport_tag <- function(x, ...) {
+  pkgs <- split(x$values$fun, x$values$pkg)
+  pkg_links <- Map(pkg = names(pkgs), funs = pkgs, function(pkg, funs) {
+    links <- paste0("\\code{\\link[", pkg, "]{", escape(funs), "}}",
+      collapse = ", ")
+    paste0("\\item{", pkg, "}{", links, "}")
+  })
+
+  paste0(
+    "\\description{\n",
+    "These objects are imported from other packages. Follow the links\n",
+    "below to see their documentation.\n",
+    "\n",
+    "\\describe{\n",
+    paste0("  ", unlist(pkg_links), collapse = "\n\n"),
+    "\n}}\n"
+  )
+
 }

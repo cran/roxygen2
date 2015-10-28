@@ -8,9 +8,7 @@
 #'   generator function with different name.
 #' @export
 #' @keywords internal
-object <- function(value, alias = NULL) {
-  type <- obj_type(value)
-
+object <- function(value, alias = NULL, type = obj_type(value)) {
   structure(
     list(
       alias = alias,
@@ -43,7 +41,7 @@ print.object <- function(x, ...) {
 standardise_obj <- function(name, value, env = emptyenv(), block = list()) {
   if (is_generator(value)) {
     # S4 and RC generators need to be converted to their classes
-    getClass(as.character(value@className), where = env)
+    methods::getClass(as.character(value@className), where = env)
   } else if (inherits(value, "MethodDefinition")) {
     # S4 methods need munging to get real function def
     value@.Data <- extract_method_fun(value@.Data)
@@ -112,5 +110,7 @@ obj_type.refMethodDef <- function(x) "rcmethod"
 
 #' @export
 obj_type.function <- function(x) "function"
+#' @export
+obj_type.package <- function(x) "package"
 #' @export
 obj_type.default <- function(x) "data"

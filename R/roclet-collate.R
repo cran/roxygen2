@@ -1,7 +1,10 @@
-#' @include parse-registry.R
+#' @include tag-registry.R
 NULL
 
-register.preref.parsers(parse.value, 'include')
+# Needed to silence unknown tag warnings
+register_tags(
+  include = parse.value
+)
 
 #' Update Collate field in DESCRIPTION.
 #'
@@ -41,11 +44,11 @@ update_collate <- function(base_path) {
   old <- read.description(desc_path)
 
   new <- old
-  new$Collate <- paste0("'", collate, "'", collapse = " ")
-  write.description(new, desc_path)
+  new$Collate <- paste0("'", collate, "'", collapse = "\n")
 
-  if (!identical(old, read.description(desc_path))) {
+  if (!identical(old, new)) {
     cat('Updating collate directive in ', desc_path, "\n")
+    write.description(new, desc_path)
   }
 }
 
@@ -68,18 +71,6 @@ generate_collate <- function(base_path) {
   }
 
   unique(topo$sort())
-}
-
-find_includes <- function(path) {
-  lines <- readLines(path, warn = FALSE)
-  re <- regexec("^\\s*#+' @include (.*)$", lines)
-  matches <- regmatches(lines, re)
-  matches <- Filter(function(x) length(x) == 2, matches)
-
-  if (length(matches) == 0) return()
-
-  includes <- vapply(matches, "[[", 2, FUN.VALUE = character(1))
-  sort_c(unlist(strsplit(includes, " ", fixed = TRUE)))
 }
 
 base_path <- function(path, base) {

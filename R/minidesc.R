@@ -1,4 +1,4 @@
-process_describeIn <- function(block, env) {
+process_describe_in <- function(block, env) {
   tags <- block[names(block) == "describeIn"]
   if (length(tags) == 0) return(list(rdname = NULL, tag = NULL))
   if (length(tags) > 1) {
@@ -34,8 +34,8 @@ process_describeIn <- function(block, env) {
 # * will fail with S3 methods that need manual disambiguation (rare)
 # * can't use if @name overridden, but then you could just the use alias
 find_object <- function(name, env) {
-  if (isClass(name, where = env)) {
-    object(getClass(name, where = env))
+  if (methods::isClass(name, where = env)) {
+    object(methods::getClass(name, where = env))
   } else if (exists(name, envir = env)) {
     obj <- get(name, envir = env)
     obj <- standardise_obj(name, obj, env = env)
