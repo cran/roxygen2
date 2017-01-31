@@ -2,30 +2,30 @@
 #'
 #' This is the workhorse function that uses roclets, the built-in document
 #' tranformation functions, to build all documentation for a package.  See
-#' the documentation for the individual roclets, \code{\link{rd_roclet}},
-#' \code{\link{namespace_roclet}}, and for \code{\link{update_collate}},
+#' the documentation for the individual roclets, [rd_roclet()],
+#' [namespace_roclet()], and for [update_collate()],
 #' for more details.
 #'
 #' Note that roxygen2 is a dynamic documentation system: it works using
 #' by inspecting loaded objects in the package. This means that you must
 #' be able to load the package in order to document it.
-#' \code{\link{source_package}} provides a simple simulation of package
+#' [source_package()] provides a simple simulation of package
 #' loading that works if you only have R files in your package. For more
-#' complicated packages, I recommend using \code{devtools::document} which
+#' complicated packages, I recommend using `devtools::document` which
 #' does a much better job at simulating package install and load.
 #'
 #' @param package.dir Location of package top level directory. Default is
 #'   working directory.
 #' @param roclets Character vector of roclet names to use with package.
-#'   This defaults to \code{NULL}, which will use the \code{roclets} fields in
-#'   the list provided in the \code{Roxygen} DESCRIPTION field. If none are
-#'   specified, defaults to \code{c("collate", "namespace", "rd")}.
+#'   This defaults to `NULL`, which will use the `roclets` fields in
+#'   the list provided in the `Roxygen` DESCRIPTION field. If none are
+#'   specified, defaults to `c("collate", "namespace", "rd")`.
 #' @param load_code A function used to load all the R code in the package
 #'   directory. It is called with the path to the package, and it should return
 #'   an environment containing all the sourced code.
-#' @param clean If \code{TRUE}, roxygen will delete all files previously
+#' @param clean If `TRUE`, roxygen will delete all files previously
 #'   created by roxygen before running each roclet.
-#' @return \code{NULL}
+#' @return `NULL`
 #' @export
 #' @importFrom stats setNames
 roxygenize <- function(package.dir = ".",
@@ -56,17 +56,20 @@ roxygenize <- function(package.dir = ".",
   if (length(roclets) == 0)
     return(invisible())
 
-  parsed <- parse_package(base_path, load_code)
+  roclets <- lapply(roclets, roclet_find)
 
-  roclets <- paste0(roclets, "_roclet", sep = "")
-  roc_out <- function(roclet) {
-    roc <- get(roclet, mode = "function")()
+  # Generate registry of all roclet tags
+  tags <- c(lapply(roclets, roclet_tags), list(list(include = tag_value)))
+  registry <- unlist(tags, recursive = FALSE)
 
+  parsed <- parse_package(base_path, load_code, registry, options)
+
+  roc_out <- function(roc) {
     if (clean) {
-      clean(roc, base_path)
+      roclet_clean(roc, base_path)
     }
-    results <- roc_process(roc, parsed, base_path, options = options)
-    roc_output(roc, results, base_path, options = options, check = !is_first)
+    results <- roclet_process(roc, parsed, base_path)
+    roclet_output(roc, results, base_path, is_first = is_first)
   }
   invisible(unlist(lapply(roclets, roc_out)))
 }
@@ -92,7 +95,8 @@ load_options <- function(base_path = ".") {
 
   defaults <- list(
     wrap = FALSE,
-    roclets = c("collate", "namespace", "rd")
+    roclets = c("collate", "namespace", "rd"),
+    markdown = markdown_global_default
   )
 
   unknown_opts <- setdiff(names(opts), names(defaults))

@@ -1,9 +1,10 @@
 Package: roxygen2
-Title: In-Source Documentation for R
-Description: A 'Doxygen'-like in-source documentation system
-    for Rd, collation, and 'NAMESPACE' files.
-URL: https://github.com/klutometis/roxygen
-Version: 5.0.1
+Title: In-Line Documentation for R
+Description: Generate your Rd documentation, 'NAMESPACE' file, and collation 
+    field using specially formatted comments. Writing documentation in-line
+    with code makes it easier to keep your documentation up-to-date as your
+    requirements change. 'Roxygen2' is inspired by the 'Doxygen' system for C++.
+Version: 6.0.0
 License: GPL (>= 2)
 Authors@R: c(
     person("Hadley", "Wickham",, "hadley@rstudio.com", c("aut", "cre", "cph")),
@@ -13,27 +14,19 @@ Authors@R: c(
     )
 Depends: R (>= 3.0.2)
 Imports: stringr (>= 0.5), stringi, brew, digest, methods, Rcpp (>=
-        0.11.0)
-Suggests: testthat (>= 0.8.0), knitr, devtools, rmarkdown
+        0.11.0), R6, desc, commonmark, xml2, utils
+Suggests: testthat (>= 0.8.0), knitr, devtools, rmarkdown, covr
 VignetteBuilder: knitr
 LinkingTo: Rcpp
-Collate: 'RcppExports.R' 'alias.R' 'default-data-format.R'
-        'description.R' 'family.R' 'inherit-params.R' 'minidesc.R'
-        'object-defaults.R' 'object-from-call.R' 'object.R'
-        'order-params.R' 'parse-preref.R' 'parse.R' 'rc.R'
-        'rd-escape.R' 'rd-file-api.R' 'rd-parse.R' 'rd-tag-api.R'
-        'tag-registry.R' 'roclet-collate.R' 'roclet-namespace.R'
-        'roclet-rd.R' 'roclet-vignette.R' 'roclet.R' 'roxygen-tag.R'
-        'roxygen.R' 'roxygenize.R' 's3.R' 'safety.R' 'source.R'
-        'template.R' 'topic-name.R' 'topo-sort.R' 'usage.R'
-        'util-locale.R' 'utils.R'
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.0
+URL: https://github.com/klutometis/roxygen
+BugReports: https://github.com/klutometis/roxygen/issues
 NeedsCompilation: yes
-Packaged: 2015-11-10 19:54:01 UTC; hadley
+Packaged: 2017-01-30 21:46:44 UTC; hadley
 Author: Hadley Wickham [aut, cre, cph],
   Peter Danenberg [aut, cph],
   Manuel Eugster [aut, cph],
   RStudio [cph]
 Maintainer: Hadley Wickham <hadley@rstudio.com>
 Repository: CRAN
-Date/Publication: 2015-11-11 00:08:42
+Date/Publication: 2017-01-31 08:14:56

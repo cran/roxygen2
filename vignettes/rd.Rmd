@@ -20,7 +20,7 @@ There are three steps in the transformation from roxygen comments in your source
 
 1. You add roxygen comments to your source file.
 2. `roxygen2::roxygenise()` converts roxygen comments to `.Rd` files.
-3. R converts `.Rd` files to human readable documentation
+3. R converts `.Rd` files to human readable documentation.
 
 The process starts when you add specially formatted roxygen comments to your source file. Roxygen comments start with `#'` so you can continue to use regular comments for other purposes.
 
@@ -65,7 +65,7 @@ add(10, 1)
 }
 ```
 
-Rd files are a special file format loosely based on LaTeX. You can read more about the Rd format in the [R extensions](http://cran.r-project.org/doc/manuals/R-exts.html#Rd-format) manual. I'll avoid discussing Rd files as much as possible, focussing instead on what you need to know about roxygen2.
+Rd files are a special file format loosely based on LaTeX. You can read more about the Rd format in the [R extensions](https://cran.r-project.org/doc/manuals/R-exts.html#Rd-format) manual. I'll avoid discussing Rd files as much as possible, focussing instead on what you need to know about roxygen2.
 
 When you use `?x`, `help("x")` or `example("x")` R looks for an Rd file containing `\alias{x}`. It then parses the file, converts it into html and displays it.
 
@@ -117,7 +117,7 @@ There are two tags that make it easier for people to navigate around your docume
 
 `@seealso` allows you to point to other useful resources, either on the web `\url{http://www.r-project.org}`, or to other documentation with `\code{\link{functioname}}`. 
 
-If you have a family of related functions, you can use the `@family <family>` tag to automatically add appropriate lists and interlinks to the `@seealso` section. Because it will appear as "Other <family>:", the `@family` name should be plural (i.e., "model building helpers" not "model building helper"). You can make a function a member of multiple families by repeating the @family tag for each additional family. These will then get seaprate headings in the __seealso__ section.
+If you have a family of related functions, you can use the `@family <family>` tag to automatically add appropriate lists and interlinks to the `@seealso` section. Because it will appear as "Other <family>:", the `@family` name should be plural (i.e., "model building helpers" not "model building helper"). You can make a function a member of multiple families by repeating the @family tag for each additional family. These will then get separate headings in the __seealso__ section.
 
 For sum, these components might look like:
 
@@ -345,7 +345,7 @@ Some notes:
 
 * Like for datasets, there isn't a object that we can document directly. Use
   `"_PACKAGE"` to indicate that you are creating the package's documentation.
-  This will automatically add the corect aliases so that both `?pkgname`
+  This will automatically add the correct aliases so that both `?pkgname`
   and `package?pkgname` will find the package help. This also works if there's
   already a function called `pkgname()`.
 
@@ -370,11 +370,22 @@ You can make templates more flexible by using template variables defined with `@
 
 Note that templates are parsed a little differently to regular blocks, so you'll need to explicitly set the title, description and details with `@title`, `@description` and `@details`.
 
-### Inheriting parameters from other functions
+### Inheriting documentation from other topics
 
-You can inherit parameter descriptions from other functions using `@inheritParams source_function`. This tag will bring in all documentation for parameters that are undocumented in the current function, but documented in the source function. The source can be a function in the current package, `@inheritParams function`, or another package using `@inheritParams package::function`.
+You can inherit documentation from other functions in a few ways:
 
-Note, however, that inheritance does not chain. In other words, the `source_function` must always be the function that defines the parameter using `@param`.
+* `@inherit source_function` will inherit parameters, return, references,
+  description, details, sections, and seealso from `source_function()`.
+  
+* `@inherit source_function return details` will inherit selected components 
+  from `source_function()`
+
+* `@inheritSection source_function Section title` will inherit the single 
+  section called "Section title" from `source_function()`.
+  
+All of these work recursively so you can inherit documentation from a function that has inherited it from elsewhere.
+
+You can also inherit documentation from functions provided by another package by using `pkg::source_function`.
 
 ### Documenting multiple functions in the same file
 

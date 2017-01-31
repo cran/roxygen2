@@ -101,8 +101,8 @@ std::string stripTrailingNewline(std::string x) {
 }
 
 // [[Rcpp::export]]
-List tokenise_preref(CharacterVector lines, std::string file = "",
-                     int offset = 0) {
+List tokenise_block(CharacterVector lines, std::string file = "",
+                    int offset = 0) {
   std::vector<std::string> tags, vals;
   std::vector<int> rows;
 
@@ -149,9 +149,10 @@ List tokenise_preref(CharacterVector lines, std::string file = "",
       _["file"] = file,
       _["line"] = rows[i] + 1,
       _["tag"] = tags[i],
-      _["val"] = stripTrailingNewline(vals[i])
+      // Rcpp::String() necessary to tag string as UTF-8
+      _["val"] = Rcpp::String(stripTrailingNewline(vals[i]))
     );
-    out[i].attr("class") = "roxygen_tag";
+    out[i].attr("class") = "roxy_tag";
   }
   return out;
 }
