@@ -4,7 +4,7 @@ Description: Generate your Rd documentation, 'NAMESPACE' file, and collation
     field using specially formatted comments. Writing documentation in-line
     with code makes it easier to keep your documentation up-to-date as your
     requirements change. 'Roxygen2' is inspired by the 'Doxygen' system for C++.
-Version: 6.0.0
+Version: 6.0.1
 License: GPL (>= 2)
 Authors@R: c(
     person("Hadley", "Wickham",, "hadley@rstudio.com", c("aut", "cre", "cph")),
@@ -18,15 +18,15 @@ Imports: stringr (>= 0.5), stringi, brew, digest, methods, Rcpp (>=
 Suggests: testthat (>= 0.8.0), knitr, devtools, rmarkdown, covr
 VignetteBuilder: knitr
 LinkingTo: Rcpp
-RoxygenNote: 6.0.0
+RoxygenNote: 6.0.1
 URL: https://github.com/klutometis/roxygen
 BugReports: https://github.com/klutometis/roxygen/issues
 NeedsCompilation: yes
-Packaged: 2017-01-30 21:46:44 UTC; hadley
+Packaged: 2017-02-06 14:33:02 UTC; hadley
 Author: Hadley Wickham [aut, cre, cph],
   Peter Danenberg [aut, cph],
   Manuel Eugster [aut, cph],
   RStudio [cph]
 Maintainer: Hadley Wickham <hadley@rstudio.com>
 Repository: CRAN
-Date/Publication: 2017-01-31 08:14:56
+Date/Publication: 2017-02-06 16:37:05
