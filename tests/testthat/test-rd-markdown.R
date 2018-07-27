@@ -48,14 +48,47 @@ test_that("code blocks work", {
     #'
     #' Description
     #'
-    #' Details with a code block:\\preformatted{x <- 1:10 %>%
-    #'   multiply_by(10) %>%
+    #' Details with a code block:\\preformatted{x <- 1:10 \\%>\\%
+    #'   multiply_by(10) \\%>\\%
     #'   add(42)
     #' }
     #'
     #' Normal text again.
     foo <- function() {}")[[1]]
   expect_equivalent_rd(out1, out2)
+})
+
+test_that("inline code escapes %", {
+  out <- roc_proc_text(rd_roclet(), "
+    #' `0.5%`
+    #' @md
+    f <- function() 1
+  ")[[1]]
+
+  expect_equal(out$get_field("title")$values, "\\code{0.5\\%}")
+})
+
+test_that("code blocks escape %", {
+  out <- roc_proc_text(rd_roclet(), "
+    #' ```
+    #' 1:10 %>% mean()
+    #' ```
+    #'
+    #' @md
+    f <- function() 1
+  ")[[1]]
+
+  expect_equal(out$get_field("title")$values, "\\preformatted{1:10 \\%>\\% mean()\n}")
+})
+
+test_that("inline code works with < and >", {
+  out <- roc_proc_text(rd_roclet(), "
+    #' `SELECT <name> FROM <table>`
+    #' @md
+    f <- function() 1
+  ")[[1]]
+
+  expect_equal(out$get_field("title")$values, "\\code{SELECT <name> FROM <table>}")
 })
 
 test_that("itemized lists work", {
@@ -384,4 +417,18 @@ test_that("Do not pick up `` in arguments \\item #519", {
     #'
     foo <- function(`_arg1`, `_arg2`) {}")[[1]]
   expect_equivalent_rd(out1, out2)
+})
+
+test_that("unhandled markdown generates warning", {
+  text <- "
+    #' Title
+    #'
+    #' ## Heading
+    #'
+    #' Blabla
+    #' @md
+    #' @name x
+    NULL
+  "
+  expect_warning(roc_proc_text(rd_roclet(), text), "heading")
 })

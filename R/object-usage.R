@@ -6,7 +6,7 @@ object_usage.default <- function(x) NULL
 
 object_usage.NULL <- function(x) NULL
 
-object_usage.data <- function(x) x$alias
+object_usage.data <- function(x) rd(x$alias)
 
 object_usage.function <- function(x) {
   function_usage(x$alias, formals(x$value), identity)
@@ -84,7 +84,7 @@ usage_args <- function(args) {
   }
   arg_to_text <- function(arg) {
     if (is.missing.arg(arg)) return("")
-    text <- deparse(arg, backtick = TRUE, width.cutoff = 500L)
+    text <- enc2utf8(deparse(arg, backtick = TRUE, width.cutoff = 500L))
     text <- paste0(text, collapse = "\n")
     Encoding(text) <- "UTF-8"
 

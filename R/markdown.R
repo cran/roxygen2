@@ -14,6 +14,26 @@ markdown_on <- function(value = NULL) {
   return(isTRUE(markdown_env$`markdown-support`))
 }
 
+markdown_activate <- function(tags, global_options = list()) {
+  ## markdown on/off based on global flag and presence of @md & @nomd
+  ## we need to use markdown_global_default as well, because global_options
+  ## can be NULL, e.g. if called from parse_text()
+
+  names <- purrr::map_chr(tags, "tag")
+  has_md <- "md" %in% names
+  has_nomd <- "noMd" %in% names
+
+  if (has_md && has_nomd) {
+    roxy_tag_warning(tags[[1]], "Both @md and @noMd, no markdown parsing")
+  }
+
+  md <- global_options$markdown %||% markdown_global_default
+  if (has_md) md <- TRUE
+  if (has_nomd) md <- FALSE
+
+  markdown_on(md)
+}
+
 restricted_markdown <- function(rest) {
   markdown(rest, markdown_tags_restricted)
 }
@@ -65,7 +85,14 @@ markdown_rparse <- function(xml, markdown_tags) {
 
   ## generic node
   if (is(xml, "xml_node") && xml_type(xml) == "element") {
-    return(markdown_rparse(markdown_tags[[ xml_name(xml) ]](xml), markdown_tags = markdown_tags))
+    parser <- markdown_tags[[ xml_name(xml) ]]
+
+    if (is.null(parser)) {
+      warning("Unknown xml node: ", xml_name(xml), call. = FALSE)
+      return(xml_text(xml))
+    }
+
+    return(markdown_rparse(parser(xml), markdown_tags = markdown_tags))
   }
 
   warning("Unknown xml object")
@@ -112,7 +139,7 @@ markdown_tags <- list(
 
   code_block = function(xml) {
     ## Large block of code
-    list("\\preformatted{", xml_contents(xml), "}")
+    list("\\preformatted{", gsub("%", "\\\\%", xml_text(xml)), "}")
   },
 
   html = function(xml) {
@@ -152,7 +179,7 @@ markdown_tags <- list(
   },
 
   code = function(xml) {
-    list("\\code{", xml_contents(xml), "}")
+    list("\\code{", gsub("%", "\\\\%", xml_text(xml)), "}")
   },
 
   html_inline = function(xml) {
@@ -182,7 +209,7 @@ markdown_tags <- list(
     } else if (dest == "" || dest == xml_text(xml)) {
       list("\\url{", xml_text(xml), "}")
     } else {
-      list("\\href{", dest, "}{", xml_text(xml), "}")
+      list("\\href{", dest, "}{", xml_link_text(contents), "}")
     }
   },
 
@@ -198,6 +225,16 @@ markdown_tags_restricted <- markdown_tags
 
 ws_to_empty <- function(x) {
   sub("^\\s*$", "", x)
+}
+
+## Newlines in markdown get converted to softbreaks/linebreaks by
+## markdown_xml(), which then get interpreted as empty strings by
+## xml_text(). So we preserve newlines as spaces.
+
+xml_link_text <- function(xml_contents) {
+  text <- xml_text(xml_contents)
+  text[xml_name(xml_contents) %in% c("linebreak", "softbreak")] <- " "
+  text
 }
 
 #' Add link reference definitions for functions to a markdown text.
@@ -244,7 +281,15 @@ add_linkrefs_to_md <- function(text) {
 
   refs <- str_match_all(
     text,
-    regex("(?<=[^]]|^)\\[([^]]+)\\](?:\\[([^]]+)\\])?(?=[^\\[]|$)")
+    regex(
+      comments = TRUE,
+      "
+        (?<=[^\\]\\\\]|^)       # must not be preceded by ] or \
+        \\[([^\\]\\[]+)\\]      # match anything inside of []
+        (?:\\[([^\\]\\[]+)\\])? # match optional second pair of []
+        (?=[^\\[{]|$)            # must not be followed by [ or {
+      "
+    )
   )[[1]]
 
   if (length(refs) == 0) return(text)
@@ -306,7 +351,9 @@ parse_link <- function(destination, contents) {
 
   is_code <- is_code || (grepl("[(][)]$", destination) && ! has_link_text)
   pkg <- str_match(destination, "^(.*)::")[1,2]
+  pkg <- gsub("%", "\\\\%", pkg)
   fun <- utils::tail(strsplit(destination, "::", fixed = TRUE)[[1]], 1)
+  fun <- gsub("%", "\\\\%", fun)
   is_fun <- grepl("[(][)]$", fun)
   obj <- sub("[(][)]$", "", fun)
   s4 <- str_detect(destination, "-class$")
@@ -325,10 +372,12 @@ parse_link <- function(destination, contents) {
       if (!is.na(pkg)) paste0(pkg, "::"),
       if (s4) noclass else fun,
       "}",
-      if (is_code) "}"
+      if (is_code) "}" else ""
     )
 
   } else {
+    contents <- gsub("%", "\\\\%", xml_link_text(contents))
+
     list(
       paste0(
         if (is_code) "\\code{",
@@ -338,7 +387,8 @@ parse_link <- function(destination, contents) {
         "]{"
       ),
       contents,
-      "}"
+      "}",
+      if (is_code) "}" else ""
     )
   }
 }
@@ -365,8 +415,8 @@ is_empty_xml <- function(x) {
 #' Link to another package, function: [devtools::document()].
 #' Link to another package, non-function: [devtools::document].
 #'
-#' Link with link text:  [this great function][roxygenize()] or
-#' [that great function][roxygenize].
+#' Link with link text: [this great function][roxygenize()],
+#' [`roxygenize`][roxygenize()], or [that great function][roxygenize].
 #'
 #' In another package: [and this one][devtools::document].
 #'

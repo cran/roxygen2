@@ -57,6 +57,7 @@ nice_name <- function(x) {
   x <- str_replace_all(x, "[^A-Za-z0-9_.-]+", "-")
   x <- str_replace_all(x, "-+", "-")
   x <- str_replace_all(x, "^-|-$", "")
+  x <- str_replace_all(x, "^\\.", "dot-")
   x
 }
 
@@ -80,7 +81,7 @@ write_if_different <- function(path, contents, check = TRUE) {
     FALSE
   } else {
     cat(sprintf('Writing %s\n', name))
-    writeLines(contents, path, useBytes = TRUE)
+    write_lines(contents, path)
     TRUE
   }
 }
@@ -100,7 +101,7 @@ same_contents <- function(path, contents) {
 }
 
 r_files <- function(path) {
-  sort_c(dir(file.path(path, "R"), "[.Rr]$", full.names = TRUE))
+  sort_c(dir(file.path(path, "R"), "\\.[Rr]$", full.names = TRUE))
 }
 
 ignore_files <- function(rfiles, path) {
@@ -113,46 +114,52 @@ ignore_files <- function(rfiles, path) {
   rfiles_relative <- sub("^[/]*", "", rfiles_relative)
 
   # Remove any files that match any perl-compatible regexp
-  patterns <- readLines(rbuildignore, warn = FALSE)
+  patterns <- read_lines(rbuildignore)
   patterns <- patterns[patterns != ""]
+  if (length(patterns) == 0L) {
+    return(rfiles)
+  }
   matches <- lapply(patterns, grepl, rfiles_relative, perl = TRUE)
   matches <- Reduce("|", matches)
   rfiles[!matches]
 }
-
 
 compact <- function(x) {
   null <- vapply(x, is.null, logical(1))
   x[!null]
 }
 
-block_warning <- function(block, ...) {
-  warning(
-    srcref_location(block$srcref), ": ", ...,
-    call. = FALSE,
-    immediate. = TRUE
-  )
-  NULL
+block_eval <- function(tag, block, env, tag_name) {
+  tryCatch({
+    expr <- parse(text = tag)
+    out <- eval(expr, envir = env)
+
+    if (!is.character(out)) {
+      block_warning(block, tag_name, " did not evaluate to a string")
+    } else if (anyNA(out)) {
+      block_warning(block, tag_name, " result contained NA")
+    } else {
+      out
+    }
+  }, error = function(e) {
+    block_warning(block, tag_name, " failed with error:\n", e$message)
+  })
 }
 
-srcref_location <- function(srcref = NULL) {
-  if (is.null(srcref)) return()
-  paste0(basename(srcref$filename), ":", srcref$lloc[1])
-}
 
 # Parse DESCRIPTION into convenient format
 read.description <- function(file) {
-  dcf <- read.dcf(file, keep.white = "Authors@R")
+  dcf <- desc::desc(file = file)
 
-  dcf_list <- setNames(as.list(dcf[1, ]), colnames(dcf))
-  lapply(dcf_list, str_trim)
+  fields <- dcf$fields()
+  purrr::map(purrr::set_names(fields), ~ dcf$get_field(.x))
 }
 
 
-wrap_string <- function(x) UseMethod("wrap_string")
-wrap_string.NULL <- function(x) return(x)
-wrap_string.default <- function(x) {
-  y <- wrapString(x)
+wrap_string <- function(x, width = 80L) UseMethod("wrap_string")
+wrap_string.NULL <- function(x, width = 80L) return(x)
+wrap_string.default <- function(x, width = 80L) {
+  y <- wrapString(x, width = as.integer(width))
   y <- gsub("\u{A0}", " ", y, useBytes = TRUE)
   Encoding(y) <- "UTF-8"
   class(y) <- class(x)
@@ -182,4 +189,8 @@ collapse <- function(key, value, fun, ...) {
     key = names(dedup),
     value = unname(dedup)
   )
+}
+
+cat_line <- function(...) {
+  cat(..., "\n", sep = "")
 }

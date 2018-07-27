@@ -40,7 +40,13 @@ find_data_for_package <- function(env, file) {
   pkg_path <- dirname(dirname(file))
   desc <- read.description(file.path(pkg_path, "DESCRIPTION"))
 
-  structure(list(desc = desc), class = "package")
+  structure(
+    list(
+      desc = desc,
+      path = pkg_path
+    ),
+    class = "package"
+  )
 }
 
 # Find namespace associated with environment
@@ -142,13 +148,13 @@ parser_setMethodS3 <- function(call, env, block) {
   method <- as.character(call[[2]])
   class <- as.character(call[[3]])
   name <- paste(method, class, sep=".")
-  value <- standardise_obj(get(name, env), value, env, block)
+  value <- standardise_obj(name, get(name, env), env, block)
   object(value, name)
 }
 
 parser_setConstructorS3 <- function(call, env, block) {
   # R.oo::setConstructorS3(name, ...)
   name <- as.character(call[[2]])
-  value <- standardise_obj(get(name, env), value, env, block)
+  value <- standardise_obj(name, get(name, env), env, block)
   object(value, name)
 }

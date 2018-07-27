@@ -59,8 +59,9 @@ format.roxy_field_backref <- function(x, ...) {
 # Fields that repeat multiple times --------------------------------------------
 
 format_rd <- function(x, ..., sort = TRUE) {
+  x$values <- unique(x$values)
   if (sort) {
-    x$values <- sort_c(unique(x$values))
+    x$values <- sort_c(x$values)
   }
 
   vapply(x$values, rd_macro, field = x$field,
@@ -73,8 +74,10 @@ format.roxy_field_alias <- function(x, ...) {
   x$values <- str_replace_all(x$values, fixed("%"), "\\%")
   format_rd(x, ..., sort = FALSE)
 }
+#' @export
+format.roxy_field_concept <- format_rd
 
-# Fields that keep the first occurence -----------------------------------------
+# Fields that keep the first occurrence -----------------------------------------
 format_first <- function(x, ...) {
   rd_macro(x$field, x$values[1])
 }
@@ -103,8 +106,6 @@ format_collapse <- function(x, ..., indent = 0, exdent = 0, wrap = TRUE) {
 }
 #' @export
 format.roxy_field_author <- format_collapse
-#' @export
-format.roxy_field_concept <- format_collapse
 #' @export
 format.roxy_field_description <- format_collapse
 #' @export

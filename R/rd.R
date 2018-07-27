@@ -3,14 +3,21 @@ NULL
 
 #' Roclet: make Rd files.
 #'
-#' This roclet is the workhorse of \pkg{roxygen}, producing the Rd files that
-#' document that functions in your package.
-#'
 #' @family roclets
+#' @template rd
+#' @eval rd_roclet_description()
 #' @seealso `vignette("rd", package = "roxygen2")`
 #' @export
 rd_roclet <- function() {
   roclet("rd")
+}
+
+rd_roclet_description <- function() {
+  c(
+    "@description",
+    "Generally you will not call this function directly",
+    "but will instead use roxygenise() specifying the rd roclet"
+  )
 }
 
 #' @export
@@ -59,25 +66,41 @@ roclet_tags.roclet_rd <- function(x) {
 }
 
 #' @export
-roclet_process.roclet_rd <- function(x, parsed, base_path,
+roclet_process.roclet_rd <- function(x,
+                                     blocks,
+                                     env,
+                                     base_path,
                                      global_options = list()) {
   # Convert each block into a topic, indexed by filename
   topics <- RoxyTopics$new()
 
-  for (block in parsed$blocks) {
-    if (length(block) == 0)
-      next
-
-    rd <- block_to_rd(block, base_path, parsed$env, global_options)
+  for (block in blocks) {
+    rd <- block_to_rd(block, base_path, env, global_options)
     topics$add(rd)
   }
   topics_process_family(topics)
-  topics_process_inherit(topics, parsed$env)
+  topics_process_inherit(topics, env)
   topics$drop_invalid()
   topics_fix_params_order(topics)
+  topics_add_default_description(topics)
 
   topics$topics
 }
+
+topics_add_default_description <- function(topics) {
+  for (topic in topics$topics) {
+    if (length(topic$get_field("description")) > 0)
+      next
+
+    # rexport manually generates a own description, so don't need to
+    if (!topic$has_field("reexport")) {
+      topic$add_simple_field("description", topic$get_field("title")$values)
+    }
+  }
+
+  invisible()
+}
+
 
 block_to_rd <- function(block, base_path, env, global_options = list()) {
   # Must start by processing templates
@@ -87,7 +110,7 @@ block_to_rd <- function(block, base_path, env, global_options = list()) {
     return()
   }
 
-  name <- block$name %||% object_topic(block$object)
+  name <- block$name %||% object_topic(attr(block, "object"))
   if (is.null(name)) {
     block_warning(block, "Missing name")
     return()
@@ -116,6 +139,11 @@ block_to_rd <- function(block, base_path, env, global_options = list()) {
   topic_add_slots(rd, block)
   topic_add_usage(rd, block)
   topic_add_value(rd, block)
+
+  if (rd$has_field("description") && rd$has_field("reexport")) {
+    block_warning(block, "Can't use description when re-exporting")
+    return()
+  }
 
   describe_rdname <- topic_add_describe_in(rd, block, env)
 
@@ -161,7 +189,6 @@ roclet_clean.roclet_rd <- function(x, base_path) {
   unlink(rd[made_by_me])
 }
 
-
 block_tags <- function(x, tag) {
   x[names(x) %in% tag]
 }
@@ -182,7 +209,7 @@ needs_doc <- function(block) {
 # Tag processing functions ------------------------------------------------
 
 topic_add_backref <- function(topic, block) {
-  backrefs <- block_tags(block, "backref") %||% block$srcref$filename
+  backrefs <- block_tags(block, "backref") %||% attr(block, "filename")
 
   for (backref in backrefs) {
     topic$add_simple_field("backref", backref)
@@ -208,8 +235,9 @@ topic_add_simple_tags <- function(topic, block) {
 
 topic_add_params <- function(topic, block) {
   # Used in process_inherit_params()
-  if (is.function(block$object$value)) {
-    formals <- formals(block$object$value)
+  value <- attr(block, "object")$value
+  if (is.function(value)) {
+    formals <- formals(value)
     topic$add_simple_field("formals", names(formals))
   }
 
@@ -229,8 +257,9 @@ topic_add_name_aliases <- function(topic, block, name) {
     # Don't add default aliases
     aliases <- aliases[aliases != "NULL"]
   } else {
-    aliases <- unique(c(name, block$object$alias, aliases))
+    aliases <- c(name, attr(block, "object")$alias, aliases)
   }
+  aliases <- unique(aliases)
 
   topic$add_simple_field("name", name)
   topic$add_simple_field("alias", aliases)
@@ -238,7 +267,7 @@ topic_add_name_aliases <- function(topic, block, name) {
 
 
 topic_add_methods <- function(topic, block) {
-  obj <- block$object
+  obj <- attr(block, "object")
   if (!inherits(obj, "rcclass")) return()
 
   methods <- obj$methods
@@ -302,7 +331,7 @@ topic_add_keyword <- function(topic, block) {
 # Prefer explicit \code{@@usage} to a \code{@@formals} list.
 topic_add_usage <- function(topic, block) {
   if (is.null(block$usage)) {
-    usage <- wrap_string(object_usage(block$object))
+    usage <- wrap_string(object_usage(attr(block, "object")), width = 75L)
   } else if (block$usage == "NULL") {
     usage <- NULL
   } else {
@@ -345,7 +374,7 @@ topic_add_examples <- function(topic, block, base_path) {
       next
     }
 
-    code <- readLines(path)
+    code <- read_lines(path)
     examples <- escape_examples(code)
 
     topic$add_simple_field("examples", examples)
@@ -356,13 +385,10 @@ topic_add_eval_rd <- function(topic, block, env) {
   tags <- block_tags(block, "evalRd")
 
   for (tag in tags) {
-    tryCatch({
-      expr <- parse(text = tag)
-      out <- eval(expr, envir = env)
-      topic$add_simple_field("rawRd", as.character(out))
-    }, error = function(e) {
-      block_warning(block, "@evalRd failed with error: ", e$message)
-    })
+    out <- block_eval(tag, block, env, "@evalRd")
+    if (!is.null(out)) {
+      topic$add_simple_field("rawRd", out)
+    }
   }
 }
 
