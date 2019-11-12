@@ -1,50 +1,89 @@
+#' @export
+roxy_tag_parse.roxy_tag_describeIn <- function(x) {
+  tag_name_description(x)
+}
+
 topic_add_describe_in <- function(topic, block, env) {
-  tags <- block_tags(block, "describeIn")
-  if (length(tags) == 0)
-    return(NULL)
-
-  if (length(tags) > 1) {
-    block_warning(block, "May only use one @describeIn per block")
-    return()
-  }
-  if (is.null(attr(block, "object"))) {
-    block_warning(block, "@describeIn must be used with an object")
-    return()
-  }
-  if (any(names(block) == "name")) {
-    block_warning(block, "@describeIn can not be used with @name")
-    return()
-  }
-  if (any(names(block) == "rdname")) {
-    block_warning(block, "@describeIn can not be used with @rdname")
+  tag <- block_get_tag(block, "describeIn")
+  if (is.null(tag)) {
     return()
   }
 
-  dest <- find_object(tags$describeIn$name, env)
-  label <- build_label(attr(block, "object"), dest, block)
+  if (is.null(block$object)) {
+    roxy_tag_warning(tag, "must be used with an object")
+    return()
+  }
+  if (block_has_tags(block,  "name")) {
+    roxy_tag_warning(tag, "can not be used with @name")
+    return()
+  }
+  if (block_has_tags(block, "rdname")) {
+    roxy_tag_warning(tag, "can not be used with @rdname")
+    return()
+  }
+
+  dest <- find_object(tag$val$name, env)
+  label <- build_label(block$object, dest, block)
   if (is.null(label))
     return()
 
-  topic$add(roxy_field_minidesc(
+  topic$add(rd_section_minidesc(
     label$type,
     label$label,
-    tags$describeIn$description
+    tag$val$description
   ))
-  object_topic(dest)
+  dest$topic
 }
+
+# Field -------------------------------------------------------------------
+
+rd_section_minidesc <- function(type, label, desc) {
+  stopifnot(is.character(type), is.character(label), is.character(desc))
+  stopifnot(length(desc) == length(label))
+
+  rd_section("minidesc", list(type = type, desc = desc, label = label))
+}
+
+#' @export
+merge.rd_section_minidesc <- function(x, y, ...) {
+  stopifnot(identical(class(x), class(y)))
+  stopifnot(identical(x$value$type, y$value$type))
+  rd_section_minidesc(
+    x$value$type,
+    label = c(x$value$label, y$value$label),
+    desc = c(x$value$desc, y$value$desc)
+  )
+}
+
+#' @export
+format.rd_section_minidesc <- function(x, ...) {
+  title <- switch(x$value$type,
+    generic = "Methods (by class)",
+    class = "Methods (by generic)",
+    "function" = "Functions"
+  )
+
+  paste0(
+    "\\section{", title, "}{\n",
+    "\\itemize{\n",
+    paste0("\\item \\code{", escape(x$value$label), "}: ", x$value$desc,
+      collapse = "\n\n"),
+    "\n}}\n"
+  )
+}
+
+# Helpers -----------------------------------------------------------------
 
 # Imperfect:
 # * will fail with S3 methods that need manual disambiguation (rare)
 # * can't use if @name overridden, but then you could just the use alias
 find_object <- function(name, env) {
   if (methods::isClass(name, where = env)) {
-    object(methods::getClass(name, where = env))
+    object(methods::getClass(name, where = env), NULL, "s4class")
   } else if (exists(name, envir = env)) {
-    obj <- get(name, envir = env)
-    obj <- standardise_obj(name, obj, env = env)
-    object(obj, name)
+    object_from_name(name, env, NULL)
   } else {
-    object(NULL, name)
+    object(NULL, name, "data")
   }
 }
 
@@ -73,13 +112,10 @@ build_label <- function(src, dest, block) {
     # Label S3 methods in generic with their class
     type <- "generic"
     label <- attr(src$value, "s3method")[2]
-  } else if (dest_type %in% c("function", "data") && src_type == "function") {
-    # Multiple functions in one Rd labelled with function names
-    type <- "function"
-    label <- object_name(src)
   } else {
-    block_warning(block, "Don't know how to describe ", src_type, " in ", dest_type)
-    return(NULL)
+    # Otherwise just fallback to function + topic
+    type <- "function"
+    label <- src$topic
   }
 
   list(type = type, label = label)

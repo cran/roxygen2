@@ -15,38 +15,21 @@
 #'    You can also set to `NULL` if you only want to get the tokenized code
 #'    blocks only. This suppresses evaluation of `@eval` tags, and will not
 #'    find the code object associated with each block.
-#' @param registry A roclet tag registry: this is a named list where the
-#'    name gives the tag and the value gives the parsing code. See the
-#'    `tag_` functions in [roxy_tag] for built-in options.
-#' @param global_options A list of global options:
-#'
-#'  * `wrap` Logical; should roxygen2 output be wrapped? `FALSE` by default.
-#'  * `markdown`` Logical value indicating whether to parse Markdown tags.
 #' @return A list of roxy_block objects
 #' @export
 #' @keywords internal
-parse_package <- function(path = ".",
-                          env = env_package(path),
-                          registry = default_tags(),
-                          global_options = list()
-                          ) {
+parse_package <- function(path = ".", env = env_package(path)) {
 
   files <- package_files(path)
-  list_of_blocks <- lapply(files, tokenize_file,
-    registry = registry,
-    global_options = global_options
-  )
+  list_of_blocks <- lapply(files, tokenize_file)
 
   blocks <- purrr::flatten(list_of_blocks)
 
   if (!is.null(env)) {
-    blocks <- lapply(blocks, block_set_env,
-      env = env,
-      registry = registry,
-      global_options = global_options
-    )
+    blocks <- lapply(blocks, block_set_env, env = env)
   }
 
+  blocks <- order_blocks(blocks)
   blocks
 }
 
@@ -54,42 +37,29 @@ parse_package <- function(path = ".",
 #' @rdname parse_package
 parse_file <- function(file,
                        env = env_file(file),
-                       registry = default_tags(),
-                       global_options = list()) {
+                       srcref_path = NULL) {
 
-  blocks <- tokenize_file(file,
-    registry = registry,
-    global_options = global_options
-  )
+  blocks <- tokenize_file(file, srcref_path = srcref_path)
 
   if (!is.null(env)) {
-    blocks <- lapply(blocks, block_set_env,
-      env = env,
-      registry = registry,
-      global_options = global_options
-    )
+    blocks <- lapply(blocks, block_set_env, env = env)
   }
 
+  blocks <- order_blocks(blocks)
   blocks
 }
 
 #' @export
 #' @rdname parse_package
-parse_text <- function(text,
-                       env = env_file(file),
-                       registry = default_tags(),
-                       global_options = list()) {
+parse_text <- function(text, env = env_file(file)) {
 
   file <- tempfile()
   write_lines(text, file)
   on.exit(unlink(file))
 
-  parse_file(
-    file,
-    env = env,
-    registry = registry,
-    global_options = global_options
-  )
+  blocks <- parse_file(file, env = env, srcref_path = "<text>")
+  blocks <- order_blocks(blocks)
+  blocks
 }
 
 #' @export
@@ -105,9 +75,26 @@ env_file <- function(file) {
 #' @export
 #' @rdname parse_package
 env_package <- function(path) {
-  pkgload::load_all(path,
-    compile = FALSE,
-    helpers = FALSE,
-    attach_testthat = FALSE
-  )$env
+  load_pkgload(path)
+}
+
+# helpers -----------------------------------------------------------------
+
+order_blocks <- function(blocks) {
+  block_order <- function(x) {
+    if (block_has_tags(x, "order")) {
+      ord <- block_get_tag_value(x, "order")
+      as.double(ord)
+    } else {
+      Inf
+    }
+  }
+
+  ord <- vapply(blocks, block_order, double(1))
+  blocks[order(ord)]
+}
+
+#' @export
+roxy_tag_parse.roxy_tag_order <- function(x) {
+  tag_value(x)
 }

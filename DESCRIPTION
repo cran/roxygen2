@@ -1,34 +1,52 @@
 Package: roxygen2
 Title: In-Line Documentation for R
-Version: 6.1.1
-Authors@R: c(
-    person("Hadley", "Wickham",, "hadley@rstudio.com", c("aut", "cre", "cph")),
-    person("Peter", "Danenberg",, "pcd@roxygen.org", c("aut", "cph")),
-    person("Manuel", "Eugster", role = c("aut", "cph")),
-    person("RStudio", role = "cph")
-    )
-Description: Generate your Rd documentation, 'NAMESPACE' file, and collation 
-    field using specially formatted comments. Writing documentation in-line
-    with code makes it easier to keep your documentation up-to-date as your
-    requirements change. 'Roxygen2' is inspired by the 'Doxygen' system for C++.
+Version: 7.0.0
+Authors@R: 
+    c(person(given = "Hadley",
+             family = "Wickham",
+             role = c("aut", "cre", "cph"),
+             email = "hadley@rstudio.com",
+             comment = c("ORCID" = "0000-0003-4757-117X")),
+      person(given = "Peter",
+             family = "Danenberg",
+             role = c("aut", "cph"),
+             email = "pcd@roxygen.org"),
+      person(given = "Gábor",
+             family = "Csárdi",
+             role = c("aut"),
+             email = "csardi.gabor@gmail.com"),
+      person(given = "Manuel",
+             family = "Eugster",
+             role = c("aut", "cph")),
+      person(given = "RStudio",
+             role = "cph"))
+Description: Generate your Rd documentation, 'NAMESPACE' file,
+    and collation field using specially formatted comments. Writing
+    documentation in-line with code makes it easier to keep your
+    documentation up-to-date as your requirements change. 'Roxygen2' is
+    inspired by the 'Doxygen' system for C++.
 License: GPL (>= 2)
-URL: https://github.com/klutometis/roxygen
-BugReports: https://github.com/klutometis/roxygen/issues
-Depends: R (>= 3.1)
+URL: https://github.com/r-lib/roxygen2
+BugReports: https://github.com/r-lib/roxygen2/issues
+Depends: R (>= 3.2)
 Imports: brew, commonmark, desc (>= 1.2.0), digest, methods, pkgload
-        (>= 1.0.2), purrr, R6 (>= 2.1.2), Rcpp (>= 0.11.0), stringi,
-        stringr (>= 1.0.0), utils, xml2
-Suggests: covr, devtools, knitr, rmarkdown, testthat (>= 0.8.0)
+        (>= 1.0.2), purrr, R6 (>= 2.1.2), Rcpp (>= 0.11.0), rlang,
+        stringi, stringr (>= 1.0.0), utils, xml2
+Suggests: covr, devtools, knitr, rmarkdown, testthat (>= 2.1.0),
+        R.methodsS3, R.oo
 LinkingTo: Rcpp
 VignetteBuilder: knitr
 Encoding: UTF-8
-RoxygenNote: 6.1.1
+RoxygenNote: 6.1.99.9001
+Language: en-GB
 NeedsCompilation: yes
-Packaged: 2018-11-06 23:40:35 UTC; hadley
-Author: Hadley Wickham [aut, cre, cph],
+Packaged: 2019-11-07 18:55:59 UTC; hadley
+Author: Hadley Wickham [aut, cre, cph]
+    (<https://orcid.org/0000-0003-4757-117X>),
   Peter Danenberg [aut, cph],
+  Gábor Csárdi [aut],
   Manuel Eugster [aut, cph],
   RStudio [cph]
 Maintainer: Hadley Wickham <hadley@rstudio.com>
 Repository: CRAN
-Date/Publication: 2018-11-07 05:40:12 UTC
+Date/Publication: 2019-11-12 17:50:02 UTC

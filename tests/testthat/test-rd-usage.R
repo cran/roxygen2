@@ -1,151 +1,9 @@
-context("Rd: usage")
-
-# default usage ----------------------------------------------------------------
-
-test_that("usage captured from formals", {
-  out <- roc_proc_text(rd_roclet(), "
-    #' Title.
-    a <- function(a=1) {}")[[1]]
-  expect_equal(get_tag(out, "usage")$values, rd("a(a = 1)"))
-})
-
-test_that("usage correct for modification functions", {
-  out <- roc_proc_text(rd_roclet(), "
-    #' Title.
-    `foo<-` <- function(x, value) {}")[[1]]
-
-  expect_equal(get_tag(out, "usage")$values, rd("foo(x) <- value"))
-})
-
-test_that("usage correct for functions with no arguments", {
-  out <- roc_proc_text(rd_roclet(), "
-      #' Function without parameters
-      f <- function() 1")[[1]]
-
-  expect_equal(get_tag(out, "usage")$values, rd("f()"))
-})
-
-test_that("default usage correct for infix functions", {
-  out <- roc_proc_text(rd_roclet(), "
-    #' Infix fun
-    '%.%' <- function(a, b) 1")[[1]]
-
-  expect_equal(get_tag(out, "usage")$values, rd("a \\%.\\% b"))
-})
-
-test_that("default usage correct of infix functions containing \"<-\"", {
-  out <- roc_proc_text(rd_roclet(), "
-    #' Infix fun containing <-
-    '%<-%' <- function(a, b) 1")[[1]]
-
-  expect_equal(get_tag(out, "usage")$values, rd("a \\%<-\\% b"))
-})
-
-test_that("default usage correct for S3 methods", {
-  out <- roc_proc_text(rd_roclet(), "
-    #' Regular
-    mean.foo <- function(x) 'foo'
-
-    #' Infix
-    '+.foo' <- function(x, b) 'foo'
-
-    #' Modify
-    '[<-.foo' <- function(x, value) 'foo'
-  ")
-
-  expect_equal(get_tag(out[[1]], "usage")$values, rd("\\method{mean}{foo}(x)"))
-  expect_equal(get_tag(out[[2]], "usage")$values, rd("\\method{+}{foo}(x, b)"))
-  expect_equal(get_tag(out[[3]], "usage")$values, rd("\\method{[}{foo}(x) <- value"))
-})
-
-test_that("usage correct for non-function objects", {
-  out <- roc_proc_text(rd_roclet(), "
-    #' Title
-    #'
-    hello <- 1
-  ")[[1]]
-
-  expect_equal(get_tag(out, "usage")$values, rd("hello"))
-})
-
-test_that("default usage correct for S4 methods", {
-  env <- pkg_env()
-  setClass("foo", where = env)
-  on.exit(removeClass("foo", where = env))
-  out <- roc_proc_text(rd_roclet(), "
-    #' Regular
-    setMethod('sum', 'foo', function(x, ..., na.rm = FALSE) 'foo')
-
-    #' Infix
-    setMethod('+', 'foo', function(e1, e2) 'foo')
-
-    #' Modify
-    setMethod('[<-', 'foo', function(x, i, j, ..., value) 'foo')
-  ")
-
-  expect_equal(get_tag(out[[1]], "usage")$values,
-    rd("\\S4method{sum}{foo}(x, ..., na.rm = FALSE)"))
-  expect_equal(get_tag(out[[2]], "usage")$values,
-    rd("\\S4method{+}{foo,ANY}(e1, e2)"))
-  expect_equal(get_tag(out[[3]], "usage")$values,
-    rd("\\S4method{[}{foo}(x, i, j, ...) <- value"))
-})
-
-test_that("default usage correct for S4 methods with different args to generic", {
-  out <- roc_proc_text(rd_roclet(), "
-    #' Generic
-    #'
-    #' @param x x
-    #' @param ... arguments to methods
-    setGeneric('testfun',function(x,...) standardGeneric('testfun'))
-
-    #' Method
-    #'
-    #' @param add add
-    setMethod('testfun','matrix',function(x, add = FALSE, ...){x - 1})
-  ")
-
-  expect_equal(get_tag(out[[2]], "usage")$value,
-    rd("\\S4method{testfun}{matrix}(x, add = FALSE, ...)"))
-})
-
-
-test_that("non-syntactic S4 class names are escaped in usage", {
-  out <- roc_proc_text(rd_roclet(), "
-    setGeneric('rhs', function(x) standardGeneric('rhs'))
-
-    #' Title.
-    #'
-    #' @inheritParams NULL
-    setMethod('rhs', '<-', function(x) x[[3]])
-  ")[[1]]
-
-  expect_equal(get_tag(out, "usage")$value, rd('\\S4method{rhs}{`<-`}(x)'))
-})
-
-
-test_that("argument containing function is generates correct usage", {
-  out <- roc_proc_text(rd_roclet(), "
-    #' Title.
-    a <- function(a= function(x) {1}) {}")[[1]]
-  expect_equal(get_tag(out, "usage")$values, rd("a(a = function(x) {     1 })"))
-})
-
-test_that("backticks retained when needed", {
-  out <- roc_proc_text(rd_roclet(), "
-    #' Title.
-    f <- function(`_x`) 1")[[1]]
-  expect_equal(as.character(get_tag(out, "usage")$values), "f(`_x`)")
-})
-
-# @usage -----------------------------------------------------------------------
-
 test_that("@usage overrides default", {
   out <- roc_proc_text(rd_roclet(), "
     #' A
     #' @usage a(a=2)
     a <- function(a=1) {}")[[1]]
-  expect_equal(get_tag(out, "usage")$values, rd("a(a=2)"))
+  expect_equal(out$get_value("usage"), rd("a(a=2)"))
 })
 
 test_that("@usage overrides default for @docType data", {
@@ -157,7 +15,7 @@ test_that("@usage overrides default for @docType data", {
     #' @usage data(abc)
     NULL")[[1]]
 
-  expect_equal(get_tag(out, "usage")$values, rd("data(abc)"))
+  expect_equal(out$get_value("usage"), rd("data(abc)"))
 })
 
 test_that("@usage NULL suppresses default usage", {
@@ -166,7 +24,7 @@ test_that("@usage NULL suppresses default usage", {
     #' @usage NULL
     a <- function(a=1) {}")[[1]]
 
-  expect_equal(get_tag(out, "usage")$values, NULL)
+  expect_equal(out$get_value("usage"), NULL)
 })
 
 test_that("quoted topics have usage statements", {
@@ -174,13 +32,8 @@ test_that("quoted topics have usage statements", {
     #' Title.
     \"f\" <- function(a = 1, b = 2, c = a + b) {}")[[1]]
 
-  expect_equal(get_tag(out, "usage")$values,
-    rd("f(a = 1, b = 2, c = a + b)"))
-
-  expect_equal(format(get_tag(out, "usage")),
-    "\\usage{\nf(a = 1, b = 2, c = a + b)\n}"
-  )
-
+  expect_equal(out$get_value("usage"), rd("f(a = 1, b = 2, c = a + b)"))
+  expect_equal(out$get_rd("usage"), "\\usage{\nf(a = 1, b = 2, c = a + b)\n}")
 })
 
 # Escaping --------------------------------------------------------------------
@@ -194,7 +47,7 @@ test_that("usage escaping preserved when combined", {
     bar <- function(y = '%') y
   ")[[1]]
 
-  expect_is(get_tag(out, "usage")$values, "rd")
+  expect_is(out$get_value("usage"), "rd")
 })
 
 test_that("default usage not double escaped", {
@@ -203,17 +56,15 @@ test_that("default usage not double escaped", {
     mean.foo <- function(x) 'foo'
   ")[[1]]
 
-  expect_equal(format(get_tag(out, "usage")),
-    "\\usage{\n\\method{mean}{foo}(x)\n}")
+  expect_equal(out$get_rd("usage"), "\\usage{\n\\method{mean}{foo}(x)\n}")
 })
 
 test_that("% and \\ are escaped in usage", {
   out <- roc_proc_text(rd_roclet(), "
     #' Title.
     a <- function(a='%\\\\') {}")[[1]]
-  expect_equal(get_tag(out, "usage")$values, escape('a(a = "%\\\\")'))
-  expect_equal(format(get_tag(out, "usage")),
-    "\\usage{\na(a = \"\\%\\\\\\\\\")\n}")
+  expect_equal(out$get_value("usage"), escape('a(a = "%\\\\")'))
+  expect_equal(out$get_rd("usage"), "\\usage{\na(a = \"\\%\\\\\\\\\")\n}")
 })
 
 test_that("% and \\ not escaped in manual usage", {
@@ -222,19 +73,9 @@ test_that("% and \\ not escaped in manual usage", {
     #' @usage %\\
     a <- function(a) {}
   ")[[1]]
-  expect_equal(get_tag(out, "usage")$values, rd('%\\'))
-  expect_equal(format(get_tag(out, "usage")), '\\usage{\n%\\\n}')
+  expect_equal(out$get_value("usage"), rd('%\\'))
+  expect_equal(out$get_rd("usage"), '\\usage{\n%\\\n}')
 })
-
-test_that("non-syntactic names are quoted", {
-
-  out <- roc_proc_text(rd_roclet(), "
-    #' Title.
-    'a b' <- function(x) x")[[1]]
-
-  expect_equal(get_tag(out, "usage")$values, rd('"a b"(x)'))
-})
-
 
 test_that("Special vars removed in rc methods usage", {
   out <- roc_proc_text(rd_roclet(), "
@@ -247,82 +88,235 @@ test_that("Special vars removed in rc methods usage", {
     )
   ")[[1]]
 
-  methods <- get_tag(out, "rcmethods")$values
-  expect_equal(methods, list("draw(x = 1)" = "2"))
+  expect_equal(out$get_value("rcmethods"), list("draw(x = 1)" = "2"))
 })
+
+# object_usage ------------------------------------------------------------
+
+test_that("usage captured from formals", {
+  expect_equal(
+    call_to_usage(f <- function() {}),
+    "f()"
+  )
+  expect_equal(
+    call_to_usage(f <- function(a = 1) {}),
+    "f(a = 1)"
+  )
+})
+
+test_that("argument containing function is generates correct usage", {
+  expect_equal(
+    call_to_usage(f <- function(a = function(x) 1) {}),
+    "f(a = function(x) 1)"
+  )
+})
+
+test_that("backticks retained when needed", {
+  expect_equal(
+    call_to_usage(f <- function(`_a`) {}),
+    "f(`_a`)"
+  )
+
+  expect_equal(
+    call_to_usage(`-f` <- function(x) {}),
+    "`-f`(x)"
+  )
+})
+
+test_that("% escaped when not in infix function", {
+  expect_equal(
+    call_to_usage(`%foo%bar` <- function(x, table) {}),
+    "`\\%foo\\%bar`(x, table)"
+  )
+  expect_equal(
+    call_to_usage(`%foo%bar<-` <- function(x, value) {}),
+    "`\\%foo\\%bar`(x) <- value"
+  )
+})
+
+test_that("default usage formats data correctly", {
+  expect_equal(
+    call_to_usage(hello <- 1),
+    "hello"
+  )
+})
+
+test_that("default usage formats replacement functions correctly", {
+  expect_equal(
+    call_to_usage(`f<-` <- function(x, value) {}),
+    "f(x) <- value"
+  )
+  expect_equal(
+    call_to_usage(`f<-` <- function(x, y, value) {}),
+    "f(x, y) <- value"
+  )
+})
+
+test_that("default usage formats infix functions correctly", {
+  expect_equal(
+    call_to_usage("%.%" <- function(a, b) {}),
+    "a \\%.\\% b"
+  )
+
+  # even if it contains <-
+  expect_equal(
+    call_to_usage("%<-%" <- function(a, b) {}),
+    "a \\%<-\\% b"
+  )
+})
+
+test_that("default usage formats S3 methods correctly", {
+  expect_equal(
+    call_to_usage(mean.foo <- function(x) {}),
+    "\\method{mean}{foo}(x)"
+  )
+  expect_equal(
+    call_to_usage(mean.function <- function(x) {}),
+    "\\method{mean}{`function`}(x)"
+  )
+  expect_equal(
+    call_to_usage("+.foo" <- function(x, b) {}),
+    "\\method{+}{foo}(x, b)"
+  )
+  expect_equal(
+    call_to_usage("[<-.foo" <- function(x, value) {}),
+    "\\method{[}{foo}(x) <- value"
+  )
+})
+
+test_that("S4 classes have no default usage", {
+  expect_equal(
+    call_to_usage({
+      setClass("Foo")
+    }),
+    character()
+  )
+})
+
+test_that("default usage correct for S4 methods", {
+  expect_equal(
+    call_to_usage({
+      setClass("Foo")
+      setMethod("sum", "Foo", function(x, ..., na.rm = FALSE) {})
+    }),
+    "\\S4method{sum}{Foo}(x, ..., na.rm = FALSE)"
+  )
+
+  expect_equal(
+    call_to_usage({
+      setClass("Foo")
+      setMethod("+", "Foo", function(e1, e2) "foo")
+    }),
+    "\\S4method{+}{Foo,ANY}(e1, e2)"
+  )
+
+  expect_equal(
+    call_to_usage({
+      setClass("Foo")
+      setMethod("[<-", "Foo", function(x, i, j, ..., value) "foo")
+    }),
+    "\\S4method{[}{Foo}(x, i, j, ...) <- value"
+  )
+})
+
+test_that("default usage correct for S4 methods with different args to generic", {
+  expect_equal(
+    call_to_usage({
+      setGeneric("testfun", function(x, ...) standardGeneric("testfun"))
+      setMethod("testfun", "matrix", function(x, add = FALSE, ...) {
+        x - 1
+      })
+    }),
+    "\\S4method{testfun}{matrix}(x, add = FALSE, ...)"
+  )
+})
+
+test_that("non-syntactic S4 class names are escaped in usage", {
+  expect_equal(
+    call_to_usage({
+      setGeneric("rhs", function(x) standardGeneric("rhs"))
+      setMethod("rhs", "<-", function(x) x[[3]])
+    }),
+    "\\S4method{rhs}{`<-`}(x)"
+  )
+})
+
 
 # Wrapping --------------------------------------------------------------------
 
-test_that("long usages protected from incorrect breakage", {
-  out <- roc_proc_text(rd_roclet(), "
-    #' Function long usage
-    f <- function(a = '                                    a',
-                  b = '                                    b',
-                  c = '                                    c',
-                  d = '                                    d') 1")[[1]]
+test_that("new wrapping style doesn't change unexpectedly", {
+  expect_known_output(file = test_path("test-object-usage-wrap-new.txt"), {
+    cat(call_to_usage({
+      f <- function(a = '                                    a',
+                    b = '                                    b',
+                    c = '                                    c',
+                    d = '                                    d') {}
+    }), "\n\n")
 
-  usage <- format(get_tag(out, "usage"))
-  expect_equal(str_count(usage, "\n"), 5)
+    cat(call_to_usage({
+      f <- function(a = c('abcdef', 'abcdef', 'abcdef', 'abcdef', 'abcdef',
+                    'abcdef', 'abcdef', 'abcdef', 'abcdef', 'abcdef')) {}
+    }), "\n\n")
+
+    cat(call_to_usage({
+      mean.reallyratherquitelongclassname <-
+        function(reallyreatherquitelongargument = 'reallyratherquitelongvalue_____________________') {}
+    }), "\n\n")
+
+    cat(call_to_usage({
+      `long_replacement_fun<-` <- function(x,
+          a = 'aaaaaaaaaaaaaaaa',
+          b = 'aaaaaaaaaaaaaaaa',
+          c = 'aaaaaaaaaaaaaaaa',
+          value) {}
+    }), "\n\n")
+  })
 })
 
-test_that("argument vectors split on whitespace", {
-  out <- roc_proc_text(rd_roclet(), "
-    #' Function long usage
-    f <- function(a = c('abcdef', 'abcdef', 'abcdef', 'abcdef', 'abcdef',
-                  'abcdef', 'abcdef', 'abcdef'))  1")[[1]]
+test_that("old wrapping style doesn't change unexpectedly", {
+  old <- roxy_meta_set("old_usage", TRUE)
+  on.exit(roxy_meta_set("old_usage", old))
 
-  usage <- get_tag(out, "usage")[[2]]
-  expect_equal(str_count(usage, "\n"), 1)
+  expect_known_output(file = test_path("test-object-usage-wrap-old.txt"), {
+    cat(call_to_usage({
+      f <- function(a = '                                    a',
+                    b = '                                    b',
+                    c = '                                    c',
+                    d = '                                    d') {}
+    }), "\n\n")
+
+    cat(call_to_usage({
+      f <- function(a = c('abcdef', 'abcdef', 'abcdef', 'abcdef', 'abcdef',
+                    'abcdef', 'abcdef', 'abcdef', 'abcdef', 'abcdef')) {}
+    }), "\n\n")
+
+    cat(call_to_usage({
+      mean.reallyratherquitelongclassname <-
+        function(reallyreatherquitelongargument = 'reallyratherquitelongvalue_____________________') {}
+    }), "\n\n")
+
+    cat(call_to_usage({
+      `long_replacement_fun<-` <- function(x,
+          a = 'aaaaaaaaaaaaaaaa',
+          b = 'aaaaaaaaaaaaaaaa',
+          c = 'aaaaaaaaaaaaaaaa',
+          value) {}
+    }), "\n\n")
+
+    # breaking works after escapes (#265)
+    cat(call_to_usage({
+      f <- function(
+        xxxxxxxxxxxxxxxxxx1,
+        xxxxxxxxxxxxxxxxxx2,
+        xxxxxxxxxxxxxxxxxx3,
+        x = "\"'",
+        xxxxxxxxxxxxxxxxxx4,
+        xxxxxxxxxxxxxxxxxx5,
+        xxxxxxxxxxxxxxxxxx6,
+        xxxxxxxxxxxxxxxxxx7
+      ) {}
+    }), "\n\n")
+  })
 })
 
-test_that("\\method not split inappropriately", {
-  out <- roc_proc_text(rd_roclet(), "
-    #' Function long usage
-    mean.reallyratherquitelongclassname <-
-      function(reallyquitelongargument = 'reallyratherquitelongvalue') 1
-  ")[[1]]
-  usage <- format(get_tag(out, "usage"))
-  expect_match(usage, "\\{mean\\}\\{reallyratherquitelongclassname\\}")
-})
 
-test_that("long usages protected from incorrect breakage", {
-  out <- roc_proc_text(rd_roclet(), "
-    #' Function long usage
-    f <- function(a = '                                    a',
-    b = '                                    b',
-    c = '                                    c',
-    d = '                                    d') 1")[[1]]
-
-  usage <- format(get_tag(out, "usage"))
-  expect_equal(str_count(usage, "\n"), 5)
-})
-
-test_that("breaking works after escapes (#265)", {
-
-  out <- roc_proc_text(rd_roclet(), "
-    #' Long args
-    f <- function(
-      xxxxxxxxxxxxxxxxxx1,
-      xxxxxxxxxxxxxxxxxx2,
-      xxxxxxxxxxxxxxxxxx3,
-      x = \"\\\"'\",
-      xxxxxxxxxxxxxxxxxx4,
-      xxxxxxxxxxxxxxxxxx5,
-      xxxxxxxxxxxxxxxxxx6,
-      xxxxxxxxxxxxxxxxxx7
-  ){}")[[1]]
-  usage <- format(get_tag(out, "usage"))
-  expect_equal(str_count(usage, "\n"), 4)
-})
-
-test_that("replacement funs get non-breaking spaces", {
-  out <- roc_proc_text(rd_roclet(), "
-    #' Function long usage
-    `long_replacement_fun<-` <- function(x,
-        a = 'aaaaaaaaaaaaaaaa',
-        b = 'aaaaaaaaaaaaaaaa',
-        value) {}
-  ")[[1]]
-  usage <- format(get_tag(out, "usage"))
-  expect_match(usage, " <- ")
-})

@@ -1,5 +1,3 @@
-context("Rd: section")
-
 test_that("warn if forgotton colom", {
   expect_warning(
     roc_proc_text(rd_roclet(), "
@@ -13,7 +11,6 @@ test_that("warn if forgotton colom", {
     "Section title spans multiple lines"
   )
 })
-
 
 test_that("@section-s with identical titles are merged", {
   out <- roc_proc_text(rd_roclet(), "
@@ -32,8 +29,8 @@ test_that("@section-s with identical titles are merged", {
   ")[[1]]
 
   expect_equal(
-    out$get_field("section"),
-    roxy_field_section(
+    out$get_section("section"),
+    rd_section_section(
       c("Haz dox", "TL", "RT"),
       c(" Here.\n\n\n  Got news.", " DR.", " FM.")
     )
@@ -54,7 +51,7 @@ test_that("@section-s with different titles are kept as they are", {
   ")[[1]]
 
   expect_equal(
-    out$get_field("section"),
-    roxy_field_section(LETTERS[1:3], c(" 1", " 2", " 3"))
+    out$get_section("section"),
+    rd_section_section(LETTERS[1:3], c(" 1", " 2", " 3"))
   )
 })

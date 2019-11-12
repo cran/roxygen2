@@ -2,19 +2,6 @@
 knitr::opts_chunk$set(comment = "#>", collapse = TRUE)
 
 ## ------------------------------------------------------------------------
-#' Add together two numbers
-#'
-#' @param x A number
-#' @param y A number
-#' @return The sum of \code{x} and \code{y}
-#' @examples
-#' add(1, 1)
-#' add(10, 1)
-add <- function(x, y) {
-  x + y
-}
-
-## ------------------------------------------------------------------------
 #' Sum of vector elements.
 #'
 #' `sum` returns the sum of all the values present in its arguments.
@@ -24,6 +11,18 @@ add <- function(x, y) {
 #' the arguments `...` should be unnamed, and dispatch is on the
 #' first argument.
 sum <- function(..., na.rm = TRUE) {}
+
+## ------------------------------------------------------------------------
+#' Sum of vector elements.
+#' 
+#' @description
+#' `sum` returns the sum of all the values present in its arguments.
+#'
+#' @details
+#' This is a generic function: methods can be defined for it directly
+#' or via the [Summary()] group generic. For this to work properly,
+#' the arguments `...` should be unnamed, and dispatch is on the
+#' first argument.
 
 ## ------------------------------------------------------------------------
 #' Sum of vector elements.
@@ -68,16 +67,74 @@ Account <- setClass("Account",
 )
 
 ## ------------------------------------------------------------------------
+#' R6 Class Representing a Person
+#'
+#' @description
+#' A person has a name and a hair color.
+#'
+#' @details
+#' A person can also greet you.
+
+Person <- R6::R6Class("Person",
+public = list(
+
+    #' @field name First or full name of the person.
+    name = NULL,
+
+    #' @field hair Hair color of the person.
+    hair = NULL,
+
+    #' @description
+    #' Create a new person object.
+    #' @param name Name.
+    #' @param hair Hair color.
+    #' @return A new `Person` object.
+    initialize = function(name = NA, hair = NA) {
+      self$name <- name
+      self$hair <- hair
+      self$greet()
+    },
+
+    #' @description
+    #' Change hair color.
+    #' @param val New hair color.
+    #' @examples
+    #' P <- Person("Ann", "black")
+    #' P$hair
+    #' P$set_hair("red")
+    #' P$hair
+    set_hair = function(val) {
+      self$hair <- val
+    },
+
+    #' @description
+    #' Say hi.
+    greet = function() {
+      cat(paste0("Hello, my name is ", self$name, ".\n"))
+    }
+  )
+)
+
+## ------------------------------------------------------------------------
 #' Prices of 50,000 round cut diamonds.
 #'
 #' A dataset containing the prices and other attributes of almost 54,000
-#' diamonds. The variables are as follows:
-#'
-#' * `price`: price in US dollars (\$326--\$18,823)
-#' * `carat`: weight of the diamond (0.2--5.01)
-#' * ...
+#' diamonds.
 #'
 #' @format A data frame with 53940 rows and 10 variables
+#' \describe{
+#'   \item{price}{price in US dollars (\$326--\$18,823)}
+#'   \item{carat}{weight of the diamond (0.2--5.01)}
+#'   \item{cut}{quality of the cut (Fair, Good, Very Good, Premium, Ideal)}
+#'   \item{color}{diamond colour, from D (best) to J (worst)}
+#'   \item{clarity}{a measurement of how clear the diamond is (I1 (worst), SI2,
+#'     SI1, VS2, VS1, VVS2, VVS1, IF (best))}
+#'   \item{x}{length in mm (0--10.74)}
+#'   \item{y}{width in mm (0--58.9)}
+#'   \item{z}{depth in mm (0--31.8)}
+#'   \item{depth}{total depth percentage = z / mean(x, y) = 2 * z / (x + y) (43--79)}
+#'   \item{table}{width of top of diamond relative to widest point (43--95)}
+#' }
 #' @source <http://www.diamondse.info/>
 "diamonds"
 
@@ -101,22 +158,14 @@ Account <- setClass("Account",
 #' }
 
 ## ------------------------------------------------------------------------
-#' Basic arithmetic
-#'
-#' @param x,y numeric vectors.
-#' @section Neutral elements:
-#'   Addition: 0.
-add <- function(x, y) x + y
-
-#' @rdname add
-#' @section Neutral elements:
-#'   Multiplication: 1.
-times <- function(x, y) x * y
-
-## ------------------------------------------------------------------------
-#' @family aggregate functions
+#' @family aggregations
 #' @seealso [prod()] for products, [cumsum()] for cumulative sums, and
 #'   [colSums()]/[rowSums()] marginal sums over high-dimensional arrays.
+
+## ---- eval = FALSE-------------------------------------------------------
+#  rd_family_title <- list(
+#    aggregations = "Aggregation functions"
+#  )
 
 ## ------------------------------------------------------------------------
 #' Foo bar generic
@@ -151,6 +200,50 @@ add <- function(x, y) x + y
 
 #' @rdname arith
 times <- function(x, y) x * y
+
+## ------------------------------------------------------------------------
+#' @rdname arith
+#' @order 2
+add <- function(x, y) x + y
+
+#' @rdname arith
+#' @order 1
+times <- function(x, y) x * y
+
+## ------------------------------------------------------------------------
+my_params <- function() {
+  c(
+    "@param x An integer vector",
+    "@param y A character vector"
+  )
+}
+
+#' A title
+#' 
+#' @eval my_params()
+#' @export
+foo <- function(x, y) {
+}
+
+## ------------------------------------------------------------------------
+#' A title
+#' 
+#' @param x An integer vector
+#' @param y A character vector
+#' @export
+foo <- function(x, y) {
+}
+
+## ------------------------------------------------------------------------
+my_note <- function(x) {
+  paste0("\\note{", paste0(x, "\n", collapse =""), "}")
+}
+
+#' @evalRd my_note(c(
+#'   "This is the first line",
+#'   "This is the second line"
+#' ))
+NULL
 
 ## ------------------------------------------------------------------------
 #' @backref src/file.cpp

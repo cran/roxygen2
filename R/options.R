@@ -1,0 +1,99 @@
+#' Load roxygen2 options
+#'
+#' Options can be stored in the `Roxygen` field of the `DESCRIPTION`, or
+#' in `man/roxygen/meta.R`. In either case, the code is parsed and evaluated
+#' in a child of the base environment. Call `roxy_meta_get()` to access
+#' current option values from within tag and roclet methods.
+#'
+#' Options in `man/roxygen/meta.R` override those present in `DESCRIPTION`.
+#'
+#' @param base_path Path to package.
+#' @export
+#' @keywords internal
+load_options <- function(base_path = ".") {
+  desc <- load_options_description(base_path)
+  meta <- load_options_meta(base_path)
+  opts <- utils::modifyList(desc, meta)
+
+  defaults <- list(
+    roclets = c("collate", "namespace", "rd"),
+    load = "pkgload",
+    old_usage = FALSE,
+    markdown = FALSE,
+    r6 = TRUE,
+    package = NA_character_
+  )
+
+  unknown_opts <- setdiff(names(opts), names(defaults))
+  if (length(unknown_opts) > 0) {
+    warn(paste0(
+      "Unknown Roxygen options ", paste(unknown_opts, collapse = ", "), ".\n",
+      "Supported options: ", paste(names(defaults), collapse = ", ")
+    ))
+  }
+
+  utils::modifyList(defaults, opts)
+}
+
+load_options_description <- function(base_path = ".") {
+  desc_path <- file.path(base_path, "DESCRIPTION")
+  dcf <- read.dcf(desc_path, fields = c("Roxygen", "Package"))
+  desc_opts <- dcf[[1, 1]]
+
+  if (is.na(desc_opts)) {
+    opts <- list()
+  } else {
+    opts <- eval(parse(text = desc_opts), child_env(baseenv()))
+  }
+
+  opts$package <- dcf[[1, 2]]
+  opts
+}
+
+load_options_meta <- function(base_path = ".", path = "man/roxygen/meta.R") {
+  # Only look for .R for consistency with style advice
+  meta_path <- file.path(base_path, path)
+
+  if (!file.exists(meta_path)) {
+    return(list())
+  }
+
+  value <- tryCatch(
+    source(meta_path, local = child_env(baseenv()))$value,
+    error = function(err) {
+      warn("Failed to source `man/roxygen/meta.R`")
+      list()
+    }
+  )
+
+  if (!is.list(value)) {
+    warn("`man/roxygen/meta.R` must yield a named list")
+    return(list())
+  }
+
+  value
+}
+
+# Global binding mangaemnet -----------------------------------------------
+
+roxy_meta <- new_environment()
+
+#' @export
+#' @rdname load_options
+roxy_meta_get <- function(key = NULL, default = NULL) {
+  env_get(roxy_meta, key, default = default)
+}
+
+roxy_meta_set <- function(key, value = NULL) {
+  env_poke(roxy_meta, key, value)
+}
+
+roxy_meta_clear <- function() {
+  env_unbind(roxy_meta, env_names(roxy_meta))
+}
+
+roxy_meta_load <- function(base_path = getwd()) {
+  roxy_meta_clear()
+  env_bind(roxy_meta, !!!load_options(base_path))
+}
+

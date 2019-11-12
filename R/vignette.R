@@ -18,13 +18,7 @@ vignette_roclet <- function() {
 }
 
 #' @export
-roclet_process.roclet_vignette <- function(x, blocks, env, base_path,
-                                           global_options = list()) {
-}
-
-#' @export
-roclet_tags.roclet_vignette <- function(x) {
-  list()
+roclet_process.roclet_vignette <- function(x, blocks, env, base_path) {
 }
 
 #' @export
@@ -72,7 +66,7 @@ vign_update_all <- function(pkg_path) {
     message("Updating vignettes")
 
     vigs <- tools::pkgVignettes(dir = pkg_path)
-    invisible(vapply(vigs$docs, vign_update, logical(1)))
+    invisible(map_lgl(vigs$docs, vign_update))
   }
 }
 

@@ -37,7 +37,7 @@ RoxyTopics <- R6::R6Class("RoxyTopics", public = list(
   # Given a topic name, find its file name.
   find_filename = function(name) {
     for (i in seq_along(self$topics)) {
-      if (name %in% self$topics[[i]]$get_field("name")$values) {
+      if (name %in% self$topics[[i]]$get_value("name")) {
         return(names(self$topics)[[i]])
       }
     }
@@ -86,8 +86,8 @@ RoxyTopics <- R6::R6Class("RoxyTopics", public = list(
 
   # Extract values for simple fields
   simple_values = function(field) {
-    fields <- lapply(self$topics, function(rd) rd$get_field(field))
-    lapply(compact(fields), "[[", "values")
+    fields <- lapply(self$topics, function(rd) rd$get_section(field))
+    lapply(compact(fields), "[[", "value")
   }
 
 ))

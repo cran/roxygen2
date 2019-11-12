@@ -5,9 +5,6 @@
 #'
 #' @section Methods:
 #'
-#' * `roclet_tags()`: return named list, where names give recognised tags and
-#'   values give tag parsing function. See [roxy_tag] for built-in options.
-#'
 #' * `roclet_preprocess()` is called after blocks have been parsed but before
 #'   code has been evaluated. This should only be needed if your roclet affects
 #'   how code will evaluated. Should return a roclet.
@@ -22,6 +19,16 @@
 #' * `roclet_clean()` called when `roxygenise(clean = TRUE)`. Should remove
 #'   any files created by the roclet.
 #'
+#' ### Deprecated methods
+#'
+#' `roclet_tags()` is no longer used; instead provide a [roxy_tag_parse()]
+#' method for each tag.
+#'
+#' @param x A `roclet` object.
+#' @param blocks A list of [roxy_block] objects.
+#' @param results Value returned from your `roclet_process()` method.
+#' @param base_path Path to root of source package.
+#' @param env Package environment.
 #' @keywords internal
 #' @name roclet
 NULL
@@ -34,38 +41,37 @@ roclet <- function(subclass, ...) {
 
 #' @export
 #' @rdname roclet
+roclet_preprocess <- function(x, blocks, base_path) {
+  UseMethod("roclet_preprocess")
+}
+
+#' @export
+roclet_preprocess.default <- function(x, blocks, base_path) {
+  x
+}
+
+#' @export
+#' @rdname roclet
+roclet_process <- function(x, blocks, env, base_path) {
+  UseMethod("roclet_process")
+}
+
+#' @export
+#' @rdname roclet
 roclet_output <- function(x, results, base_path, ...) {
   UseMethod("roclet_output", x)
 }
 
 #' @export
 #' @rdname roclet
-roclet_tags <- function(x) {
-  UseMethod("roclet_tags")
-}
-
-
-#' @export
-#' @rdname roclet
-roclet_preprocess <- function(x, blocks, base_path, global_options = list()) {
-  UseMethod("roclet_preprocess")
-}
-
-#' @export
-roclet_preprocess.default <- function(x, blocks, base_path, global_options = list()) {
-  x
-}
-
-#' @export
-#' @rdname roclet
-roclet_process <- function(x, blocks, env, base_path, global_options = list()) {
-  UseMethod("roclet_process")
-}
-
-#' @export
-#' @rdname roclet
 roclet_clean <- function(x, base_path) {
   UseMethod("roclet_clean")
+}
+
+#' @export
+#' @rdname roclet
+roclet_tags <- function(x) {
+  UseMethod("roclet_tags")
 }
 
 #' Create a roclet from a string.
@@ -116,12 +122,9 @@ is.roclet <- function(x) inherits(x, "roclet")
 #'
 #' @param roclet Name of roclet to use for processing.
 #' @param input Source string
-#' @param registry Named list of tag parsers
-#' @param global_options List of global options
 #' @export
 #' @keywords internal
-roc_proc_text <- function(roclet, input, registry = default_tags(),
-                          global_options = list()) {
+roc_proc_text <- function(roclet, input) {
   stopifnot(is.roclet(roclet))
 
   file <- tempfile()
@@ -129,13 +132,6 @@ roc_proc_text <- function(roclet, input, registry = default_tags(),
   on.exit(unlink(file))
 
   env <- env_file(file)
-  blocks <- parse_text(input, env = env, registry = registry, global_options)
-  roclet_process(roclet, blocks, env = env, base_path = ".", global_options)
-}
-
-default_tags <- function() {
-  c(
-    roclet_tags.roclet_namespace(list()),
-    roclet_tags.roclet_rd(list())
-  )
+  blocks <- parse_text(input, env = env)
+  roclet_process(roclet, blocks, env = env, base_path = ".")
 }

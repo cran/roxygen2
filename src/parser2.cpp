@@ -106,7 +106,7 @@ List tokenise_block(CharacterVector lines, std::string file = "",
   std::vector<std::string> tags, vals;
   std::vector<int> rows;
 
-  int curRow = 0;
+  int curRow = 1;
   std::string curTag(""), curVal("");
 
   for (int i = 0; i < lines.size(); ++i) {
@@ -147,12 +147,13 @@ List tokenise_block(CharacterVector lines, std::string file = "",
   for (int i = 0; i < n; ++i) {
     out[i] = List::create(
       _["file"] = file,
-      _["line"] = rows[i] + 1,
+      _["line"] = rows[i],
       _["tag"] = tags[i],
       // Rcpp::String() necessary to tag string as UTF-8
-      _["val"] = Rcpp::String(stripTrailingNewline(vals[i]))
+      _["raw"] = Rcpp::String(stripTrailingNewline(vals[i])),
+      _["val"] = R_NilValue
     );
-    out[i].attr("class") = "roxy_tag";
+    out[i].attr("class") = Rcpp::CharacterVector::create("roxy_tag_" + tags[i], "roxy_tag");
   }
   return out;
 }

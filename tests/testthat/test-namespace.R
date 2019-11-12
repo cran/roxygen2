@@ -1,28 +1,14 @@
-context("Namespace")
-
 # @export -----------------------------------------------------------------
 
-test_that("export detects object name", {
+test_that("export quote object name appropriate", {
   out <- roc_proc_text(namespace_roclet(), "#' @export\na <- function(){}")
   expect_equal(out, 'export(a)')
-})
 
-test_that("export escapes quotes name if needed", {
-  out <- roc_proc_text(namespace_roclet(), "#' @export\n'a<-' <- function(){}")
-  expect_equal(out, 'export("a<-")')
-})
+  out <- roc_proc_text(namespace_roclet(), "#' @export\n`+` <- function(){}")
+  expect_equal(out, 'export("+")')
 
-test_that("export escapes tricky names", {
-  out <- roc_proc_text(namespace_roclet(), "#' @export\n`%||%` <- function(){}")
-  expect_equal(out, 'export("%||%")')
-  out <- roc_proc_text(namespace_roclet(), "#' @export\n`%'%` <- function(){}")
-  expect_equal(out, 'export("%\'%")')
-  out <- roc_proc_text(namespace_roclet(), "#' @export\n`%\"%` <- function(){}")
-  expect_equal(out, 'export("%\\"%")')
-  out <- roc_proc_text(namespace_roclet(), "#' @export\n`%\"%` <- function(){}")
-  expect_equal(out, 'export("%\\"%")')
-  out <- roc_proc_text(namespace_roclet(), "#' @export\n`%\\\\%` <- function(){}")
-  expect_equal(out, 'export("%\\\\%")')
+  out <- roc_proc_text(namespace_roclet(), "#' @export\n`\\`` <- function(){}")
+  expect_equal(out, 'export("`")')
 })
 
 test_that("export parameter overrides default", {
@@ -65,6 +51,51 @@ test_that("export detects S3 method", {
   expect_equal(out, 'S3method(mean,foo)')
 })
 
+test_that("export handles non-syntactic names", {
+  out <- roc_proc_text(namespace_roclet(),  "
+    #' @export
+    `mean.foo-bar` <- function(x) 'foo'
+  ")
+  expect_equal(out, "S3method(mean,\"foo-bar\")")
+
+  out <- roc_proc_text(namespace_roclet(),  "
+    `foo-bar` <- function(x) UseMethod('foo-bar')
+    #' @export
+    `foo-bar.integer` <- function(x) 'foo'
+  ")
+  expect_equal(out, "S3method(\"foo-bar\",integer)")
+})
+
+test_that("@exportS3method generatedsS3method()", {
+  out <- roc_proc_text(namespace_roclet(),
+    "#' @exportS3Method
+    mean.foo <- function(x) 'foo'
+  ")
+  expect_equal(out, "S3method(mean,foo)")
+
+  out <- roc_proc_text(namespace_roclet(),
+    "#' @exportS3Method base::mean
+    mean.foo <- function(x) 'foo'
+  ")
+  expect_equal(out, "S3method(base::mean,foo)")
+
+  expect_warning(
+    roc_proc_text(namespace_roclet(),
+      "#' @exportS3Method base::mean
+      NULL
+    "),
+    "an S3 method"
+  )
+
+  out <- roc_proc_text(namespace_roclet(),
+    "#' @exportS3Method base::mean foo
+    NULL
+  ")
+  expect_equal(out, "S3method(base::mean,foo)")
+
+
+})
+
 test_that("exportClass overrides default class name", {
   out <- roc_proc_text(namespace_roclet(), "#' @exportClass b\nsetClass('a')")
   expect_equal(out, 'exportClasses(b)')
@@ -95,9 +126,6 @@ test_that("export uses name if no object present", {
   ")
   expect_equal(out, 'export(x)')
 })
-
-
-
 
 test_that("default export uses exportClass for RC objects", {
   out <- roc_proc_text(namespace_roclet(), "
@@ -144,12 +172,6 @@ test_that("poorly formed importFrom throws error", {
   "), "needs at least 2 words")
 })
 
-
-test_that("S3method is depecrated", {
-  expect_warning(roc_proc_text(namespace_roclet(), "#' @S3method test test\nNULL"),
-    "@S3method is deprecated")
-})
-
 test_that("multiline importFrom parsed correctly", {
   out <- roc_proc_text(namespace_roclet(), "
     #' @importFrom test test1
@@ -185,7 +207,7 @@ test_that("empty NAMESPACE generates zero-length vector", {
   base_path <- test_path("empty")
 
   env <- pkgload::load_all(base_path)$env
-  blocks <- parse_package(base_path, env = env, registry = list())
+  blocks <- parse_package(base_path, env = env)
 
   results <- roclet_process(namespace_roclet(), blocks, env = env, base_path)
   expect_equal(results, character())
@@ -235,7 +257,7 @@ test_that("evalNamespace generates warning when code raises error", {
       #' @name a
       #' @title a
       NULL"),
-    "@evalNamespace failed with error"  # From block_eval
+    "failed with error"  # From block_eval
   )
 })
 
@@ -248,7 +270,7 @@ test_that("evalNamespace generates warning when code doesn't eval to string", {
       #' @name a
       #' @title a
       NULL"),
-    "@evalNamespace did not evaluate to a string"  # From block_eval
+    "did not evaluate to a string"  # From block_eval
   )
 
   # NA_character_ not allowed
@@ -259,7 +281,7 @@ test_that("evalNamespace generates warning when code doesn't eval to string", {
       #' @name a
       #' @title a
       NULL"),
-    "@evalNamespace result contained NA"  # From block_eval
+    "result contained NA"  # From block_eval
   )
 })
 
@@ -291,4 +313,13 @@ test_that("evalNamspace can yield a vector", {
     NULL")
 
   expect_equal(out, c("export(a)", "export(b)"))
+})
+
+
+# helpers -----------------------------------------------------------------
+
+test_that("auto_quote behaves as needed", {
+  expect_equal(auto_quote("x"), "x")
+  expect_equal(auto_quote("if"), '"if"') # quotes non-syntactic
+  expect_equal(auto_quote("'if'"), "'if'") # unless already quoted
 })

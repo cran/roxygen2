@@ -1,3 +1,272 @@
+# roxygen2 7.0.0
+
+## New features
+
+### New tags
+
+* `@includeRmd {path.Rmd}` converts an `.Rmd`/`.md` file to `.Rd` and includes 
+  it in the manual page. This allows sharing text between vignettes, 
+  `README.Rmd`, and the documentation. See `vignette("rd")` for details (#902).
+
+* `@order {n}` tag controls the order in which blocks are processed. You can
+  use it to override the usual ordering which proceeds from the top of 
+  each file to the bottom. `@order 1` will be processed before `@order 2`, 
+  and before any blocks that don't have an explicit order set (#863).
+
+* `@exportS3Method` tag allows you to generate `S3method()` namespace
+  directives (note the different in capitalisation) (#796). Its primary use is 
+  for "delayed" method registration, which allows you to define methods for 
+  generics found in suggested packages (available in R 3.6 and greater).
+  For example,
+    
+    ```R
+    #' @exportS3Method package::generic
+    generic.foo <- function(x, ...) {
+    
+    }
+    ```
+    
+    will generate
+    
+    ```
+    S3method(package::generic, foo)
+    ```
+    
+    (See [`vctrs::s3_register()`](https://vctrs.r-lib.org/reference/s3_register.html)
+    you need a version that works for earlier versions of R).
+    
+    It also has a two argument form allows you generate arbitrary `S3method()` 
+    directives:
+    
+    ```R
+    #' @exportS3Method generic class
+    NULL
+    ```
+    
+    ```
+    S3method(generic, class)
+    ```
+
+*  New `@returns` is an alias for `@return` (#952).
+
+### R6
+
+roxygen2 can now document R6 classes (#922). See `vignette("rd")` for details.
+
+### Markdown improvements
+
+* Rd comments (`%`) are now automatically escaped. You will need to replace any
+  existing uses of `\%` with `%` (#879).
+
+* Markdown headings are supported in tags like `@description`, `@details`, 
+  and `@return` (#907, #908). Level 1 headings create a new top-level 
+  `\section{}`. Level 2 headings and below create nested `\subsections{}`.
+
+* Markdown tables are converted to a `\tabular{}` macro (#290). roxygen2 
+  supports the [GFM table syntax](https://github.github.com/gfm/#tables-extension-)
+  which looks like this:
+  
+    ```md
+    | foo | bar |
+    | --- | --- |
+    | baz | bim |
+    ```
+
+* Markdown code (``` `foofy` ```) is converted to to either `\code{}` or 
+  `\verb{}`, depending on whether it not it parses as R code. This better
+  matches the description of `\code{}` and `\verb{}` macros, solves a certain
+  class of escaping problems, and should make it easier to include arbitrary 
+  "code" snippets in documentation without causing Rd failures (#654).
+
+* Markdown links can now contain formatting, e.g. `[*mean*][mean]` will now
+  generate `\link[=mean]{\emph{mean}}`.
+
+* Use of unsupported markdown features (e.g. blockquotes, inline HTML, 
+  and horizontal rules) generates informative error messages (#804).
+
+### Default usage
+
+* The default formatting for function usage that spans multiple lines has
+  now changed. Previously, the usage was wrapped to produce the smallest number 
+  of lines, e.g.:
+  
+    ```R
+    parse_package(path = ".", env = env_package(path), 
+      registry = default_tags(), global_options = list())
+    ```
+    
+    Now it is wrapped so that each argument gets its own line (#820):
+    
+    ```R
+    parse_package(
+      path = ".",
+      env = env_package(path),
+      registry = default_tags(),
+      global_options = list()
+    )
+    ```
+    
+    If you prefer the old behaviour you can put the following in your
+    `DESCRIPTION`:
+    
+    ```
+    Roxygen: list(old_usage = TRUE)
+    ```
+
+### Code loading
+
+roxygen2 now provides three strategies for loading your code (#822):
+
+* `load_pkgload()`, the default, uses [pkgload](https://www.github.com/r-lib/pkgload). 
+  Compared to the previous release, this now automatically recompiles your 
+  package if needed.
+
+* `load_source()` attaches required packages and `source()`s all files in `R/`. 
+  This is a cruder simulation of package loading than pkgload (and e.g. is 
+  unreliable if you use S4 extensively), but it does not require that the 
+  package be compiled. Use if the default strategy (used in roxygen2 6.1.0 
+  and above) causes you grief.
+
+* `load_installed()` assumes you have installed the package. This is best
+  used as part of a bigger automated workflow.
+
+You can override the default either by calling (e.g.) `roxygenise(load_code = "source"))` or by setting the `load` option in your DESCRIPTION: `Roxygen: list(load = "source")`.
+
+### Options
+
+* As well as storing roxygen options in the `Roxygen` field of the 
+  `DESCRIPTION` you can now also store them in `man/roxygen/meta.R` (#889).
+  The evaluation of this file should produce a named list that maps option
+  names to values. 
+  
+* roxygen now also looks for templates in `man/roxygen/templates` (#888).
+
+* New `rd_family_title` option: this should be a named list, and is used to
+  overrides the default "Other family: " prefix that `@family` generates. 
+  For example, to override the prefix generated by `@family foo` place 
+  `rd_family_title <- list(foo = "Custom prefix: ")` in 
+  `man/roxygen/meta.R` (#830, @kevinushey).
+
+## Breaking changes
+
+* Rd comments (`%`) are automatically escaped in markdown formatted text. 
+  This is a backward incompatible change because you will need to replace 
+  existing uses of `\%` with `%` (#879).
+
+* Using `@docType package` no longer automatically adds `-name`. Instead 
+  document `_PACKAGE` to get all the defaults for package documentation, or
+  use `@name` to override the default file name.
+
+* `@S3method` has been removed. It was deprecated in roxygen2 4.0.0
+  released 2014-05-02, over 5 years ago.
+
+* Using the old `wrap` option will now trigger a warning, as hasn't worked
+  for quite some time. Supress the error by deleting the option from your
+  `DESCRIPTION`.
+
+### Extending roxygen2
+
+The process for extending roxygen2 with new tags and new roclets has been completely overhauled, and is now documented in `vignette("extending")`. If you're one of the few people who have written a roxygen2 extension, this will break your code - but the documentation, object structure, and print methods are now so much better that I hope it's not too annoying! Because this interface is now documented, it will not change in the future without warning and a deprecation cycle. 
+
+If you have previously made a new roclet, the major changes are:
+
+* The previously internal data structures used to represent blocks and tags
+  have been overhauled. They are now documented and stable. See `roxy_block()` 
+  and `roxy_tag()` for details.
+
+* `roclet_tags()` is no longer used; instead define a `roxy_tag_parse()` method.
+  For example, if you create a new `@mytag` tag, it will generate a class of 
+  `roxy_tag_mytag`, and will be parsed by `roxy_tag_parse.roxy_tag_mytag()` 
+  method. The method should return a new `roxy_tag()` object with the 
+  `val` field set.
+  
+    This means that the `registry` argument is no longer needed and has 
+    been removed.
+
+* `rd_section()` and `roxy_tag_rd()` are now exported so that you can more 
+  easily extend `rd_roclet()` with your own tags that generate output in
+  `.Rd` files.
+
+* `global_options` is no longer passed to all roclet methods. Instead, use 
+  `roxy_meta_get()` to retrieve values stored in the options (#918).
+
+* `tag_two_part()` and `tag_words()` are now simple functions, not function 
+  factories. 
+
+* `tag_markdown_restricted()` has been removed because it did exactly the 
+   same thing as `tag_markdown()`.
+
+A big thanks goes to @mikldk for starting on the vignette and motivating me to make the extension process much more pleasant (#882).
+
+## Bug fixes and minor improvements
+
+* Empty roxygen2 lines at the start of a block are now silently removed (#710).
+
+* Whitespace is automatically trimmed off the `RoxygenNote` field when 
+  comparing the installed version of roxygen2 to the version used to 
+  generate the documentation (#802).
+
+* Files generated on Windows systems now retain their existing line endings, or 
+  use unix-style line endings for new files (@jonthegeek, @jimhester, #840).
+  
+* roxygen2 now recognises fully qualified S4 functions like 
+  `methods::setGeneric()`, `methods::setClass()` and `methods::setMethod()`
+  (#880).
+
+* Package documentation now converts ORCIDs into a useful link (#721).
+  The package logo (if found at `man/images/logo.png`) is now scaled to 120px 
+  wide (@peterdesmet, #834).
+
+* Documenting an S4 method that has a `.local()` wrapper no longer fails with 
+  an obscure error message (#847).
+
+* Functions documented in `reexports` are now sorted alphabetically by
+  package (#765).
+
+* `@describeIn` can now be used with any combination of function types 
+  (#666, #848).
+
+* `@description` and `@detail` tags are automatically generated from the 
+  leading description block, and now have correct line numbers (#917).
+
+* `@example` and `@examples` are interwoven in the order in which they
+  appear (#868).
+
+* In `@examples`, escaped `'` and `"` in strings are no longer doubly escaped 
+  (#873).
+
+* `@family` automatically adds `()` when linking to functions (#815),
+  and print each link on its own line (to improve diffs).
+
+* When `@inherit`ing from external documentation, `\link{foo}` links 
+  are automatically transformed to `\link{package}{foo}` so that they work in 
+  the generated documentation (#635). `\href{}` links in external inherited are 
+  now inserted correctly (without additional `{}`) (#778).
+
+* `@inherit`ing a a function with no arguments no longer throws a confusing
+  error message (#898).
+
+* `@inheritDotParams` automatically ignores arguments that can't be inherited
+  through `...` because they are used by the current function (@mjskay, #885).
+  
+* `@inheritDotParams` includes link to function and wraps parameters
+  in `\code{}` (@halldc, #842).
+
+* `@inheritDotParams` can be repeated to inherit dot docs from multiple 
+  functions (@gustavdelius, #767).
+
+* `@inheritDotParams` avoids multiple `...` arguments (@gustavdelius, #857).
+
+* `@inheritParams` ignores leading dots when comparing argument names (#862).
+
+* `@inheritParams` warns if there are no parameters that require 
+  documentation (#836).
+
+* `@param` containing only whitespce gives a clear warning message (#869).
+
+* Multiple `@usage` statements in a single block now generate a warning. 
+  Previously, the first was used without a warning.
+
 # roxygen2 6.1.1
 
 * Now specifically imports recent version of desc package (>= 1.2.0) to
@@ -13,11 +282,11 @@
 
 ## New features
 
-* The `NAMESPACE` roclet nows works in two passes - it first generates the
-  `NAMESPACE` containing only import directives becaues this can be generated
+* The `NAMESPACE` roclet now works in two passes - it first generates the
+  `NAMESPACE` containing only import directives because this can be generated
   without evaluating the code in the package. This alleviates a problem
   where it was previously possible to get into a state that you could only
-  get out of by carefully editting the `NAMESPACE` by hand (#372).
+  get out of by carefully editing the `NAMESPACE` by hand (#372).
 
 * `@evalRd foo()` evaluates `foo()` defined in the package namespace and inserts
   the results into the current block (#645). The code should return a character
@@ -41,7 +310,7 @@
 
 * `roxygenise()` uses `pkgload::load_all()` instead of a home grown solution
   to simulate package loading (this is needed because roxygen2 uses run-time
-  information to generate the documetation). This should reduce S4 related
+  information to generate the documentation). This should reduce S4 related
   problems and ensures that `devtools::document()` and `roxygenise()` always
   have exactly the same behaviour (#568, #595).
 
@@ -221,7 +490,7 @@
 
 * You can now document `setClassUnion()`s (#514).
 
-* The default alias for S4 method now re-addeds trailing ANY signatures
+* The default alias for S4 method now re-adds trailing ANY signatures
   that are sometimes dropped (#460).
 
 * Back references are now wrapped over multiple lines, if long
@@ -292,7 +561,7 @@
     ```
 
     All imported-and-re-exported functions will be documented in the same
-    file (`rexports.Rd`), containing a brief descrption and links to the
+    file (`rexports.Rd`), containing a brief description and links to the
     original documentation (#376).
 
 *   You can more easily generate package documentation by documenting the
@@ -346,7 +615,7 @@
 * `@examples` no longer complains about non-matching braces inside
   strings (#329).
 
-* `@family` now cross-links each manual page only once, instread of linking
+* `@family` now cross-links each manual page only once, instead of linking
   to all aliases (@gaborcsardi, #283, #367).
 
 * The special `@include` parser has also been rewritten in C++, giving

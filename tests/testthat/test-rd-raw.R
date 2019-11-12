@@ -1,5 +1,3 @@
-context("Rd: raw output")
-
 test_that("rawRd inserted unchanged", {
   out <- roc_proc_text(rd_roclet(), "
     #' @rawRd #this is a comment
@@ -29,7 +27,7 @@ test_that("error-ful evalRd generates warning", {
       #' @name a
       #' @title a
       NULL"),
-    "@evalRd failed with error"
+    "failed with error"
   )
 })
 
@@ -41,6 +39,5 @@ test_that("evalRd inserted unchanged", {
     #' @title a
     NULL")[[1]]
 
-  args <- get_tag(out, "rawRd")$values
-  expect_equal(args, "20")
+  expect_equal(out$get_value("rawRd"), "20")
 })

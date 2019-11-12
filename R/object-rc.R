@@ -1,3 +1,21 @@
+#' @export
+roxy_tag_rd.roxy_tag_.methods <- function(x, base_path, env) {
+  desc <- lapply(x$val, function(x) docstring(x$value@.Data))
+  usage <- map_chr(x$val, function(x) {
+    function_usage(x$value@name, formals(x$value@.Data))
+  })
+
+  has_docs <- !map_lgl(desc, is.null)
+  desc <- desc[has_docs]
+  usage <- usage[has_docs]
+
+  rd_section("rcmethods", setNames(desc, usage))
+}
+#' @export
+format.rd_section_rcmethods <- function(x, ...) {
+  rd_section_description("Methods", names(x$value), x$value)
+}
+
 # Extract all methods from an RC definition, returning a list of "objects".
 rc_methods <- function(obj) {
   stopifnot(methods::is(obj, "refClassRepresentation"))
@@ -9,7 +27,7 @@ rc_methods <- function(obj) {
   method_names <- setdiff(ls(envir = obj@refMethods), parent_methods)
   methods <- mget(method_names, envir = obj@refMethods)
 
-  lapply(methods, object)
+  lapply(methods, object, alias = NULL, type = "rcmethod")
 }
 
 add_rc_metadata <- function(val, name, class) {

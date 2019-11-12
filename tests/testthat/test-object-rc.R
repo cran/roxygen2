@@ -1,5 +1,3 @@
-context("Object: rc")
-
 # Docstrings -------------------------------------------------------------------
 
 test_that("base functions don't have docstrings", {
@@ -66,7 +64,7 @@ test_that("RC methods included included in own section", {
     ))
   ")[[1]]
 
-  methods <- get_tag(out, "rcmethods")$values
+  methods <- out$get_value("rcmethods")
   expect_equal(names(methods), "f()")
   expect_match(methods[[1]], "This function has a docstring")
 })
