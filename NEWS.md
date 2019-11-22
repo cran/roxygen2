@@ -1,3 +1,28 @@
+# roxygen2 7.0.1
+
+* `@includeRmd` has now an optional second argument, the top level section
+  the included file will go to. It defaults to the details section (#970).
+  Code chunks are now evaluated in a child of the global environment (#972).
+
+* `@inheritParams` does a better job of munging links. 
+
+  Links of the form `\link[=topic]{text}` are now automatically converted to
+  `\link[pkg:topic]{text}` when inherited from other packages (#979).
+  
+  Internal `has_topic()` helper has a better implementation; this means that
+  links should no longer be munged unnecessarily (#973).
+
+* `\example{}` escaping has been considerably simplified (#967), and is now 
+  documented in `escape_example()`.
+
+* In `\usage{}`, S3/S4 methods are no longer double-escaped (#976).
+
+* Markdown tables with cells that contain multiple elements (e.g. text and code)
+  are now rendered correctly (#985).
+
+* Markdown code blocks containing operators and other special syntax 
+  (e.g. `function`, `if`, `+`) now converted to `\code{}` not `\verb{}` (#971).
+
 # roxygen2 7.0.0
 
 ## New features

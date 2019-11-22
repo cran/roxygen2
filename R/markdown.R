@@ -31,7 +31,7 @@ mdxml_children_to_rd <- function(xml, state) {
   paste0(out, collapse = "")
 }
 
-#' @importFrom xml2 xml_name xml_type xml_text xml_contents xml_attr xml_children
+#' @importFrom xml2 xml_name xml_type xml_text xml_contents xml_attr xml_children xml_find_all
 mdxml_node_to_rd <- function(xml, state) {
   if (!inherits(xml, "xml_node") ||
       ! xml_type(xml) %in% c("text", "element")) {
@@ -90,12 +90,19 @@ mdxml_code <- function(xml, tag) {
 
   # See escaping details at
   # https://cran.rstudio.com/doc/manuals/r-devel/R-exts.html#Insertions
-  if (can_parse(code)) {
+  if (can_parse(code) || code %in% special) {
     paste0("\\code{", gsub("%", "\\\\%", code), "}")
   } else {
     paste0("\\verb{", escape_verb(code), "}")
   }
 }
+
+special <- c(
+  "-", ":", "::", ":::", "!", "!=", "(", "[", "[[", "@",
+  "*", "/", "&", "&&", "%*%", "%/%", "%%", "%in%", "%o%", "%x%",
+  "^", "+", "<", "<=", "=", "==", ">", ">=", "|", "||", "~", "$",
+  "for", "function", "if", "repeat", "while"
+)
 
 mdxml_code_block <- function(xml, state) {
   info <- xml_attr(xml, "info")[1]
@@ -128,10 +135,11 @@ mdxml_table <- function(xml, state) {
   head <- xml_children(xml)[[1]]
   align <- substr(xml_attr(xml_children(head), "align", default = "left"), 1, 1)
 
-  rows <- xml_children(xml)
-  rows <- map(rows, xml_children)
-  rows_rd <- map(rows, ~ map_chr(xml_children(.x), mdxml_node_to_rd, state = state))
-  rows_rd <- map_chr(rows_rd, paste0, collapse = " \\tab ")
+  rows <- xml_find_all(xml, "d1:table_row|d1:table_header")
+  cells <- map(rows, xml_find_all, "d1:table_cell")
+
+  cells_rd <- map(cells, ~ map(.x, mdxml_children_to_rd, state = state))
+  rows_rd <- map_chr(cells_rd, paste0, collapse = " \\tab ")
 
   paste0("\\tabular{", paste(align, collapse = ""), "}{\n",
     paste("  ", rows_rd, "\\cr\n", collapse = ""),

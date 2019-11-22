@@ -1,7 +1,7 @@
-## ---- include = FALSE----------------------------------------------------
+## ---- include = FALSE---------------------------------------------------------
 knitr::opts_chunk$set(comment = "#>", collapse = TRUE)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #' Sum of vector elements.
 #'
 #' `sum` returns the sum of all the values present in its arguments.
@@ -12,7 +12,7 @@ knitr::opts_chunk$set(comment = "#>", collapse = TRUE)
 #' first argument.
 sum <- function(..., na.rm = TRUE) {}
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #' Sum of vector elements.
 #' 
 #' @description
@@ -24,7 +24,7 @@ sum <- function(..., na.rm = TRUE) {}
 #' the arguments `...` should be unnamed, and dispatch is on the
 #' first argument.
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #' Sum of vector elements.
 #'
 #' `sum()` returns the sum of all the values present in its arguments.
@@ -58,7 +58,7 @@ sum <- function(..., na.rm = TRUE) {}
 #' }
 sum <- function(..., na.rm = TRUE) {}
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #' An S4 class to represent a bank account.
 #'
 #' @slot balance A length-one numeric vector
@@ -66,7 +66,7 @@ Account <- setClass("Account",
   slots = list(balance = "numeric")
 )
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #' R6 Class Representing a Person
 #'
 #' @description
@@ -115,7 +115,7 @@ public = list(
   )
 )
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #' Prices of 50,000 round cut diamonds.
 #'
 #' A dataset containing the prices and other attributes of almost 54,000
@@ -138,18 +138,18 @@ public = list(
 #' @source <http://www.diamondse.info/>
 "diamonds"
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #' @details
 #' The only function you're likely to need from roxygen2 is [roxygenize()]. 
 #' Otherwise refer to the vignettes to see how to format the documentation.
 #' @keywords internal
 "_PACKAGE"
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #' @section Warning:
 #' Do not operate heavy machinery within 8 hours of using this function.
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #' @section Warning:
 #' You must not call this function unless ...
 #'
@@ -157,17 +157,17 @@ public = list(
 #'    Apart from the following special cases...
 #' }
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #' @family aggregations
 #' @seealso [prod()] for products, [cumsum()] for cumulative sums, and
 #'   [colSums()]/[rowSums()] marginal sums over high-dimensional arrays.
 
-## ---- eval = FALSE-------------------------------------------------------
+## ---- eval = FALSE------------------------------------------------------------
 #  rd_family_title <- list(
 #    aggregations = "Aggregation functions"
 #  )
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #' Foo bar generic
 #'
 #' @param x Object to foo.
@@ -179,7 +179,7 @@ foobar.numeric <- function(x) abs(mean(x) - median(x))
 #' @describeIn foobar First and last values pasted together in a string.
 foobar.character <- function(x) paste0(x[1], "-", x[length(x)])
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #' Basic arithmetic
 #'
 #' @param x,y numeric vectors.
@@ -188,7 +188,7 @@ add <- function(x, y) x + y
 #' @rdname add
 times <- function(x, y) x * y
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #' Basic arithmetic
 #'
 #' @param x,y numeric vectors.
@@ -201,7 +201,7 @@ add <- function(x, y) x + y
 #' @rdname arith
 times <- function(x, y) x * y
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #' @rdname arith
 #' @order 2
 add <- function(x, y) x + y
@@ -210,7 +210,7 @@ add <- function(x, y) x + y
 #' @order 1
 times <- function(x, y) x * y
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 my_params <- function() {
   c(
     "@param x An integer vector",
@@ -225,7 +225,7 @@ my_params <- function() {
 foo <- function(x, y) {
 }
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #' A title
 #' 
 #' @param x An integer vector
@@ -234,7 +234,7 @@ foo <- function(x, y) {
 foo <- function(x, y) {
 }
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 my_note <- function(x) {
   paste0("\\note{", paste0(x, "\n", collapse =""), "}")
 }
@@ -245,7 +245,7 @@ my_note <- function(x) {
 #' ))
 NULL
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #' @backref src/file.cpp
 #' @backref src/file.h
 

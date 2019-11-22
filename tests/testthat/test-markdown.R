@@ -78,12 +78,17 @@ test_that("code block with language creates HTML tag", {
 test_that("inline code escapes %", {
   expect_equal(markdown("`5%`"), "\\verb{5\\%}")
   expect_equal(markdown("`'5%'`"), "\\code{'5\\%'}")
+  expect_equal(markdown("`%*%`"), "\\code{\\%*\\%}")
 })
 
 test_that("inline verbatim escapes Rd special chars", {
   expect_equal(markdown("`{`"), "\\verb{\\{}")
   expect_equal(markdown("`}`"), "\\verb{\\}}")
   expect_equal(markdown("`\\`"), "\\verb{\\\\}")
+})
+
+test_that("special operators get \\code{}, not \\verb{}", {
+  expect_equal(markdown("`if`"), "\\code{if}")
 })
 
 test_that("code blocks escape %", {
@@ -223,17 +228,30 @@ test_that("nested lists are OK", {
 
 
 test_that("can convert table to Rd", {
-  verify_output(
-    test_path("test-markdown-table.txt"),
-    cat(markdown("
-| x   | y   |
-| --- | --- |
-| 1   | 2   |
+  txt <- "
+    | x   | y   |
+    | --- | --- |
+    | 1   | 2   |
 
-| x   | y   |
-| :-: | --: |
-| 1   | 2   |
-    "))
+    | x   | y   |
+    | :-: | --: |
+    | 1   | 2   |
+
+    | x     | y         |
+    | ----- | --------- |
+    | 1 _2_ | 3 *4* `5` |
+  "
+  txt <- gsub("\n    ", "\n", txt)
+  tables <- strsplit(txt, "\n\n")[[1]]
+
+  verify_output(
+    test_path("test-markdown-table.txt"), {
+      for (table in tables) {
+        cat_line(table)
+        cat_line(markdown(table))
+        cat_line()
+      }
+    }
   )
 })
 

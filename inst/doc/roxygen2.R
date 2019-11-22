@@ -1,7 +1,7 @@
-## ---- include = FALSE----------------------------------------------------
+## ---- include = FALSE---------------------------------------------------------
 knitr::opts_chunk$set(comment = "#>", collapse = TRUE)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #' Add together two numbers
 #'
 #' @param x A number
@@ -14,7 +14,7 @@ add <- function(x, y) {
   x + y
 }
 
-## ---- eval = FALSE-------------------------------------------------------
+## ---- eval = FALSE------------------------------------------------------------
 #  #' Do values in a numeric vector fall in specified range?
 #  #'
 #  #' This is a shortcut for `x >= left & x <= right`, implemented

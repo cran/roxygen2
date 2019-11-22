@@ -1,14 +1,14 @@
-## ---- include = FALSE----------------------------------------------------
+## ---- include = FALSE---------------------------------------------------------
 knitr::opts_chunk$set(comment = "#>", collapse = TRUE)
 
-## ----setup---------------------------------------------------------------
+## ----setup--------------------------------------------------------------------
 library(roxygen2)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 roxy_tag("name", "Hadley")
 str(roxy_tag("name", "Hadley"))
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 text <- "
   #' This is a title
   #'
@@ -23,20 +23,20 @@ text <- "
 block <- parse_text(text)[[1]]
 block
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 #' @tip The mean of a logical vector is the proportion of `TRUE` values.
 #' @tip You can compute means of dates and date-times!
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 roxy_tag_parse.roxy_tag_tip <- function(x) {
   tag_markdown(x)
 }
 
-## ---- include = FALSE----------------------------------------------------
+## ---- include = FALSE---------------------------------------------------------
 # Needed for vignette
 registerS3method("roxy_tag_parse", "roxy_tag_tip", roxy_tag_parse.roxy_tag_tip)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 text <- "
   #' Title
   #'
@@ -52,16 +52,16 @@ block
 
 str(block$tags[[2]])
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 roxy_tag_rd.roxy_tag_tip <- function(x, base_path, env) {
   rd_section("tip", x$val)
 }
 
-## ---- include = FALSE----------------------------------------------------
+## ---- include = FALSE---------------------------------------------------------
 # Needed for vignette
 registerS3method("roxy_tag_rd", "roxy_tag_tip", roxy_tag_rd.roxy_tag_tip)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 format.rd_section_tip <- function(x, ...) {
   paste0(
     "\\section{Tips and tricks}{\n",
@@ -72,15 +72,15 @@ format.rd_section_tip <- function(x, ...) {
   )
 }
 
-## ---- include = FALSE----------------------------------------------------
+## ---- include = FALSE---------------------------------------------------------
 # Needed for vignette
 registerS3method("format", "rd_section_tip", format.rd_section_tip)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 topic <- roc_proc_text(rd_roclet(), text)[[1]]
 topic$get_section("tip")
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 roxy_tag_parse.roxy_tag_memo <- function(x) {
   if (!grepl("^\\[.*\\].*$", x$raw)) {
     roxy_tag_warning(x, "Invalid memo format")
@@ -96,11 +96,11 @@ roxy_tag_parse.roxy_tag_memo <- function(x) {
   x
 }
 
-## ---- include = FALSE----------------------------------------------------
+## ---- include = FALSE---------------------------------------------------------
 # Needed for vignette
 registerS3method("roxy_tag_parse", "roxy_tag_memo", roxy_tag_parse.roxy_tag_memo)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 text <- "
   #' @memo [TBI] Remember to implement this!
   #' @memo [API] Check best API
@@ -113,12 +113,12 @@ block
 
 str(block$tags[[1]])
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 memo_roclet <- function() {
   roclet("memo")
 }
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 roclet_process.roclet_memo <- function(x, blocks, env, base_path) {
   results <- list()
   
@@ -134,7 +134,7 @@ roclet_process.roclet_memo <- function(x, blocks, env, base_path) {
   results
 }
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 roclet_output.roclet_memo <- function(x, results, base_path, ...) {
   for (header in names(results)) {
     messages <- results[[header]]
@@ -145,12 +145,12 @@ roclet_output.roclet_memo <- function(x, results, base_path, ...) {
   invisible(NULL)
 }
 
-## ---- include = FALSE----------------------------------------------------
+## ---- include = FALSE---------------------------------------------------------
 # Needed for vignette
 registerS3method("roclet_process", "roclet_memo", roclet_process.roclet_memo)
 registerS3method("roclet_output", "roclet_memo", roclet_output.roclet_memo)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 results <- roc_proc_text(memo_roclet(), "
 #' @memo [TBI] Remember to implement this!
 #' @memo [API] Check best API
