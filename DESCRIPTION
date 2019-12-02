@@ -1,6 +1,6 @@
 Package: roxygen2
 Title: In-Line Documentation for R
-Version: 7.0.1
+Version: 7.0.2
 Authors@R: 
     c(person(given = "Hadley",
              family = "Wickham",
@@ -37,10 +37,10 @@ Suggests: covr, devtools, knitr, rmarkdown, testthat (>= 2.1.0),
 LinkingTo: Rcpp
 VignetteBuilder: knitr
 Encoding: UTF-8
-RoxygenNote: 7.0.0.9000
+RoxygenNote: 7.0.1.9000
 Language: en-GB
 NeedsCompilation: yes
-Packaged: 2019-11-22 14:05:38 UTC; hadley
+Packaged: 2019-12-02 08:45:40 UTC; hadley
 Author: Hadley Wickham [aut, cre, cph]
     (<https://orcid.org/0000-0003-4757-117X>),
   Peter Danenberg [aut, cph],
@@ -49,4 +49,4 @@ Author: Hadley Wickham [aut, cre, cph]
   RStudio [cph]
 Maintainer: Hadley Wickham <hadley@rstudio.com>
 Repository: CRAN
-Date/Publication: 2019-11-22 14:50:02 UTC
+Date/Publication: 2019-12-02 09:30:02 UTC

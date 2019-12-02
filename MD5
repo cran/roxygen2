@@ -1,7 +1,7 @@
-033e3514a40890721d929361f3bccb1b *DESCRIPTION
+1f4c9f3fc3083625cf4d751f555f4dd3 *DESCRIPTION
 0976d83f4a60ec6dfa26b732d6011913 *NAMESPACE
-790a93b8cfc0de51c140a0fae8141459 *NEWS.md
-73489f33e298149ae116524c34fb2980 *R/RcppExports.R
+67aa48aca9b675c8104caa67f3cb274c *NEWS.md
+270acec7fbd58a3479fd4080f19864b4 *R/RcppExports.R
 cc2da6486b5bfe455f00c033eb63c06a *R/block.R
 ad3fc08136fb72b1c88d970ae48ea815 *R/collate.R
 269baef89724bd8c816067c665036152 *R/field.R
@@ -24,7 +24,7 @@ a9db624517f39eadbdce7e2022ceb280 *R/options.R
 1114e9e33958f49e4ad1ef597576413d *R/parse.R
 87c69905a0d8bfad17e7b4fe8e1d7eb7 *R/rd-backref.R
 1161f8d94a23c01efe719a498cc66ce6 *R/rd-describe-in.R
-5a6a9ee1b7e108651305568d2ecec88f *R/rd-examples.R
+7c9906843c14b7492894800eb1a4ea7b *R/rd-examples.R
 2f343a2bf37db7cb4ff9f7a182263295 *R/rd-family.R
 32fbc645e47a0508782680bf69666326 *R/rd-include-rmd.R
 2420e84033cc446b95b616b53766ef7e *R/rd-inherit.R
@@ -75,7 +75,7 @@ d14510b0c69519479d6cdcb4def78a51 *inst/doc/roxygen2.Rmd
 48360127a6fafdd7d06f1a0b5fa187b3 *inst/doc/roxygen2.html
 4bc1c54d154fe441e8752ed341e02e04 *man/RoxyTopic.Rd
 ee44179196cd41e424888dafcdee974a *man/double_escape_md.Rd
-db77bfe0f88c58c7a6b32aaa63077fa6 *man/escape_examples.Rd
+7a90f135e7865de509a8d7518e3938f8 *man/escape_examples.Rd
 65ecd016d614dcf02fe22ae86b757c4b *man/figures/logo.png
 c04c11bc534ff8187476878394205f93 *man/is_s3_generic.Rd
 1d940be6f8e052bda3d72285f402d755 *man/load.Rd
@@ -100,7 +100,8 @@ cbaeb4b8f5c628adf2d57b085db1c291 *man/roxy_tag_rd.Rd
 a1f680309aab8e1167f739462d822c10 *man/tag_parsers.Rd
 343edc77b4cc1a1c8e758aabded5fe4a *man/update_collate.Rd
 305c9623afc6327c0c3b9e25d193d2e2 *man/vignette_roclet.Rd
-54d27d90ec0217de5261b1643e8abb25 *src/RcppExports.cpp
+fd5668b33d846114fe4f889c0f80de2b *src/RcppExports.cpp
+cb55c0eddcab8e94680a8a3ab7db985b *src/escapeExamples.cpp
 3ed6f7a9c235c4737a2b7a3555d3cb75 *src/isComplete.cpp
 b956ca232fb28f3cefa1ebb64f2491a3 *src/leadingSpaces.cpp
 2177987d051b6ee15e89f81b2338d21c *src/parser2.cpp
