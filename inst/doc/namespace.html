@@ -229,7 +229,7 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <li><p>S3 classes: if you want others to be able to create instances of the class <code>@export</code> the constructor function.</p></li>
 <li><p>S3 generics: the generic is a function so <code>@export</code> if you want it to be usable outside the package</p></li>
 <li><p>S3 methods: every S3 method <em>must</em> be exported, even if the generic is not. Otherwise the S3 method table will not be generated correctly and internal generics will not find the correct method.</p>
-<p>If you are providing a method for a generic defined in another package, you must also import that generate.</p></li>
+<p>If you are providing a method for a generic defined in another package, you must also import that generic.</p></li>
 <li><p>S4 classes: if you want others to be able to extend your class, <code>@export</code> it. If you want others to create instances of your class, but not extend it, <code>@export</code> the constructor function, but not the class.</p>
 <pre><code>```R
 # Can extend and create
@@ -262,7 +262,7 @@ D &lt;- setClass(&quot;D&quot;)
 <li><code>@exportMethod foo</code> generates <code>exportMethods(foo)</code></li>
 <li><code>@exportPattern foo</code> generates <code>exportPattern(foo)</code></li>
 </ul>
-<p>For even more specialised cases you can use <code>@rawNamespace code</code> which inserts <code>code</code> literally into the <code>NAMESPACE</code>. If you need to automate this, <code>@evalNamespace foo()</code> will evaluate the <code>foo()</code> in the package environment and insert the results into <code>NAMESPACE</code>.</p>
+<p>For even more specialised cases you can use <code>@rawNamespace code</code> which inserts <code>code</code> literally into the <code>NAMESPACE</code>. If you need to automate this, <code>@evalNamespace foo()</code> will evaluate the <code>foo()</code> in the package environment and insert the results into <code>NAMESPACE</code>. Because <code>evalNamespace()</code> is run in the package environment, it can only generate exports, not imports.</p>
 </div>
 </div>
 <div id="imports" class="section level2">

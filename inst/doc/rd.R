@@ -150,12 +150,15 @@ public = list(
 #' Do not operate heavy machinery within 8 hours of using this function.
 
 ## -----------------------------------------------------------------------------
-#' @section Warning:
+#' @details # Warning
+#' Do not operate heavy machinery within 8 hours of using this function.
+
+## -----------------------------------------------------------------------------
+#' @details # Warning
 #' You must not call this function unless ...
 #'
-#' \subsection{Exceptions}{
-#'    Apart from the following special cases...
-#' }
+#' ## Exceptions
+#' Apart from the following special cases...
 
 ## -----------------------------------------------------------------------------
 #' @family aggregations
