@@ -1,37 +1,64 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
 
 <head>
 
 <meta charset="utf-8" />
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 
 
 
 <title>Rd (documentation) tags</title>
 
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+<script>// Hide empty <a> tag within highlighted CodeBlock for screen reader accessibility (see https://github.com/jgm/pandoc/issues/6352#issuecomment-626106786) -->
+// v0.0.1
+// Written by JooYoung Seo (jooyoung@psu.edu) and Atsushi Yasumoto on June 1st, 2020.
+
+document.addEventListener('DOMContentLoaded', function() {
+  const codeList = document.getElementsByClassName("sourceCode");
+  for (var i = 0; i < codeList.length; i++) {
+    var linkList = codeList[i].getElementsByTagName('a');
+    for (var j = 0; j < linkList.length; j++) {
+      if (linkList[j].innerHTML === "") {
+        linkList[j].setAttribute('aria-hidden', 'true');
+      }
+    }
+  }
+});
+</script>
 
 
 <style type="text/css">code{white-space: pre;}</style>
 <style type="text/css" data-origin="pandoc">
-code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
-code.sourceCode > span:empty { height: 1.2em; }
-.sourceCode { overflow: visible; }
-code.sourceCode { white-space: pre; position: relative; }
 div.sourceCode { margin: 1em 0; }
 pre.sourceCode { margin: 0; }
 @media screen {
 div.sourceCode { overflow: auto; }
 }
 @media print {
-code.sourceCode { white-space: pre-wrap; }
-code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
 }
 pre.numberSource code
   { counter-reset: source-line 0; }
@@ -51,7 +78,7 @@ pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-le
 div.sourceCode
   {   }
 @media screen {
-code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 code span.al { color: #ff0000; font-weight: bold; } /* Alert */
 code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
@@ -118,9 +145,6 @@ padding-right: 2em;
 font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
 font-size: 14px;
 line-height: 1.35;
-}
-#header {
-text-align: center;
 }
 #TOC {
 clear: both;
@@ -289,7 +313,8 @@ code > span.st { color: #d14; }
 code > span.co { color: #888888; font-style: italic; } 
 code > span.ot { color: #007020; } 
 code > span.al { color: #ff0000; font-weight: bold; } 
-code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61717; background-color: #e3d2d2; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
 </style>
 
 
@@ -350,7 +375,7 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <ul>
 <li><p><code>@param name description</code> describes the inputs to the function. The description should provide a succinct summary of the type of the parameter (e.g. a string, a numeric vector), and if not obvious from the name, what the parameter does. The description should start with a capital letter and end with a full stop. It can span multiple lines (or even paragraphs) if necessary. All parameters must be documented.</p>
 <p>You can document multiple arguments in one place by separating the names with commas (no spaces). For example, to document both <code>x</code> and <code>y</code>, you can say <code>@param x,y Numeric vectors</code>.</p></li>
-<li><p><code>@examples</code> provides executable R code showing how to use the function in practice. This is a very important part of the documentation because many people look at the examples before reading anything. Example code must work without errors as it is run automatically as part of <code>R CMD check</code>.</p>
+<li><p><code>@examples</code> provides executable R code showing how to use the function in practice. This is a very important part of the documentation because many people look at the examples before reading anything. Example code must work without errors as it is run automatically as part of <code>R CMD     check</code>.</p>
 <p>However for the purpose of illustration, it’s often useful to include code that causes an error. <code>\dontrun{}</code> allows you to include code in the example that is never used. There are two other special commands. <code>\dontshow{}</code> is run, but not shown in the help page: this can be useful for informal tests. <code>\donttest{}</code> is run in examples, but not run automatically in <code>R CMD check</code>. This is useful if you have examples that take a long time to run. The options are summarised below.</p>
 <table>
 <thead>
@@ -559,7 +584,7 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <li><p>Package documentation will automatically include information parsed from the <code>DESCRIPTION</code>, including title, description, list of authors, and useful URLs.</p></li>
 <li><p>By default, aliases will be added so that both <code>?pkgname</code> and <code>package?pkgname</code> will find the package help. If there’s an existing function called <code>pkgname</code>, use <code>@aliases {pkgname}-package</code> to override the default.</p></li>
 <li><p><code>usethis::use_package_doc()</code> will generate a basic template to get you started.</p></li>
-<li><p>Use <code>@references</code> point to published material about the package that users might find helpful.</p></li>
+<li><p>Use <code>@references</code> to point to published material about the package that users might find helpful.</p></li>
 </ul>
 </div>
 </div>
@@ -600,8 +625,8 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <span id="cb11-2"><a href="#cb11-2"></a><span class="co">#&#39; @seealso [prod()] for products, [cumsum()] for cumulative sums, and</span></span>
 <span id="cb11-3"><a href="#cb11-3"></a><span class="co">#&#39;   [colSums()]/[rowSums()] marginal sums over high-dimensional arrays.</span></span></code></pre></div>
 <p>By default <code>@family {family}</code>, will generate the see also text “Other {family}:”, so the <code>@family</code> name should be plural (i.e., “model building helpers” not “model building helper”). You can override the default title by providing a <code>rd_family_title</code> list in <code>man/roxygen/meta.R</code>:</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1"></a>rd_family_title &lt;-<span class="st"> </span><span class="kw">list</span>(</span>
-<span id="cb12-2"><a href="#cb12-2"></a>  <span class="dt">aggregations =</span> <span class="st">&quot;Aggregation functions&quot;</span></span>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1"></a><span class="kw">list</span>(</span>
+<span id="cb12-2"><a href="#cb12-2"></a>  <span class="dt">rd_family_title =</span> <span class="kw">list</span>(<span class="dt">aggregations =</span> <span class="st">&quot;Aggregation functions&quot;</span>)</span>
 <span id="cb12-3"><a href="#cb12-3"></a>)</span></code></pre></div>
 </div>
 <div id="inheriting-documentation-from-other-topics" class="section level3">
@@ -728,7 +753,7 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 </div>
 <div id="including-external-.rmd.md-files" class="section level2">
 <h2>Including external <code>.Rmd</code>/<code>.md</code> files</h2>
-<p>Starting from roxygen2 7.0.0, you can use <code>@includeRmd path/to/file.Rmdname</code> to include an external <code>.Rmd</code> or <code>.md</code> document into a manual page (the path is relative package root directory). You can include the same file in multiple documentation files, and for the first time, share content across documentation and vignettes.</p>
+<p>Starting from roxygen2 7.0.0, you can use <code>@includeRmd path/to/file.Rmd</code> to include an external <code>.Rmd</code> or <code>.md</code> document into a manual page (the path is relative from the source package root directory). You can include the same file in multiple documentation files, and for the first time, share content across documentation and vignettes.</p>
 <div id="sections-1" class="section level3">
 <h3>Sections</h3>
 <p><code>@includeRmd</code> supports headings in the external Rmd. The rules are as follows:</p>
@@ -745,7 +770,7 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 </div>
 <div id="caching-and-figures" class="section level3">
 <h3>Caching and figures</h3>
-<p><code>@includeRmd</code> tries to set up knits to support caching in the Rmd file. It sets the cache path to the default knitr cache path of the included Rmd file (i.e. <code>foo/bar/file_cache/</code> for <code>foo/bar/file.Rmd</code>), so if you do not change the cache path within the Rmd itself, then everything should work out of the box. You should add these cache paths to <code>.gitignore</code> and <code>.Rbuildignore</code>.</p>
+<p><code>@includeRmd</code> tries to set up knitr to support caching in the Rmd file. It sets the cache path to the default knitr cache path of the included Rmd file (i.e. <code>foo/bar/file_cache/</code> for <code>foo/bar/file.Rmd</code>), so if you do not change the cache path within the Rmd itself, then everything should work out of the box. You should add these cache paths to <code>.gitignore</code> and <code>.Rbuildignore</code>.</p>
 <p><code>@includeRmd</code> also sets the knitr figure path of the (<code>fig.path</code>) to the default figure path of the included Rmd. Overriding this default is unlikely to work.</p>
 </div>
 <div id="sharing-text-between-vignettes-and-the-manual" class="section level3">

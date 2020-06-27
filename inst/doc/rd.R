@@ -166,8 +166,8 @@ public = list(
 #'   [colSums()]/[rowSums()] marginal sums over high-dimensional arrays.
 
 ## ---- eval = FALSE------------------------------------------------------------
-#  rd_family_title <- list(
-#    aggregations = "Aggregation functions"
+#  list(
+#    rd_family_title = list(aggregations = "Aggregation functions")
 #  )
 
 ## -----------------------------------------------------------------------------
