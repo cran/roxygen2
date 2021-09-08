@@ -256,7 +256,7 @@ mdxml_code_block <- function(xml, state) {
   info <- xml_attr(xml, "info")[1]
   if (is.na(info) || nchar(info[1]) == 0) info <- NA_character_
   paste0(
-    if (!is.na(info)) paste0("\\if{html}{\\out{<div class=\"", info, "\">}}"),
+    if (!is.na(info)) paste0("\\if{html}{\\out{<div class=\"sourceCode ", info, "\">}}"),
     "\\preformatted{",
     escape_verb(xml_text(xml)),
     "}",
@@ -333,7 +333,10 @@ mdxml_link <- function(xml, state) {
   } else if (dest == "" || dest == xml_text(xml)) {
     paste0("\\url{", escape_comment(xml_text(xml)), "}")
   } else {
-    paste0("\\href{", dest, "}{", mdxml_link_text(contents, state), "}")
+    paste0(
+      "\\href{", escape_comment(dest), "}",
+      "{", mdxml_link_text(contents, state), "}"
+    )
   }
 }
 

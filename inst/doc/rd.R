@@ -2,7 +2,7 @@
 knitr::opts_chunk$set(comment = "#>", collapse = TRUE)
 
 ## -----------------------------------------------------------------------------
-#' Sum of vector elements.
+#' Sum of vector elements
 #'
 #' `sum` returns the sum of all the values present in its arguments.
 #'
@@ -13,7 +13,7 @@ knitr::opts_chunk$set(comment = "#>", collapse = TRUE)
 sum <- function(..., na.rm = TRUE) {}
 
 ## -----------------------------------------------------------------------------
-#' Sum of vector elements.
+#' Sum of vector elements
 #' 
 #' @description
 #' `sum` returns the sum of all the values present in its arguments.
@@ -25,7 +25,7 @@ sum <- function(..., na.rm = TRUE) {}
 #' first argument.
 
 ## -----------------------------------------------------------------------------
-#' Sum of vector elements.
+#' Sum of vector elements
 #'
 #' `sum()` returns the sum of all the values present in its arguments.
 #'
@@ -59,7 +59,7 @@ sum <- function(..., na.rm = TRUE) {}
 sum <- function(..., na.rm = TRUE) {}
 
 ## -----------------------------------------------------------------------------
-#' An S4 class to represent a bank account.
+#' An S4 class to represent a bank account
 #'
 #' @slot balance A length-one numeric vector
 Account <- setClass("Account",
@@ -116,7 +116,7 @@ public = list(
 )
 
 ## -----------------------------------------------------------------------------
-#' Prices of 50,000 round cut diamonds.
+#' Prices of 50,000 round cut diamonds
 #'
 #' A dataset containing the prices and other attributes of almost 54,000
 #' diamonds.
@@ -138,12 +138,12 @@ public = list(
 #' @source <http://www.diamondse.info/>
 "diamonds"
 
-## -----------------------------------------------------------------------------
-#' @details
-#' The only function you're likely to need from roxygen2 is [roxygenize()]. 
-#' Otherwise refer to the vignettes to see how to format the documentation.
-#' @keywords internal
-"_PACKAGE"
+## ---- eval = FALSE------------------------------------------------------------
+#  #' @details
+#  #' The only function you're likely to need from roxygen2 is [roxygenize()].
+#  #' Otherwise refer to the vignettes to see how to format the documentation.
+#  #' @keywords internal
+#  "_PACKAGE"
 
 ## -----------------------------------------------------------------------------
 #' @section Warning:
