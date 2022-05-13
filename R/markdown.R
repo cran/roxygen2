@@ -1,14 +1,10 @@
-
 markdown <- function(text, tag = NULL, sections = FALSE) {
   tag <- tag %||% list(file = NA, line = NA)
-  tryCatch(
-    expanded_text <- markdown_pass1(text),
+  expanded_text <- tryCatch(
+    markdown_pass1(text),
     error = function(e) {
-      message <- paste0(
-        if (!is.na(tag$file)) paste0("[", tag$file, ":", tag$line, "] "),
-        "@", tag$tag, " in inline code: ", e$message
-      )
-      stop(message, call. = FALSE)
+      warn_roxy_tag(tag, "failed to evaluate inline markdown code", parent = e)
+      text
     }
   )
   escaped_text <- escape_rd_for_md(expanded_text)
@@ -30,7 +26,7 @@ markdown <- function(text, tag = NULL, sections = FALSE) {
 #' To insert the name of the current package: `r packageName()`.
 #'
 #' The `iris` data set has `r ncol(iris)` columns:
-#' `r paste0("``", colnames(iris), "``", collapse = ", ")`.
+#' `r paste0("\x60\x60", colnames(iris), "\x60\x60", collapse = ", ")`.
 #'
 #' ```{r}
 #' # Code block demo
@@ -50,9 +46,12 @@ markdown <- function(text, tag = NULL, sections = FALSE) {
 #' plot(1:10)
 #' ```
 #'
+#' Also see `vignette("rd-formatting")`.
+#'
 #' @param text Input text.
-#' @return Text with the inline code expanded. A character vector of the
-#' same length as the input `text`.
+#' @return
+#' Text with R code expanded.
+#' A character vector of the same length as the input `text`.
 #'
 #' @importFrom xml2 xml_ns_strip xml_find_all xml_attr
 #' @importFrom purrr keep
@@ -90,6 +89,8 @@ eval_code_nodes <- function(nodes) {
   evalenv <- roxy_meta_get("evalenv")
   # This should only happen in our test cases
   if (is.null(evalenv)) evalenv <- new.env(parent = baseenv())
+
+  withr::local_options(width = 80)
   map_chr(nodes, eval_code_node, env = evalenv)
 }
 
@@ -98,19 +99,22 @@ eval_code_nodes <- function(nodes) {
 
 eval_code_node <- function(node, env) {
   if (xml_name(node) == "code") {
-    text <- str_replace(xml_text(node), "^r ", "")
-    paste(eval(parse(text = text), envir = env), collapse = "\n")
-
+    # write knitr markup for inline code
+    text <- paste0("`", xml_text(node), "`")
   } else {
+    # write knitr markup for fenced code
     text <- paste0("```", xml_attr(node, "info"), "\n", xml_text(node), "```\n")
-    opts_chunk$set(
-      error = FALSE,
-      fig.path = "man/figures/",
-      fig.process = function(path) basename(path)
-    )
-    knit(text = text, quiet = TRUE, envir = env)
   }
+  old_opts <- purrr::exec(opts_chunk$set, knitr_chunk_defaults)
+  withr::defer(purrr::exec(opts_chunk$set, old_opts))
+  knit(text = text, quiet = TRUE, envir = env)
 }
+
+knitr_chunk_defaults <- list(
+  error = FALSE,
+  fig.path = "man/figures/",
+  fig.process = function(path) basename(path)
+)
 
 str_set_all_pos <- function(text, pos, value, nodes) {
   # Cmark has a bug when reporting source positions for multi-line
@@ -119,7 +123,7 @@ str_set_all_pos <- function(text, pos, value, nodes) {
   # for now we just simply error for multi-line inline code.
   types <- xml_name(nodes)
   if (any(types == "code" & pos$start_line != pos$end_line)) {
-    stop("multi-line `r ` markup is not supported")
+    cli::cli_abort("multi-line `r ` markup is not supported", call = NULL)
   }
 
   # Need to split the string, because of the potential multi-line
@@ -183,7 +187,11 @@ mdxml_children_to_rd <- function(xml, state) {
 mdxml_node_to_rd <- function(xml, state) {
   if (!inherits(xml, "xml_node") ||
       ! xml_type(xml) %in% c("text", "element")) {
-    roxy_tag_warning(state$tag, "Internal markdown translation failure")
+    warn_roxy_tag(state$tag, c(
+      "markdown translation failed",
+      x = "Unexpected internal error",
+      i = "Please file an issue at https://github.com/r-lib/roxygen2/issues"
+    ))
     return("")
   }
 
@@ -193,7 +201,7 @@ mdxml_node_to_rd <- function(xml, state) {
     unknown = mdxml_children_to_rd(xml, state),
 
     paragraph = paste0("\n\n", mdxml_children_to_rd(xml, state)),
-    text = escape_comment(xml_text(xml)),
+    text = if (is_true(state$in_link_code)) escape_verb(xml_text(xml)) else escape_comment(xml_text(xml)),
     emph = paste0("\\emph{", mdxml_children_to_rd(xml, state), "}"),
     strong = paste0("\\strong{", mdxml_children_to_rd(xml, state), "}"),
     softbreak = mdxml_break(state),
@@ -221,11 +229,18 @@ mdxml_node_to_rd <- function(xml, state) {
 }
 
 mdxml_unknown <- function(xml, tag) {
-  roxy_tag_warning(tag, "Unknown xml node: ", xml_name(xml))
+  warn_roxy_tag(tag, c(
+    "markdown translation failed",
+    x = "Internal error: unknown xml node {xml_name(xml)}",
+    i = "Please file an issue at https://github.com/r-lib/roxygen2/issues"
+  ))
   escape_comment(xml_text(xml))
 }
 mdxml_unsupported <- function(xml, tag, feature) {
-  roxy_tag_warning(tag, "Use of ", feature, " is not currently supported")
+  warn_roxy_tag(tag, c(
+    "markdown translation failed",
+    x = "{feature} are not currently supported"
+  ))
   escape_comment(xml_text(xml))
 }
 
@@ -256,11 +271,14 @@ mdxml_code_block <- function(xml, state) {
   info <- xml_attr(xml, "info")[1]
   if (is.na(info) || nchar(info[1]) == 0) info <- NA_character_
   paste0(
-    if (!is.na(info)) paste0("\\if{html}{\\out{<div class=\"sourceCode ", info, "\">}}"),
+    "\n\n",
+    "\\if{html}{\\out{<div class=\"sourceCode",
+      if (!is.na(info)) paste0(" ", info),
+    "\">}}",
     "\\preformatted{",
     escape_verb(xml_text(xml)),
     "}",
-    if (!is.na(info)) "\\if{html}{\\out{</div>}}"
+    "\\if{html}{\\out{</div>}}"
   )
 }
 
@@ -398,7 +416,7 @@ mdxml_html_block <- function(xml, state) {
 
 mdxml_html_inline <- function(xml, state) {
   if (state$tag$tag != "includeRmd") {
-    return(mdxml_unsupported(xml, state$tag, "inline HTML"))
+    return(mdxml_unsupported(xml, state$tag, "inline HTML components"))
   }
   paste0(
     "\\if{html}{\\out{",

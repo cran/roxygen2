@@ -13,25 +13,25 @@ knitr::opts_chunk$set(comment = "#>", collapse = TRUE)
 
 # Introduction
 
-Starting from version 6.0.0, roxygen supports markdown markup within most roxygen tags. Roxygen uses the [commonmark package](https://github.com/r-lib/commonmark), which is based on the CommonMark Reference Implementation to parse these tags. See <https://commonmark.org/help/> for more about the parser and the markdown language it supports. 
+Starting from version 6.0.0, roxygen supports Markdown markup within most roxygen tags. Roxygen uses the [commonmark package](https://github.com/r-lib/commonmark), which is based on the CommonMark Reference Implementation to parse these tags. See <https://commonmark.org/help/> for more about the parser and the markdown language it supports. 
 You can also still use the `.Rd` syntax, some of which we will present
 below in the [Rd syntax](#rd-syntax) section.
 
-# Turning on markdown support
+# Turning on Markdown support
 
-There are two ways to turn on markdown support for a package: globally, at the package level, and locally at the block level.
+There are two ways to turn on Markdown support for a package: globally, at the package level, and locally at the block level.
 
-To turn on markdown for the whole package, insert this entry into the `DESCRIPTION` file of the package:
+To turn on Markdown for the whole package, insert this entry into the `DESCRIPTION` file of the package:
 ```
 Roxygen: list(markdown = TRUE)
 ```
-The position of the entry in the file does not matter. After this, all Roxygen documentation will be parsed as markdown.
+The position of the entry in the file does not matter. After this, all Roxygen documentation will be parsed as Markdown.
 
-Alternatively, you can use the `@md` tag to turn on markdown support for a single documentation chunk. This is a good option to write any new documentation for existing packages in markdown.
+Alternatively, you can use the `@md` tag to turn on Markdown support for a single documentation chunk. This is a good option to write any new documentation^[If you wish to convert the `.Rd` syntax in existing documentation to markdown, you can have a look at [roxygen2md](https://roxygen2md.r-lib.org/) package.] for existing packages in markdown.
 
-There is also a new `@noMd` tag. Use this if you turned on markdown parsing globally, but need to avoid it for a single chunk. This tag is handy if the markdown parser interferes with more complex Rd syntax.
+There is also a new `@noMd` tag. Use this if you turned on Markdown parsing globally, but need to avoid it for a single chunk. This tag is handy if the Markdown parser interferes with more complex Rd syntax.
 
-Here is an example roxygen chunk that uses markdown.
+Here is an example roxygen chunk that uses Markdown.
 
 ```r
 #' Use roxygen to document a package
@@ -53,7 +53,7 @@ Here is an example roxygen chunk that uses markdown.
 
 ## Sections
 
-The usual markdown heading markup creates sections and subsections. Top level headings, i.e. '`#`' create sections, via the `\section{}` Rd tag. '`#`' may only appear after the `@description` and `@details` tags. Since `@details` can appear multiple times in a block, you can always precede a '`#`' section with `@details`, if you prefer to place it towards the end of the block, after `@return` for example:
+The usual Markdown heading markup creates sections and subsections. Top level headings, i.e. '`#`' create sections, via the `\section{}` Rd tag. '`#`' may only appear after the `@description` and `@details` tags. Since `@details` can appear multiple times in a block, you can always precede a '`#`' section with `@details`, if you prefer to place it towards the end of the block, after `@return` for example:
 
 ```r
 #' @details
@@ -106,8 +106,6 @@ Inline code is supported via backticks.
 #'   qualified with the ns prefix, i.e. if the element `bar` is defined ...
 ```
 
-You can also use this syntax to run custom R code and insert its output into the manual page. See section 'Dynamic R code' below.
-
 For blocks of code, put your code between triple backticks:
 
 ```r
@@ -154,7 +152,7 @@ Regular Markdown lists are recognized and converted to `\enumerate{}` or `\itemi
 
 Nested lists are also supported.
 
-Note that you do not have to leave an empty line before the list. This is different from some markdown parsers.
+Note that you do not have to leave an empty line before the list. This is different from some Markdown parsers.
 
 ## Tables
 
@@ -179,7 +177,7 @@ By default, columns are left-aligned. Use colons to generate right and center al
 Markdown hyperlinks work as usual:
 
 ```r
-#' See more about the markdown markup at the
+#' See more about the Markdown markup at the
 #' [Commonmark web site](http://commonmark.org/help)
 ```
 
@@ -217,7 +215,7 @@ First we explore the simplest form: `[ref]`. The presence of trailing parenthese
 | ``[`pkg::thing`]`` | package or in `pkg`    | mean that it **is** typeset as code.\       |
 |                    |                        | Good for documenting a class.\              |
 |                    |                        | Produces Rd: `\code{\link{thing}}` or\      |
-|                    |                        | `\code{\link[pkg:thing]{pkg::thing}`}       |
+|                    |                        | `\code{\link[pkg:thing]{pkg::thing}}`       |
 +--------------------+------------------------+---------------------------------------------+
 
 Use the second form `[text][ref]` to link to the topic specified by `ref`, but with `text` as the link text.
@@ -271,98 +269,113 @@ Markdown syntax for inline images works. The image files must be in the `man/fig
 
 # Dynamic R code
 
-Similarly to the knitr package, you can use the markdown inline code markup or markdown code blocks to evaluate R code and insert its output into the manual page.
+Similarly to the knitr package, you can use the Markdown inline code markup or Markdown code blocks to evaluate R code and insert its output into the manual page.
 
 ## Inline code
 
-To do this, prefix the code with `r `, i.e. the lowercase letter 'r' and a space character.
+To insert code inline, enclose it in `` `r ` ``.
 Roxygen will interpret the rest of the text within backticks as R code and evaluate it, and replace the backtick expression with its value.
-After all such substitutions, the text of the whole tag is interpreted as markdown, as usual.
+After all such substitutions, the text of the whole tag is interpreted as Markdown, as usual.
 
-For example, the following will insert the date and the R version of the roxygen run.
+A simple example:
 
-```r
-#' Roxygen created this manual page on `r "\x60r Sys.Date()\x60"` using R version
-#' `r "\x60r getRversion()\x60"`.
+```{r echo=FALSE}
+simple_inline <- "#' @title Title `r 1 + 1`
+#' @description Description `r 2 + 2`
+#' @md
+foo <- function() NULL
+"
 ```
 
-The value of the R expression is converted to a character string, with `paste(collapse = "\n")`.
-So you don't need explicitly convert to a character value, numeric values or any R object with an `as.character()` S3 method is fine.
-Also, you can insert multiple lines by returning a character vector.
-If you want to run R code without inserting any output, return an empty string or `NULL`.
-
-The value of the expression is inserted into the text of the tag without interpreting it, before the markdown to `.Rd` conversion, so you can create markdown markup dynamically:
-
-```r
-#' The `iris` data set has `r "\x60r ncol(iris)\x60"` columns:
-#' `r "\x60r paste0(\"\x60\x60\", colnames(iris), \"\x60\x60\", collapse = \", \")\x60"`.
+```{r code=simple_inline}
 ```
 
-Note that you need to escape backtick characters, if they appear in the R expression, by doubling them, like above.
-The result after the dynamic R code evaluation will be:
+will be turned into:
 
-```
-The `iris` data set has 5 columns:
-`Sepal.Length`, `Sepal.Width`, `Petal.Length`, `Petal.Width`, `Species`.
+```{r code = roxygen2:::markdown(simple_inline)}
 ```
 
-And the final result in the `.Rd` file will look as:
+The resulting text, together with the whole tag is interpreted as markdown, as usual.
+This means that you can use R to dynamically write markdown.
+To markup something as code from within R, you must replace the inner backticks with the unicode hex code `"\x60"`, rather than an actual unicode backtick character.
 
-```
-The \code{iris} data set has 5 columns:
-\code{Sepal.Length}, \code{Sepal.Width}, \code{Petal.Length}, \code{Petal.Width}, \code{Species}.
-```
+The interpretation from the source all the way to the final Rd documentation goes through three steps.
+For example:
 
-The R code is evaluated in a new environment that is the child of the package environment of the package you are documenting.
-This means that you can call (internal or exported) functions of the package.
-`packageName()` will also report the name of the package:
-
-```r
-#' To insert the name of the current package: `r "\x60r packageName()\x60"`.
-```
-
-A new evaluation environment is created for each roxygen _block_.
-So the output of this code:
-
-```r
-#' @title ... `r "\x60r myvar <- \"foo\"; NULL\x60"` `r "\x60r myvar\x60"`
-#'
-#' @description ... `r "\x60r myvar\x60"`
+```{r echo=FALSE}
+backtick <- "#' Title
+#' Description `r paste0('\\x60', 'bar', '\\x60')`
+#' @md
+foo <- function() NULL
+"
 ```
 
-will be:
-
-```r
-#' @title ... foo
-#'
-#' @description ... foo
+```{r code = backtick}
 ```
 
-Currently the whole code expression must be on the same line, multi-line expressions are not supported.
+1. is run through knitr to evaluate R, yielding:
+    
+    ```{r code = roxygen2:::markdown_pass1(backtick)}
+    ```
+    
+2. is then run through roxygen's markdown engine, yielding:
+    
+    ```{r code = roxygen2:::markdown(backtick)}
+    ```
+    
+3. is finally turned into Rd documentation using roxygen, yielding:
+
+    ```{r, echo=FALSE, results="asis"}
+    cat(
+      "\x60\x60\x60rd\n",
+      format(roxygen2:::roc_proc_text(roxygen2::rd_roclet(), backtick)[[1]]),
+      "\n\x60\x60\x60"
+    )
+    ```
 
 ## Code blocks
 
-Markdown code blocks can be dynamic as well, if you use `r "\x60\x60\x60{r}"` to start them, just like in knitr documents.
+To insert entire blocks of code, enclose them in ` ```{r} `, just like in knitr documents.
+They go through the same three steps described above for inline code.
 
-```r
-#' ```{r}
-#' # This block of code will be evaluated
-#' summary(iris)
+For example:
+
+```{r echo=FALSE}
+simple_fenced <- "#' @title Title
+#' @details Details
+#' ```{r lorem}
+#' 1+1
 #' ```
+#' @md
+foo <- function() NULL
+"
 ```
 
-Within a roxygen block, code blocks and inline code use the same evaluation environment, so variables created in one of them can be used in others.
+```{r code=simple_fenced}
+```
 
-Code blocks support knitr chunk options, e.g. to keep the output of several expressions together, you can specify `results= "hold"`:
+becomes:
+
+```{r, echo=FALSE, results="asis"}
+cat(
+  "\x60\x60\x60rd\n",
+  format(roxygen2:::roc_proc_text(roxygen2::rd_roclet(), simple_fenced)[[1]]),
+  "\n\x60\x60\x60"
+)
+```
+
+Code blocks support knitr chunk options, e.g. to keep the output of several expressions together, you can specify `results="hold"`:
 
 ```r
-#' ```{r results = "hold"}
+#' ```{r results="hold"}
 #' names(mtcars)
 #' nrow(mtcars)
 #' ```
 ```
 
-Plots will create `.png` files in the `man/figures` directory. The file names are created from the chunk names:
+Plots will create `.png` files in the `man/figures` directory.
+Note that plots in `man/figures` may quickly increase the size of your package.
+The file names are created from the chunk names.
 
 ```r
 #' ```{r iris-pairs-plot}
@@ -371,34 +384,83 @@ Plots will create `.png` files in the `man/figures` directory. The file names ar
 #' ```
 ```
 
-Note that the generated `.png` files will be added to the package, and they can considerably increase the size of the package.
+## Details
 
-Note that code block support is currently experimental, and somewhat limited.
-Some of the known limitations:
+This feature is powered by the knitr package.
 
-  * Because the code blocks are evaluated individually, they cannot refer to each other.
+This causes some limitations and differences to keep in mind:
+
+  * Inline and fenced code blocks from the same _roxygen block_ share the same evaluation environment. 
+    As a result, variables created in one code block can be reused in another one.
+    For example:
+    
+    ```{r include=FALSE}
+    code_envs <- "#' Title `r baz <- 420` `r baz`
+    #'
+    #' Description `r exists('baz', inherits = FALSE)`
+    #' @md
+    bar <- function() NULL
+
+    #' Title
+    #' 
+    #' Description `r exists('baz', inherits = FALSE)`
+    #' @md
+    zap <- function() NULL
+    "
+    ```
+
+    ```{r code=code_envs}
+    ```
+    
+    becomes:
+    
+    ```{r, echo=FALSE, results="asis"}
+    cat(
+      "\x60\x60\x60rd\n",
+      format(roxygen2:::roc_proc_text(roxygen2::rd_roclet(), code_envs)[[1]]),
+      format(roxygen2:::roc_proc_text(roxygen2::rd_roclet(), code_envs)[[2]]),
+      "\n\x60\x60\x60"
+    )
+    ```
+    Notice how inside the documentation for `zap()`, `baz` does not exist ("Description `FALSE`").
+
+  * The R code is evaluated in a new environment that is the child of the package environment of the package you are documenting.
+    This means that you can call (internal or exported) functions of the package.
+    For example, `packageName()` will report the name of the current package:
+
+    ```r
+    #' To insert the name of the current package: `packageName()`.
+    ```
+  * The code blocks are run every time you call `roxygenize()` (or `devtools::document()`) to generated the Rd files.
   * Some knitr chunk options are reset at the start of every code block, so if you want to change these, you'll have to specify them for every chunk.
-    These are currently `error`, `fig.path`, `fig.process`.
+    These are currently `r paste0("\x60", names(roxygen2:::knitr_chunk_defaults), "\x60")`.
   * Some knitr options might not create meaningful output.
-  * The markdown code runs every time you call `roxygenize()` (or `devtools::document()`) to generated the Rd files.
+  * The Markdown code runs every time you call `roxygenize()` (or `devtools::document()`) to generate the Rd files.
     This potentially makes `roxygenize()` (much) slower.
     You can turn on knitr caching as usual, but make sure to omit the cache from the package.
+  * knitr calls the appropriate `print()` or (if available) `knitr::knit_print()` methods on the result.
+    The resulting markdown from some of these methods may not be supported by roxygen's subset of markdown (see `vignette("rd.Rmd")`). 
+    You can always override the automatic methods, and have your R calls return
+    valid markdown as a character vector, wrapped in `knitr::asis_output()`. 
 
-# Roxygen and Rd tags *not* parsed as markdown
+Also recall that everything *outside* of inline or fenced code is *not* handled by rmarkdown, but by roxygen.
+Not all features from rmarkdown are available.
 
-Some of the roxygen tags are not parsed as markdown. Most of these are unlikely to contain text that needs markup, so this is not an important restriction. Tags without markdown support: `@aliases`, `@backref`, `@docType`, `@encoding`, `@evalRd`, `@example`, `@examples`, `@family`, `@inheritParams`, `@keywords`, `@method` `@name`, `@md`, `@noMd`, `@noRd`, `@rdname`, `@rawRd`, `@usage`.
+# Roxygen and Rd tags *not* parsed as Markdown
 
-When mixing `Rd` and markdown notation, most `Rd` tags may contain markdown markup, the ones that can *not* are: `r paste0("\x60", roxygen2:::escaped_for_md, "\x60", collapse = ", ")`.
+Some of the roxygen tags are not parsed as Markdown. Most of these are unlikely to contain text that needs markup, so this is not an important restriction. Tags without Markdown support: `@aliases`, `@backref`, `@docType`, `@encoding`, `@evalRd`, `@example`, `@examples`, `@family`, `@inheritParams`, `@keywords`, `@method` `@name`, `@md`, `@noMd`, `@noRd`, `@rdname`, `@rawRd`, `@usage`.
+
+When mixing `Rd` and Markdown notation, most `Rd` tags may contain Markdown markup, the ones that can *not* are: `r paste0("\x60", roxygen2:::escaped_for_md, "\x60", collapse = ", ")`.
 
 # Possible problems
 
-## Mixing markdown and `Rd` markup
+## Mixing Markdown and `Rd` markup
 
-Note that turning on markdown does *not* turn off the standard `Rd` syntax. We suggest that you use the regular `Rd` tags in a markdown roxygen chunk only if necessary. The two parsers do occasionally interact, and the markdown parser can pick up and reformat Rd syntax, causing an error, or corrupted manuals.
+Note that turning on Markdown does *not* turn off the standard `Rd` syntax. We suggest that you use the regular `Rd` tags in a Markdown roxygen chunk only if necessary. The two parsers do occasionally interact, and the Markdown parser can pick up and reformat Rd syntax, causing an error, or corrupted manuals.
 
 ## Leading whitespace
 
-Leading whitespace is interpreted by the commonmark parser, whereas it is ignored by the `Rd` parser (except in `\preformatted{}`). Make sure that you only include leading whitespace intentionally, for example for nested lists.
+Leading whitespace is interpreted by the commonmark parser, whereas it is ignored by the `Rd` parser (except in `\preformatted{}`). Make sure that you only include leading whitespace intentionally, for example, for nested lists.
 
 ## Spurious lists
 
@@ -417,7 +479,7 @@ Links to operators or objects that contain special characters, do not work curre
 
 Within roxygen tags, you can use `.Rd` syntax to format text. Below we show you examples of the most important `.Rd` markup commands. The full details are described in [R extensions](https://cran.r-project.org/doc/manuals/R-exts.html#Marking-text).
 Before roxygen version 6.0.0 this was the only supported syntax. Now all of
-the formatting described below can be achived more easily with markdown syntax,
+the formatting described below can be achieved more easily with Markdown syntax,
 with the important exception of [mathematical expressions](https://cran.r-project.org/doc/manuals/R-exts.html#Mathematics).
 
 Note that `\` and `%` are special characters. To insert literals, escape with a backslash: `\\`, `\%`.
@@ -520,4 +582,3 @@ tabular <- function(df, ...) {
 
 cat(tabular(mtcars[1:5, 1:5]))
 ```
-
