@@ -1,18 +1,40 @@
 ## ---- include = FALSE---------------------------------------------------------
 knitr::opts_chunk$set(comment = "#>", collapse = TRUE)
 
-## -----------------------------------------------------------------------------
-#' Add together two numbers
+## ---- echo = FALSE------------------------------------------------------------
+example <- "#' Add together two numbers
 #'
-#' @param x A number
-#' @param y A number
-#' @return The sum of \code{x} and \code{y}
+#' @param x A number.
+#' @param y A number.
+#' @return A number.
 #' @examples
 #' add(1, 1)
 #' add(10, 1)
 add <- function(x, y) {
   x + y
 }
+"
+
+## ----code=example-------------------------------------------------------------
+#' Add together two numbers
+#'
+#' @param x A number.
+#' @param y A number.
+#' @return A number.
+#' @examples
+#' add(1, 1)
+#' add(10, 1)
+add <- function(x, y) {
+  x + y
+}
+
+
+## ---- echo=FALSE, results="asis"----------------------------------------------
+cat(
+  "\x60\x60\x60rd\n",
+  format(roxygen2::roc_proc_text(roxygen2::rd_roclet(), example)[[1]]),
+  "\n\x60\x60\x60", sep = ""
+)
 
 ## ---- eval = FALSE------------------------------------------------------------
 #  #' Do values in a numeric vector fall in specified range?
@@ -21,8 +43,8 @@ add <- function(x, y) {
 #  #' efficiently in C++ for local values, and translated to the
 #  #' appropriate SQL for remote tables.
 #  #'
-#  #' @param x A numeric vector of values
-#  #' @param left,right Boundary values
+#  #' @param x A numeric vector of values.
+#  #' @param left,right Boundary values.
 #  #' @export
 #  #' @examples
 #  #' between(1:12, 7, 9)

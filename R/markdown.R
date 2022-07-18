@@ -8,7 +8,13 @@ markdown <- function(text, tag = NULL, sections = FALSE) {
     }
   )
   escaped_text <- escape_rd_for_md(expanded_text)
-  markdown_pass2(escaped_text, tag = tag, sections = sections)
+  tryCatch(
+    markdown_pass2(escaped_text, tag = tag, sections = sections),
+    error = function(e) {
+      warn_roxy_tag(tag, "markdown failed to process", parent = e)
+      text
+    }
+  )
 }
 
 #' Expand the embedded inline code
@@ -46,15 +52,18 @@ markdown <- function(text, tag = NULL, sections = FALSE) {
 #' plot(1:10)
 #' ```
 #'
+#' Alternative knitr engines:
+#'
+#' ```{verbatim}
+#' #| file = "tests/testthat/example.Rmd"
+#' ```
+#'
 #' Also see `vignette("rd-formatting")`.
 #'
 #' @param text Input text.
 #' @return
 #' Text with R code expanded.
 #' A character vector of the same length as the input `text`.
-#'
-#' @importFrom xml2 xml_ns_strip xml_find_all xml_attr
-#' @importFrom purrr keep
 #'
 #' @keywords internal
 
@@ -65,14 +74,51 @@ markdown_pass1 <- function(text) {
   rcode_nodes <- keep(code_nodes, is_markdown_code_node)
   if (length(rcode_nodes) == 0) return(text)
   rcode_pos <- parse_md_pos(map_chr(rcode_nodes, xml_attr, "sourcepos"))
+  rcode_pos <- work_around_cmark_sourcepos_bug(text, rcode_pos)
   out <- eval_code_nodes(rcode_nodes)
   str_set_all_pos(text, rcode_pos, out, rcode_nodes)
 }
 
+# Work around commonmark sourcepos bug for inline R code
+# https://github.com/r-lib/roxygen2/issues/1353
+work_around_cmark_sourcepos_bug <- function(text, rcode_pos) {
+  if (Sys.getenv("ROXYGEN2_NO_SOURCEPOS_WORKAROUND", "") != "") {
+    return(rcode_pos)
+  }
+
+  lines <- str_split(text, fixed("\n"))[[1]]
+
+  for (l in seq_len(nrow(rcode_pos))) {
+    # Do not try to fix multi-line code, we error for that (below)
+    if (rcode_pos$start_line[l] != rcode_pos$end_line[l]) next
+    line <- lines[rcode_pos$start_line[l]]
+    start <- rcode_pos$start_column[l]
+
+    # Maybe correct? At some point this will be fixed upstream, hopefully.
+    if (str_sub(line, start - 1, start + 1) == "`r ") next
+
+    # Maybe indented and we can shift it?
+    # It is possible that the shift that we try accidentally matches
+    # "`r ", but it seems to be extremely unlikely. An example is this:
+    # #'       ``1`r `` `r 22*10`
+    # (seven spaces after the #', so an indent of six spaces. If we shift
+    # the real "`r " left by six characters, there happens to be another
+    # "`r " there.
+
+    indent <- nchar(str_extract(line, "^[ ]+"))
+    if (str_sub(line, start - 1 + indent, start + 1 + indent) == "`r ") {
+      rcode_pos$start_column[l] <- rcode_pos$start_column[l] + indent
+      rcode_pos$end_column[l] <- rcode_pos$end_column[l] + indent
+    }
+  }
+
+  rcode_pos
+}
+
 is_markdown_code_node <- function(x) {
-  info <- str_sub(xml_attr(x, "info"), 1, 3)
+  info <- xml_attr(x, "info")
   str_sub(xml_text(x), 1, 2) == "r " ||
-    (!is.na(info) && info %in% c("{r ", "{r}", "{r,"))
+    (!is.na(info) && grepl("^[{][a-zA-z]+[}, ]", info))
 }
 
 parse_md_pos <- function(text) {
@@ -90,37 +136,41 @@ eval_code_nodes <- function(nodes) {
   # This should only happen in our test cases
   if (is.null(evalenv)) evalenv <- new.env(parent = baseenv())
 
-  withr::local_options(width = 80)
   map_chr(nodes, eval_code_node, env = evalenv)
 }
-
-#' @importFrom xml2 xml_name
-#' @importFrom knitr knit opts_chunk
 
 eval_code_node <- function(node, env) {
   if (xml_name(node) == "code") {
     # write knitr markup for inline code
     text <- paste0("`", xml_text(node), "`")
   } else {
+    lang <- xml_attr(node, "info")
     # write knitr markup for fenced code
-    text <- paste0("```", xml_attr(node, "info"), "\n", xml_text(node), "```\n")
+    text <- paste0("```", if (!is.na(lang)) lang, "\n", xml_text(node), "```\n")
   }
-  old_opts <- purrr::exec(opts_chunk$set, knitr_chunk_defaults)
-  withr::defer(purrr::exec(opts_chunk$set, old_opts))
-  knit(text = text, quiet = TRUE, envir = env)
+
+  chunk_opts <- utils::modifyList(
+    knitr_chunk_defaults(),
+    as.list(roxy_meta_get("knitr_chunk_options", NULL))
+  )
+
+  roxy_knit(text, env, chunk_opts)
 }
 
-knitr_chunk_defaults <- list(
-  error = FALSE,
-  fig.path = "man/figures/",
-  fig.process = function(path) basename(path)
-)
+knitr_chunk_defaults <- function() {
+  list(
+    error = FALSE,
+    fig.path = "man/figures/",
+    fig.process = basename,
+    comment = "#>",
+    collapse = TRUE
+  )
+}
 
 str_set_all_pos <- function(text, pos, value, nodes) {
   # Cmark has a bug when reporting source positions for multi-line
   # code tags, and it does not count the indenting space in the
-  # continuation lines. However, the bug might get fixed later, so
-  # for now we just simply error for multi-line inline code.
+  # continuation lines: https://github.com/commonmark/cmark/issues/296
   types <- xml_name(nodes)
   if (any(types == "code" & pos$start_line != pos$end_line)) {
     cli::cli_abort("multi-line `r ` markup is not supported", call = NULL)
@@ -183,7 +233,6 @@ mdxml_children_to_rd <- function(xml, state) {
   paste0(out, collapse = "")
 }
 
-#' @importFrom xml2 xml_name xml_type xml_text xml_contents xml_attr xml_children xml_find_all
 mdxml_node_to_rd <- function(xml, state) {
   if (!inherits(xml, "xml_node") ||
       ! xml_type(xml) %in% c("text", "element")) {
@@ -268,8 +317,8 @@ special <- c(
 )
 
 mdxml_code_block <- function(xml, state) {
-  info <- xml_attr(xml, "info")[1]
-  if (is.na(info) || nchar(info[1]) == 0) info <- NA_character_
+  info <- xml_attr(xml, "info", default = "")[1]
+  if (nchar(info[1]) == 0) info <- NA_character_
   paste0(
     "\n\n",
     "\\if{html}{\\out{<div class=\"sourceCode",
@@ -370,12 +419,44 @@ mdxml_link_text <- function(xml_contents, state) {
   paste0(text, collapse = "")
 }
 
-mdxml_image = function(xml) {
+mdxml_image <- function(xml) {
   dest <- xml_attr(xml, "destination")
   title <- xml_attr(xml, "title")
+  fmt <- get_image_format(dest)
   paste0(
+    if (fmt == "html") "\\if{html}{",
+    if (fmt == "pdf") "\\if{pdf}{",
     "\\figure{", dest, "}",
-    if (nchar(title)) paste0("{", title, "}")
+    if (nchar(title)) paste0("{", title, "}"),
+    if (fmt %in% c("html", "pdf")) "}"
+  )
+}
+
+get_image_format <- function(path) {
+  should_restrict <- roxy_meta_get("restrict_image_formats") %||% TRUE
+  if (!should_restrict) {
+    return("all")
+  }
+
+  path <- tolower(path)
+  rx <- default_image_formats()
+  html <- grepl(rx$html, path)
+  pdf <- grepl(rx$pdf, path)
+  if (html && pdf) {
+    "all"
+  } else if (html) {
+    "html"
+  } else if (pdf) {
+    "pdf"
+  } else {
+    "all"
+  }
+}
+
+default_image_formats <- function() {
+  list(
+    html = "[.](jpg|jpeg|gif|png|svg)$",
+    pdf = "[.](jpg|jpeg|gif|png|pdf)$"
   )
 }
 
@@ -386,8 +467,14 @@ escape_comment <- function(x) {
 mdxml_heading <- function(xml, state) {
   level <- xml_attr(xml, "level")
   if (! state$has_sections && level == 1) {
-    return(mdxml_unsupported(xml, state$tag, "level 1 markdown headings"))
+    warn_roxy_tag(state$tag, c(
+      "markdown translation failed",
+      x = "Level 1 headings are not supported in @{state$tag$tag}",
+      i = "Do you want to put the heading in @description or @details?"
+    ))
+    return(escape_comment(xml_text(xml)))
   }
+
   txt <- map_chr(xml_contents(xml), mdxml_node_to_rd, state)
   if (level == 1) {
     state$titles <- c(state$titles, paste(txt, collapse = ""))
@@ -424,8 +511,6 @@ mdxml_html_inline <- function(xml, state) {
     "}}"
   )
 }
-
-#' @importFrom utils head tail
 
 mdxml_close_sections <- function(state, upto = 1L) {
   hmy <- 0L

@@ -153,16 +153,15 @@ test_that("default usage formats replacement functions correctly", {
 })
 
 test_that("default usage formats infix functions correctly", {
-  expect_equal(
-    call_to_usage("%.%" <- function(a, b) {}),
-    "a \\%.\\% b"
-  )
+  expect_equal(call_to_usage("%.%" <- function(a, b) {}), "a \\%.\\% b")
+  expect_equal(call_to_usage(":" <- function(a, b) {}), "a:b")
+  expect_equal(call_to_usage("+" <- function(a, b) {}), "a + b")
 
   # even if it contains <-
-  expect_equal(
-    call_to_usage("%<-%" <- function(a, b) {}),
-    "a \\%<-\\% b"
-  )
+  expect_equal(call_to_usage("%<-%" <- function(a, b) {}), "a \\%<-\\% b")
+
+  # defaults are ignored
+  expect_equal(call_to_usage(":" <- function(a = 1, b = 2) {}), "a:b")
 })
 
 test_that("default usage formats S3 methods correctly", {
@@ -354,4 +353,9 @@ test_that("old wrapping style doesn't change unexpectedly", {
   })
 })
 
-
+test_that("preserves non-breaking-space", {
+   expect_equal(
+     call_to_usage(f <- function(a = "\u{A0}") {}),
+     'f(a = "\u{A0}")'
+   )
+})

@@ -1,17 +1,24 @@
 #' @import stringr
 NULL
 
-#' Roclet: make Rd files.
+#' Roclet: make Rd files
 #'
-#' @template rd
-#' @family roclets
-#' @eval rd_roclet_description()
+#' @description
+#' This roclet is the workhorse of roxygen2, producing the `.Rd` files that
+#' R uses to document functions, datasets, packages, classes, and more.
+#' See `vignette("rd")` for details.
+#'
+#' Generally you will not call this function directly
+#' but will instead use [roxygenise()] specifying the rd roclet.
+#'
+#' @seealso [tags-rd], [tags-rd-other], [tags-reuse], [tags-index-crossref] for
+#'   tags provided by this roclet.
 #' @export
 #' @examples
 #' #' The length of a string (in characters)
 #' #'
-#' #' @param x String input character vector
-#' #' @return An integer vector the same length as `x`.
+#' #' @param x A character vector.
+#' #' @returns An integer vector the same length as `x`.
 #' #'   `NA` strings have `NA` length.
 #' #' @seealso [nchar()]
 #' #' @export
@@ -24,14 +31,6 @@ rd_roclet <- function() {
   roclet("rd")
 }
 
-rd_roclet_description <- function() {
-  c(
-    "@description",
-    "Generally you will not call this function directly",
-    "but will instead use roxygenise() specifying the rd roclet"
-  )
-}
-
 #' @export
 roclet_process.roclet_rd <- function(x, blocks, env, base_path) {
 
@@ -40,7 +39,7 @@ roclet_process.roclet_rd <- function(x, blocks, env, base_path) {
 
   for (block in blocks) {
     rd <- block_to_rd(block, base_path, env)
-    topics$add(rd)
+    topics$add(rd, block)
   }
   topics_process_family(topics, env)
   topics_process_inherit(topics, env)
@@ -58,9 +57,16 @@ roclet_output.roclet_rd <- function(x, results, base_path, ..., is_first = FALSE
   contents <- map_chr(results, format)
   paths <- file.path(man, names(results))
 
+  names <- unname(map_chr(results, ~ .$get_name()[[1]]))
+  if (length(names) > 0) {
+    hrefs <- paste0("ide:run:pkgload::dev_help('", names, "')")
+  } else {
+    hrefs <- character()
+  }
+
   # Always check for roxygen2 header before overwriting NAMESPACE (#436),
   # even when running for the first time
-  mapply(write_if_different, paths, contents, MoreArgs = list(check = TRUE))
+  mapply(write_if_different, paths, contents, href = hrefs)
 
   if (!is_first) {
     # Automatically delete any files in man directory that were generated

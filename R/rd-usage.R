@@ -79,7 +79,11 @@ function_usage <- function(name, formals, format_name = identity) {
   } else if (is_infix_fun(name) && identical(format_name, identity)) {
     # If infix, and regular function, munge format
     arg_names <- names(formals)
-    build_rd(arg_names[1], " ", format_name(name), " ", arg_names[2])
+    name <- format_name(name)
+    if (is_padded_infix_fun(name)) {
+      name <- paste0(" ", name, " ")
+    }
+    build_rd(arg_names[1], name, arg_names[2])
   } else {
     if (identical(format_name, identity)) {
       name <- auto_backtick(name)
@@ -93,7 +97,21 @@ is_replacement_fun <- function(name) {
   str_detect(name, fixed("<-"))
 }
 is_infix_fun <- function(name) {
-  str_detect(name, "^%.*%$")
+  ops <- c(
+    "+", "-", "*", "^", "/",
+    "==", ">", "<", "!=", "<=", ">=",
+    "&", "|",
+    "[[", "[", "$", ":", "::", ":::"
+  )
+  str_detect(name, "^%.*%$") || name %in% ops
+}
+is_padded_infix_fun <- function(name) {
+  ops <- c(
+    "+", "-", "*", "/",
+    "==", ">", "<", "!=", "<=", ">=",
+    "&", "|"
+  )
+  str_detect(name, "^%.*%$") || name %in% ops
 }
 
 usage_args <- function(args) {
@@ -111,9 +129,11 @@ usage_args <- function(args) {
   map_chr(args, arg_to_text)
 }
 
-args_string <- function(x) {
-  sep <- ifelse(x != "", "\u{A0}=\u{A0}", "")
-  arg_names <- escape(auto_backtick(names(x)))
+args_string <- function(x, space = " ") {
+  sep <- ifelse(names(x) != "" & x != "", paste0(space, "=", space), "")
+
+  nms <- names2(x)
+  arg_names <- ifelse(nms == "", "", escape(auto_backtick(nms)))
   paste0(arg_names, sep, escape(x))
 }
 
@@ -127,23 +147,30 @@ args_call <- function(call, args) {
 #' @param suffix Optional suffix, used for replacement functions
 #' @noRd
 wrap_usage <- function(name, format_name, formals, suffix = NULL, width = 80L) {
-  args <- args_string(usage_args(formals))
-
-  # Do we need any wrapping?
-  bare <- args_call(name, args)
-  if (!str_detect(bare, "\n") && nchar(bare, type = "width") < width) {
-    out <- args_call(format_name(name), args)
-  } else if (roxy_meta_get("old_usage", FALSE)) {
+  if (roxy_meta_get("old_usage", FALSE)) {
+    # Use nbsp to keep argument name & default value on same line
+    args <- args_string(usage_args(formals), "\u{A0}")
     x <- args_call(format_name(name), args)
     out <- wrapUsage(x, width = as.integer(width), indent = 2)
+
+    out <- gsub("\u{A0}", " ", out, useBytes = TRUE)
+    Encoding(out) <- "UTF-8"
+
+    return(rd(paste0(out, suffix)))
+  }
+
+  args <- args_string(usage_args(formals))
+  bare <- args_call(name, args)
+
+  if (!str_detect(bare, "\n") && nchar(bare, type = "width") < width) {
+    # Don't need to wrap
+    out <- args_call(format_name(name), args)
   } else {
+    # Wrap each argument and put on own line
     args <- paste0("  ", args)
     args <- map_chr(args, wrapUsage, width = 90, indent = 4)
     out <- paste0(format_name(name), "(\n", paste0(args, collapse = ",\n"), "\n)")
   }
-
-  out <- gsub("\u{A0}", " ", out, useBytes = TRUE)
-  Encoding(out) <- "UTF-8"
 
   rd(paste0(out, suffix))
 }
@@ -153,5 +180,5 @@ wrap_usage <- function(name, format_name, formals, suffix = NULL, width = 80L) {
 # used for testing
 call_to_usage <- function(code, env = pkg_env()) {
   obj <- call_to_object(!!enexpr(code), env)
-  gsub("\u{A0}", " ", as.character(object_usage(obj)))
+  as.character(object_usage(obj))
 }

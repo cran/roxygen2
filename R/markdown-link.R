@@ -39,7 +39,6 @@
 #'   appended.
 #'
 #' @noRd
-#' @importFrom utils URLencode URLdecode
 
 get_md_linkrefs <- function(text) {
   refs <- str_match_all(
@@ -83,7 +82,6 @@ add_linkrefs_to_md <- function(text) {
 #' @param contents An XML node, containing the contents of the link.
 #'
 #' @noRd
-#' @importFrom xml2 xml_name
 
 parse_link <- function(destination, contents, state) {
 
@@ -182,13 +180,13 @@ parse_link <- function(destination, contents, state) {
 #' Link to a function: [roxygenize()].
 #' Link to an object: [roxygenize] (we just treat it like an object here.
 #'
-#' Link to another package, function: [devtools::document()].
-#' Link to another package, non-function: [devtools::document].
+#' Link to another package, function: [desc::desc()].
+#' Link to another package, non-function: [desc::desc].
 #'
 #' Link with link text: [this great function][roxygenize()],
 #' [`roxygenize`][roxygenize()], or [that great function][roxygenize].
 #'
-#' In another package: [and this one][devtools::document].
+#' In another package: [and this one][desc::desc].
 #'
 #' This is a table:
 #'

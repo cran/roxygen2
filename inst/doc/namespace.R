@@ -1,6 +1,11 @@
 ## ---- include = FALSE---------------------------------------------------------
 knitr::opts_chunk$set(comment = "#>", collapse = TRUE)
 
+## -----------------------------------------------------------------------------
+#' @exportS3Method pkg::generic
+generic.foo <- function(x, ...) {
+}
+
 ## ---- eval = FALSE------------------------------------------------------------
 #  my_function <- function(x, y) {
 #    pkg::fun(x) * y
@@ -17,27 +22,4 @@ my_function <- function(x, y) {
 #' @importFrom pkg2 fun3
 #' @importFrom pkg3 fun4
 NULL
-
-## -----------------------------------------------------------------------------
-#' @import zoo
-
-#' Different name for calling zoo.
-#'
-#' @params ... passed to zoo.
-#' @return zoo object.
-#'
-#' @export 
-zoo2 <- function(...) zoo(...)
-
-## -----------------------------------------------------------------------------
-#' @import zoo
-NULL
-
-#' Different name for calling zoo.
-#'
-#' @params ... passed to zoo.
-#' @return zoo object.
-#'
-#' @export 
-zoo2 <- function(...) zoo(...)
 

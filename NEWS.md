@@ -1,3 +1,62 @@
+# roxygen2 7.2.1
+
+## Tags
+
+* All built-in tags are now documented so that you can do (e.g.) `?"@param"`
+  to get a basic description of `@param` and a pointer where to learn more 
+  (#1165). This is powered by a new `tags_list()` lists all tags defined by 
+  roxygen2 and `tags_metadata()` provides some useful information about them 
+  for use by (e.g.) IDEs (#1375).
+
+* `@describeIn` can now be used to combine more types of functions
+  (generics, methods and other functions) into a single topic.
+  The resulting section organises the functions by type (#1181)
+  and displays methods like function calls. Methods are recognized only if 
+  they extend the generic in the destination,or if the destination can 
+  heuristically be identified as a constructor.
+
+* Code evaluated in inline markdown code chunks and `@eval`/`@evalRd`/
+  `@evalNamespace` is now evaluated in an environment designed to be more
+  reproducible and to suppress output that won't work in Rd (e.g. turning
+  off colour and unicode support in cli) (#1351). They now also set 
+  knitr options `comment = #>` (#1380) and `collapse = TRUE` (#1376).
+
+* `@export` will now export both the class and constructor function when
+  applied to expressions like `foo <- setClass("foo")` (#1216).
+
+* `@includeRmd` now gives better feedback when it fails (#1089).
+
+## (R)markdown
+
+* New `knitr_chunk_options` option (in the `Roxygen` entry of
+  `DESCRIPTION` or in `man/roxygen/meta.R`) is added to the knitr chunk
+  options that roxygen2 uses for markdown code blocks and inline
+  code (#1390).
+  
+* PDF figures are only included the PDF manual, and SVG figures are only
+  included in the HTML manual (#1399).
+
+* You can now use alternative knitr engines in markdown code blocks (#1149).
+
+* Generated HTML for code blocks never includes "NA" for language (#1251). 
+
+* Using a level 1 heading in the wrong tag now gives a more useful warning 
+  (#1374).
+
+* Fix bug interpolating the results of indented inline RMarkdown (#1353).
+
+## Other
+
+* If you have a daily build of RStudio, the lists of changed Rd files are
+  now clickable so you can immediately see the rendered development
+  documentation (#1354).
+
+* R6 documentation no longer shows inherited methods if there aren't any 
+  (#1371), and only links to superclass docs if they're actually available 
+  (#1236).
+
+* Automated usage no longer mangles nbsp in default arguments (#1342).
+
 # roxygen2 7.2.0
 
 ## New features
@@ -40,7 +99,7 @@
   `\ifelse{}{}{}` tags are now inserted correctly (without additional `{}`) 
   (#1062).
 
-* `@inhert` now supports inheriting "Notes" with `@inherit pkg::fun note` 
+* `@inherit` now supports inheriting "Notes" with `@inherit pkg::fun note` 
   (@pat-s, #1218)
 
 * Automatic `@usage` now correctly wraps arguments containing syntactically 
@@ -61,7 +120,8 @@
       methods are applied (#1179). This change alters outputs and brings roxygen
       in line with console and R markdown behavior. `x <- "foo"` no longer 
       inserts anything into the resulting documentation, but `x <- "foo"; x` 
-      will.
+      will. This also means that returning a character vector will insert
+      commas between components, not newlines.
 
 * roxygen2 no longer generates invalid HTML (#1290).
 
@@ -768,7 +828,7 @@ A big thanks goes to @mikldk for starting on the vignette and motivating me to m
   produces literal Rd code when run. This should make it easier to experiment
   with new types of output (#385).
 
-* Roxygen2 now parses the source code files in the order specified in the
+* roxygen2 now parses the source code files in the order specified in the
   `Collate` field in `DESCRIPTION`. This improves the ordering of the generated
   documentation when using `@describeIn` and/or `@rdname` split across several
   `.R` files, as often happens when working with S4 (#323, #324).
@@ -913,7 +973,7 @@ A big thanks goes to @mikldk for starting on the vignette and motivating me to m
 
 # roxygen2 4.0.0
 
-Roxygen2 4.0.0 is a major update to roxygen2 that makes provides enhanced error handling and considerably safer default behaviour. Now, roxygen2 will never overwrite a file that it did not create. This means that before you run it for the first time, you'll need to run `roxygen2::upgradeRoxygen()`. That will flag all existing files as being created by roxygen2.
+roxygen2 4.0.0 is a major update to roxygen2 that makes provides enhanced error handling and considerably safer default behaviour. Now, roxygen2 will never overwrite a file that it did not create. This means that before you run it for the first time, you'll need to run `roxygen2::upgradeRoxygen()`. That will flag all existing files as being created by roxygen2.
 
 ## New features
 
@@ -939,10 +999,10 @@ Roxygen2 4.0.0 is a major update to roxygen2 that makes provides enhanced error 
     "mydata"
     ```
 
-* Roxygen2 now adds a comment to all generated files so that you know
+* roxygen2 now adds a comment to all generated files so that you know
   they've been generated, and should not be hand edited.
 
-* Roxygen2 no longer wraps the text in Rd files by default, i.e. the default
+* roxygen2 no longer wraps the text in Rd files by default, i.e. the default
   option is `wrap = FALSE` now. To override it, you have to specify a field
   `Roxygen: list(wrap = TRUE)` in `DESCRIPTION` (#178).
 
@@ -950,7 +1010,7 @@ Roxygen2 4.0.0 is a major update to roxygen2 that makes provides enhanced error 
 
 ## Improved error handling
 
-* Roxygen2 will never overwrite a file that was not generated by
+* roxygen2 will never overwrite a file that was not generated by
   roxygen2. This means that the first time you use this version of
   roxygen, you'll need to delete all existing Rd files. `roxygenise()`
   gains a clean argument that will automatically remove any files
@@ -1054,7 +1114,7 @@ method usage will be automatically prepended to the docstring.
 
 # roxygen2 3.0.0
 
-Roxygen2 now fully supports S4 and RC (reference classes) - you should no
+roxygen2 now fully supports S4 and RC (reference classes) - you should no
 longer need to manually add `@alias` or `@usage` tags for S4 classes, methods
 and generics, or for RC classes.
 

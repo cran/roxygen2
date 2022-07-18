@@ -2,7 +2,7 @@
 % Please edit documentation in R/vignette.R
 \name{vignette_roclet}
 \alias{vignette_roclet}
-\title{Re-build outdated vignettes.}
+\title{Re-build outdated vignettes}
 \usage{
 vignette_roclet()
 }
@@ -19,9 +19,3 @@ To prevent RStudio from re-building the vignettes again when checking
 your package, add \code{--no-build-vignettes} to the "Build Source Package"
 field in your project options.
 }
-\seealso{
-Other roclets: 
-\code{\link{namespace_roclet}()},
-\code{\link{rd_roclet}()}
-}
-\concept{roclets}

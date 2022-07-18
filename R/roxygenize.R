@@ -1,4 +1,4 @@
-#' Process a package with the Rd, namespace and collate roclets.
+#' Process a package with the Rd, namespace and collate roclets
 #'
 #' This is the workhorse function that uses roclets, the built-in document
 #' transformation functions, to build all documentation for a package. See
@@ -24,7 +24,6 @@
 #'   created by roxygen before running each roclet.
 #' @return `NULL`
 #' @export
-#' @importFrom stats setNames
 roxygenize <- function(package.dir = ".",
                        roclets = NULL,
                        load_code = NULL,

@@ -99,7 +99,13 @@ r6_superclass <- function(block, r6data, env) {
   push(paste0("\\section{", title, "}{"))
 
   pkgs <- super$classes$package[match(cls, super$classes$classname)]
-  path <- sprintf("\\code{\\link[%s:%s]{%s::%s}}", pkgs, cls, pkgs, cls)
+  has_topic <- purrr::map2_lgl(cls, pkgs, has_topic)
+
+  path <- ifelse(
+    has_topic,
+    sprintf("\\code{\\link[%s:%s]{%s::%s}}", pkgs, cls, pkgs, cls),
+    sprintf("\\code{%s::%s}", pkgs, cls)
+  )
   me <- sprintf("\\code{%s}", block$object$value$classname)
   push(paste(c(rev(path), me), collapse = " -> "))
 
@@ -258,9 +264,11 @@ r6_inherited_method_list <- function(block, r6data) {
   self <- r6data$self
   super_meth <- super_meth[! super_meth$name %in% self$name, ]
   super_meth <- super_meth[! duplicated(super_meth$name), ]
+  if (nrow(super_meth) == 0) {
+    return()
+  }
 
   super_meth <- super_meth[rev(seq_len(nrow(super_meth))), ]
-
   details <- paste0(
     "<details",
     if (nrow(super_meth) <= 5) " open",
@@ -274,6 +282,7 @@ r6_inherited_method_list <- function(block, r6data) {
         "<li>",
         "<span class=\"pkg-link\" data-pkg=\"%s\" data-topic=\"%s\" data-id=\"%s\">",
         "<a href='../../%s/html/%s.html#method-%s-%s'><code>%s::%s$%s()</code></a>",
+        "</span>",
         "</li>"
       ),
       super_meth$package,

@@ -5,7 +5,7 @@ test_that("can eval inline code", {
     #' @description Description `r 2 + 2`
     #' @md
     foo <- function() NULL
-    
+
   ")[[1]]
   expect_equal(out1$get_value("title"), "Title 2")
   expect_equal(out1$get_value("description"), "Description 4")
@@ -21,7 +21,7 @@ test_that("can eval fenced code", {
     #' ```
     #' @md
     foo <- function() NULL
-    
+
   ")[[1]]
   expect_match(out1$get_value("details"), "2")
 })
@@ -35,7 +35,7 @@ test_that("use same env within, but not across blocks", {
     bar <- function() NULL
 
     #' Title
-    #' 
+    #'
     #' Description `r exists('baz', inherits = FALSE)`
     #' @md
     zap <- function() NULL
@@ -56,7 +56,7 @@ test_that("appropriate knit print method for fenced and inline is applied", {
   )
   out1 <- roc_proc_text(rd_roclet(), "
     #' @title Title `r structure('default', class = 'foo')`
-    #' 
+    #'
     #' @details Details
     #'
     #' ```{r}
@@ -153,9 +153,30 @@ test_that("interleaving fences and inline code", {
     #' @name dummy
     NULL")[[1]]
 
-  details <- out1$get_value("details")
-  expect_match(details, "Details 10", fixed = TRUE)
-  expect_match(details, "## [1] 20", fixed = TRUE)
+  expect_snapshot(cat(out1$get_value("details")))
+})
+
+test_that("preserves white space", {
+    out1 <- roc_proc_text(rd_roclet(), "
+    #' Title
+    #'
+    #' @details
+    #'
+    #' ```{r}
+    #' a <- 1
+    #'
+    #' b <- 2
+    #' ```
+    #'
+    #' ```{r}
+    #' c <- 3
+    #' ```
+    #'
+    #' @md
+    #' @name dummy
+    NULL")[[1]]
+
+  expect_snapshot(cat(out1$get_value("details")))
 })
 
 test_that("fence options are used", {
@@ -192,4 +213,33 @@ test_that("fragile tags in generated code", {
 
   expect_silent(out2 <- markdown("foo `r '\\\\out{<span></span>}'` bar"))
   expect_equal(out2, "foo \\out{<span></span>} bar")
+})
+
+test_that("workaround for cmark sourcepos bug (#1353) works", {
+  out <- roc_proc_text(rd_roclet(), "
+    #' Title
+    #'
+    #' line1
+    #'    pre `r \"1\"` 2 `r 1+2` post
+    #'
+    #' no workaround needed `r 'here'`
+    #' @md
+    foo <- function() {}
+  ")[[1]]
+
+  expect_equal(out$get_section("description")$value, "line1\npre 1 2 3 post")
+  expect_equal(out$get_section("details")$value, "no workaround needed here")
+})
+
+
+test_that("doesn't generate NA language", {
+  out <- roc_proc_text(rd_roclet(), "
+  #' Title
+  #'
+  #' ```
+  #' r <- 1:10
+  #' ```
+  #' @md
+  foo <- function() {}")[[1]]
+  expect_false(grepl("NA", out$get_section("description")$value))
 })

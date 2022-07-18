@@ -33,20 +33,16 @@ The \code{iris} data set has 5 columns:
 
 \if{html}{\out{<div class="sourceCode r">}}\preformatted{# Code block demo
 x + 1
-}\if{html}{\out{</div>}}
-
-\if{html}{\out{<div class="sourceCode">}}\preformatted{## [1] 101
+#> [1] 101
 }\if{html}{\out{</div>}}
 
 Chunk options:
 
 \if{html}{\out{<div class="sourceCode r">}}\preformatted{names(mtcars)
 nrow(mtcars)
-}\if{html}{\out{</div>}}
-
-\if{html}{\out{<div class="sourceCode">}}\preformatted{##  [1] "mpg"  "cyl"  "disp" "hp"   "drat" "wt"   "qsec" "vs"   "am"   "gear"
-## [11] "carb"
-## [1] 32
+#>  [1] "mpg"  "cyl"  "disp" "hp"   "drat" "wt"   "qsec" "vs"   "am"   "gear"
+#> [11] "carb"
+#> [1] 32
 }\if{html}{\out{</div>}}
 
 Plots:
@@ -55,6 +51,15 @@ Plots:
 }\if{html}{\out{</div>}}
 
 \figure{test-figure-1.png}
+
+Alternative knitr engines:
+
+\if{html}{\out{<div class="sourceCode default">}}\preformatted{```\{r\}
+# comment
+this <- 10
+is <- this + 10
+good <- this + is
+}\if{html}{\out{</div>}}
 
 Also see \code{vignette("rd-formatting")}.
 }

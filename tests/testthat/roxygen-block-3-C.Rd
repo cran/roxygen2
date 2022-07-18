@@ -11,7 +11,7 @@ Class C Description.
 Classs C details.
 }
 \section{Super classes}{
-\code{\link[roxygen2:A]{roxygen2::A}} -> \code{\link[roxygen2:B]{roxygen2::B}} -> \code{C}
+\code{roxygen2::A} -> \code{roxygen2::B} -> \code{C}
 }
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
@@ -54,9 +54,9 @@ Classs C details.
 \if{html}{\out{
 <details open><summary>Inherited methods</summary>
 <ul>
-<li><span class="pkg-link" data-pkg="roxygen2" data-topic="A" data-id="meth3"><a href='../../roxygen2/html/A.html#method-A-meth3'><code>roxygen2::A$meth3()</code></a></li>
-<li><span class="pkg-link" data-pkg="roxygen2" data-topic="B" data-id="meth1"><a href='../../roxygen2/html/B.html#method-B-meth1'><code>roxygen2::B$meth1()</code></a></li>
-<li><span class="pkg-link" data-pkg="roxygen2" data-topic="B" data-id="meth4"><a href='../../roxygen2/html/B.html#method-B-meth4'><code>roxygen2::B$meth4()</code></a></li>
+<li><span class="pkg-link" data-pkg="roxygen2" data-topic="A" data-id="meth3"><a href='../../roxygen2/html/A.html#method-A-meth3'><code>roxygen2::A$meth3()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="roxygen2" data-topic="B" data-id="meth1"><a href='../../roxygen2/html/B.html#method-B-meth1'><code>roxygen2::B$meth1()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="roxygen2" data-topic="B" data-id="meth4"><a href='../../roxygen2/html/B.html#method-B-meth4'><code>roxygen2::B$meth4()</code></a></span></li>
 </ul>
 </details>
 }}

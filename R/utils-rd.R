@@ -17,8 +17,11 @@ print.rd <- function(x, ...) {
 }
 
 escape <- function(x) UseMethod("escape")
+#' @export
 escape.NULL <- function(x) NULL
+#' @export
 escape.rd <- function(x) x
+#' @export
 escape.character <- function(x) {
   # wrap_usage uses \u{A0}, the unicode non-breaking space, which
   # is not necessarily valid in windows locales. useBytes is a quick
@@ -101,8 +104,9 @@ make_as_character_rd <- function() {
 has_topic <- function(topic, package) {
   tryCatch(
     {
-      out <- utils::help((topic), package = (package))
-      length(out) == 1
+      out <- exec("help", topic, package, .env = global_env())
+      inherits(out, "dev_topic") ||
+        (inherits(out, "help_files_with_topic") && length(out) == 1)
     },
     error = function(c) FALSE
   )

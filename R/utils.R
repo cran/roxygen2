@@ -61,7 +61,7 @@ nice_name <- function(x) {
   x
 }
 
-write_if_different <- function(path, contents, check = TRUE) {
+write_if_different <- function(path, contents, href = NULL, check = TRUE) {
   if (!file.exists(dirname(path))) {
     dir.create(dirname(path), showWarnings = FALSE)
   }
@@ -87,7 +87,11 @@ write_if_different <- function(path, contents, check = TRUE) {
     ))
     FALSE
   } else {
+    if (!is.null(href)) {
+      name <- cli::style_hyperlink(name, href)
+    }
     cli::cli_inform("Writing {.path {name}}")
+
     writeBin(charToRaw(contents), path)
     TRUE
   }
@@ -117,8 +121,11 @@ invert <- function(x) {
   tapply(as.character(stacked$ind), stacked$values, list)
 }
 
-has_colons <- function(x) {
-   grepl("::", x, fixed = TRUE)
+is_namespaced <- function(x) {
+  tryCatch({
+    expr <- parse_expr(x)
+    is_call(expr, "::", n = 2)
+  }, error = function(err) FALSE)
 }
 
 # Collapse the values associated with duplicated keys
@@ -155,6 +162,11 @@ uuid <- function(nchar = 8) {
     sample(c(letters, LETTERS, 0:9), nchar, replace = TRUE),
     collapse = ""
   )
+}
+
+# https://github.com/r-lib/rlang/issues/1434
+is_installed <- function(x) {
+  !identical(system.file(package = x), "")
 }
 
 # quoting -----------------------------------------------------------------
