@@ -1,7 +1,7 @@
-834682788248c947c5fb88238d04217d *DESCRIPTION
+3dcfbab02efb6581935f9a24aea3bc27 *DESCRIPTION
 6726c2d6f3f89d4188b3976c034855b9 *LICENSE
 fd0962dd98e66a833d708c6126991fb6 *NAMESPACE
-91e62cb46ffb2996a2dceacf0eaea9e8 *NEWS.md
+0f61cd1dcaf7cb285d023dc12fb5c45a *NEWS.md
 558d6107a8976d9adab0927a91353e6e *R/block.R
 8ebc7a55b7ef3b9dc671d0f39741bcd8 *R/collate.R
 1642db96ca01adbe0645eac51d44c7f7 *R/cpp11.R
@@ -10,7 +10,7 @@ e6eae7d8c8de2829e5e0f2f0bb5f804c *R/field.R
 ed56cd575ac5a6b99bb342cca07c1e38 *R/markdown-escaping.R
 64a25d58741e32f9dbb7af3f13192a17 *R/markdown-link.R
 b6340678aee76596b7a06cdce4a538d5 *R/markdown-state.R
-08acd31529eedbc6a457cd10f8b71f21 *R/markdown.R
+28bfb426ec402f4c3bdf714cd5fce0ec *R/markdown.R
 d89bd7dbdba97a23b7c370501fa9e8e5 *R/namespace.R
 3bf95ebbf0b624e44cd98471dd748a96 *R/object-defaults.R
 6fdf1c02cad4179f08806666f8450c6a *R/object-format.R
@@ -47,8 +47,8 @@ b9babc2ab0d62d89c2aefa01f9c4712a *R/roxygen2-package.R
 36196d813dc7c1d679bb677feea095a3 *R/roxygenize-setup.R
 e719bc1fd25423260d2ac030fdc6bc6c *R/roxygenize.R
 00ed4c8678e9067f3acefdcdca17cf72 *R/safety.R
-0823c998f9fd733863875cbc6591e750 *R/select-args.R
-79569b0e1486d2fee0df497cfe9ec746 *R/tag-metadata.R
+3cd8c6e4dc5913663d332a5d29b6d23f *R/select-args.R
+8582404972559a4e54519fc5401c104d *R/tag-metadata.R
 d14977666468d9cc13f70198b2a5261e *R/tag-parser.R
 053dca303a8b4e05b410478e5b6c941a *R/tag.R
 8a0416cecd6bfdf083e476d54f7318d2 *R/tokenize.R
@@ -58,7 +58,7 @@ d277d2f51148eb5a4f7aadec6b90d7d9 *R/topics.R
 4a03394536203e479c5b7e70b7ec6f23 *R/util-locale.R
 cc381169cc11714a489a5186869bc25d *R/utils-io.R
 59a162a7dd1e8bedd00cbccb797047fc *R/utils-rd.R
-317be2c06122f5309ae6e9c94ed658ec *R/utils.R
+bfe6dd089ae762a21ae401503cb98122 *R/utils.R
 f866d9681c9d6592834441ac5f5169b0 *R/vignette.R
 4df50b4923df32583a121ab3f3c4c368 *R/zzz.R
 6b03a6aedc03c75d273fb3343f409c60 *README.md
@@ -87,7 +87,7 @@ cde75da16633ca7696936fbbf2c42ee1 *inst/doc/reuse.html
 91a17f3d7a2701416673a1a8cf503790 *inst/doc/roxygen2.R
 694d7958ccbc7cc9f2ecf5efba0c9c08 *inst/doc/roxygen2.Rmd
 ce0cc1e12384fb8c7973e1de097f3cb9 *inst/doc/roxygen2.html
-33de1007aea25c5ff9369c852c0ef511 *inst/roxygen2-tags.yml
+25b104a56fe031a57f8dabf4f483e350 *inst/roxygen2-tags.yml
 fd5df6bd65196d39e07cc546e196b790 *man/RoxyTopic.Rd
 52664c282da032ca2717fa97076ede2c *man/double_escape_md.Rd
 7a90f135e7865de509a8d7518e3938f8 *man/escape_examples.Rd
@@ -114,12 +114,12 @@ cbaeb4b8f5c628adf2d57b085db1c291 *man/roxy_tag_rd.Rd
 6c2909baf5c9526951f7d6f11f6cf9a9 *man/roxygen2-package.Rd
 3a5faaaf787e2646188a2d7b1aac1e5b *man/roxygenize.Rd
 a1f680309aab8e1167f739462d822c10 *man/tag_parsers.Rd
-0cf2ec8a9f8c156be0187035b3e989a4 *man/tags-index-crossref.Rd
-7eef7ee036207075316b5e617962d88f *man/tags-namespace.Rd
-f0e43e25e72209d944bd1b22ae1dbe08 *man/tags-rd-formatting.Rd
-57d000213f5ed657f984f8d2f5bc3e2e *man/tags-rd-other.Rd
-45cee1b64a3512ea8da51668d84fbcf3 *man/tags-rd.Rd
-2712b3b1146062e86b2046cb71d3b2f0 *man/tags-reuse.Rd
+13596fa2bbf291629d644bdeff91c7f7 *man/tags-index-crossref.Rd
+fb687a435695ff182c46114138ec63bd *man/tags-namespace.Rd
+4bea815c54cc55fc19d473c2a700d793 *man/tags-rd-formatting.Rd
+a70723a83901a836d5c51e632289ad46 *man/tags-rd-other.Rd
+f36dce146f8eaefab7eeb427d4972109 *man/tags-rd.Rd
+64823c5d44116fb09900ffc97f4a810b *man/tags-reuse.Rd
 dec3c0f402bca3f9387a4b222b9bd5ae *man/tags_list.Rd
 343edc77b4cc1a1c8e758aabded5fe4a *man/update_collate.Rd
 35561ae273b17bf2416bc6142288112b *man/vignette_roclet.Rd
@@ -139,7 +139,7 @@ dc7e3daa600d9358a557f9f5733684dd *tests/testthat/Rd-example-4.txt
 e853a4b3ca902085fe80f5260ca036ea *tests/testthat/_snaps/markdown-code.md
 46ea5dfddf492e30e6c1d5de9fb55a3e *tests/testthat/_snaps/markdown-link.md
 8fb83688a0ef4ee78afa123a8db8934e *tests/testthat/_snaps/markdown-state.md
-63680d3d03c4d7e75e56731832eb7b41 *tests/testthat/_snaps/markdown.md
+d73db26f632d0fa288fa9fd9f21aa327 *tests/testthat/_snaps/markdown.md
 3fbb63faf530a9ac5dfa0d6cc6ed594a *tests/testthat/_snaps/namespace.md
 7a1a19c017087afcbdc90ca1dc0caaeb *tests/testthat/_snaps/object-format.md
 bc5f27aa60db311358a0b116b1531303 *tests/testthat/_snaps/object-import.md
@@ -149,7 +149,7 @@ d33c1551c6083b9de851e5a8850b088a *tests/testthat/_snaps/rd-describe-in.md
 e87e84cd39536a8d61ac25468d342c19 *tests/testthat/_snaps/rd-examples.md
 925195261f110a16e35b529fcb576843 *tests/testthat/_snaps/rd-find-link-files.md
 dbd674ff8dd0ed520856f222b185c053 *tests/testthat/_snaps/rd-include-rmd.md
-ed4e6e54d2582a206ae48e72a3d4ab8f *tests/testthat/_snaps/rd-inherit.md
+3a40f2ca3d21ea1f714875b96c8813ee *tests/testthat/_snaps/rd-inherit.md
 7259067de14f4f4a1717805ce4c82cbf *tests/testthat/_snaps/rd-markdown.md
 bd11ed770dec100e38d9ed298c6f232e *tests/testthat/_snaps/rd-r6.md
 652abab002e2f94c24bf173ed1061ab1 *tests/testthat/_snaps/rd-raw.md
@@ -158,7 +158,7 @@ c6a0661420146240c1591ee0275f7633 *tests/testthat/_snaps/rd-template.md
 8418cbaabe49facc175ba169f1fb0c12 *tests/testthat/_snaps/rd-usage.md
 e1519c08588fe5235c6735db5d23345e *tests/testthat/_snaps/rd.md
 c3a2f820cf50962c378322437903ac2b *tests/testthat/_snaps/roxygenize-setup.md
-761e2721ca228fa462223f03780e0a00 *tests/testthat/_snaps/select-args.md
+8e7ef4150b1693a300db45fc01fd4bb6 *tests/testthat/_snaps/select-args.md
 97a7b7106cf86e00fdca45840af9a30f *tests/testthat/_snaps/tag-parser.md
 5fb5e75a0e97726260e531af44010ea2 *tests/testthat/_snaps/tag.md
 83997e3c16b598cacfc840a42c56bdd4 *tests/testthat/_snaps/topics.md
@@ -199,7 +199,7 @@ fbb12c3d0e4d0f9061ba85cd386514ef *tests/testthat/test-block.R
 441deae2d3cc6fab814222419888c368 *tests/testthat/test-markdown-code.R
 140484be9ce99baeb9c078c475dd60d4 *tests/testthat/test-markdown-link.R
 1e45fe9b2276f43dfd74ca194daaa159 *tests/testthat/test-markdown-state.R
-9190eb5201d8b3345d2392c040d351cb *tests/testthat/test-markdown.R
+4dbb4a6b44ddd9ca1fcd8cc44204a100 *tests/testthat/test-markdown.R
 fbb38c1a7f8a4dcf12b99514d28f00a2 *tests/testthat/test-namespace.R
 38b41f39d98a3b24c91ae88f659633f5 *tests/testthat/test-object-defaults.R
 5b9b9226abe275a309ff5b1c91d86551 *tests/testthat/test-object-format.R
@@ -222,7 +222,7 @@ f06533769347dfa8511d2329e1881085 *tests/testthat/test-rd-backref.R
 559069934e0ee58f921da10a900c2821 *tests/testthat/test-rd-family.R
 90f77a46f8235dffb10462d6c29337e4 *tests/testthat/test-rd-find-link-files.R
 bc2020c47294684e39811da39bf40057 *tests/testthat/test-rd-include-rmd.R
-ad8149ea14ab12ea7087213b8bea0b77 *tests/testthat/test-rd-inherit.R
+6e2bbad98cb16ad6f19745765f77f03c *tests/testthat/test-rd-inherit.R
 f1c3859ca21b51a7b7f7953ef56b7d0d *tests/testthat/test-rd-markdown-escaping.R
 be3bae84685120fd57f6cab9680f201e *tests/testthat/test-rd-markdown.R
 8202f554b09398679b1a6ea960c54193 *tests/testthat/test-rd-name-alias.R
@@ -237,7 +237,7 @@ c08e8abe6f7dacfb2ec99433bd08a627 *tests/testthat/test-rd-simple.R
 49caace6aef8592bb4bab62e8704c779 *tests/testthat/test-rd.R
 a25a27c09770e2f63e29b6e7ffd31dab *tests/testthat/test-roxygenize-setup.R
 597557e126f6d36d1dabaf2db7d33dbd *tests/testthat/test-safety.R
-b3bc85d42b0754d44a771635d585b164 *tests/testthat/test-select-args.R
+d6e0f8e94579a1fd49073ae2813c24f8 *tests/testthat/test-select-args.R
 d5e6893560295b7eaa7f95889265523b *tests/testthat/test-tag-metadata.R
 a64ed549cde7fdd1c63e50d314f54dc8 *tests/testthat/test-tag-parser.R
 2f40018d08f8ebabf9d02b9e0a45891d *tests/testthat/test-tag.R
