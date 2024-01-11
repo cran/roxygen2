@@ -49,7 +49,7 @@ overflow: visible;
 </style>
 <style type="text/css" data-origin="pandoc">
 pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span { line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -374,15 +374,15 @@ the source doc will be able to read the docs.</p>
 title, the description, and the details. Here’s an example showing what
 the documentation for <code>sum()</code> might look like if it had been
 written with roxygen:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39; Sum of vector elements</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39;</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39; `sum` returns the sum of all the values present in its arguments.</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39;</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39; This is a generic function: methods can be defined for it directly</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39; or via the [Summary()] group generic. For this to work properly,</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39; the arguments `...` should be unnamed, and dispatch is on the</span></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39; first argument.</span></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>sum <span class="ot">&lt;-</span> <span class="cf">function</span>(..., <span class="at">na.rm =</span> <span class="cn">TRUE</span>) {}</span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="co">#&#39; Sum of vector elements</span></span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="co">#&#39;</span></span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="co">#&#39; `sum` returns the sum of all the values present in its arguments.</span></span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="co">#&#39;</span></span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a><span class="co">#&#39; This is a generic function: methods can be defined for it directly</span></span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a><span class="co">#&#39; or via the [Summary()] group generic. For this to work properly,</span></span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a><span class="co">#&#39; the arguments `...` should be unnamed, and dispatch is on the</span></span>
+<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a><span class="co">#&#39; first argument.</span></span>
+<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a>sum <span class="ot">&lt;-</span> <span class="cf">function</span>(..., <span class="at">na.rm =</span> <span class="cn">TRUE</span>) {}</span></code></pre></div>
 <p>This introductory block is broken up as follows:</p>
 <ul>
 <li><p>The first sentence is the <strong>title</strong>: that’s what you
@@ -401,21 +401,21 @@ details of how the function operates. The details are optional.</p></li>
 <code>@description</code>, and <code>@details</code> tags. This is
 unnecessary unless you want to have a multi-paragraph description,
 bulleted list, or other more exotic structure.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39; Sum of vector elements</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39; </span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39; @description</span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39; `sum` returns the sum of all the values present in its arguments.</span></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39;</span></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39; @details</span></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39; This is a generic function: methods can be defined for it directly</span></span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39; or via the [Summary()] group generic. For this to work properly,</span></span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39; the arguments `...` should be unnamed, and dispatch is on the</span></span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39; first argument.</span></span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="co">#&#39; Sum of vector elements</span></span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="co">#&#39; </span></span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="co">#&#39; @description</span></span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a><span class="co">#&#39; `sum` returns the sum of all the values present in its arguments.</span></span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a><span class="co">#&#39;</span></span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a><span class="co">#&#39; @details</span></span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a><span class="co">#&#39; This is a generic function: methods can be defined for it directly</span></span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a><span class="co">#&#39; or via the [Summary()] group generic. For this to work properly,</span></span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a><span class="co">#&#39; the arguments `...` should be unnamed, and dispatch is on the</span></span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a><span class="co">#&#39; first argument.</span></span></code></pre></div>
 </div>
 <div id="functions" class="section level2">
 <h2>Functions</h2>
-<p>Functions are the mostly commonly documented objects. Functions
-require three tags: <code>@param</code>, <code>@returns</code>, and
+<p>Functions are the most commonly documented objects. Functions require
+three tags: <code>@param</code>, <code>@returns</code>, and
 <code>@examples</code>.</p>
 <div id="inputs" class="section level3">
 <h3>Inputs</h3>
@@ -451,8 +451,8 @@ that causes an error. You can do this by wrapping the code in
 <code>try()</code> or using <code>\dontrun{}</code> to exclude from the
 executed example code.</p>
 <p>For finer control, you can use <code>@examplesIf</code>:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39; @examplesIf interactive()</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39; browseURL(&quot;https://roxygen2.r-lib.org&quot;)</span></span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="co">#&#39; @examplesIf interactive()</span></span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="co">#&#39; browseURL(&quot;https://roxygen2.r-lib.org&quot;)</span></span></code></pre></div>
 <p>This generates</p>
 <pre><code>\examples{
 \dontshow{if (interactive() (if (getRversion() &gt;= &quot;3.4&quot;) withAutoprint else force)(\{ # examplesIf}
@@ -466,16 +466,15 @@ failures.</p>
 put them in separate files and use
 <code>@example path/relative/to/package/root</code> to insert them into
 the documentation.</p>
-<p>All functions must have a documented return value for initial CRAN
-submission.</p>
+<p>All functions must have examples for initial CRAN submission.</p>
 </div>
 <div id="usage" class="section level3">
 <h3>Usage</h3>
 <p>In most case, the function usage (which appears beneath the
 description in the generates docs) will be automatically derived from
 the function specification. For the cases where it is not, please <a href="https://github.com/r-lib/roxygen2/issues">file an issue</a> and
-use <code>@usage</code> to override the default with you want. If you
-want to suppress the usage altogether (which is sometimes useful for
+use <code>@usage</code> to override the default with what you want. If
+you want to suppress the usage altogether (which is sometimes useful for
 internal or deprecated functions), you can use
 <code>@usage NULL</code>.</p>
 </div>

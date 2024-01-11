@@ -1,4 +1,6 @@
-roxygen_setup <- function(path = ".", cur_version = NULL) {
+roxygen_setup <- function(path = ".",
+                          cur_version = NULL,
+                          frame = caller_env()) {
   if (!file.exists(file.path(path, "DESCRIPTION"))) {
     cli::cli_abort(
       "{.arg package.dir} ({.path {path}}) does not contain a DESCRIPTION"
@@ -14,8 +16,8 @@ roxygen_setup <- function(path = ".", cur_version = NULL) {
 
   encoding <- desc::desc_get("Encoding", path)[[1]]
   if (!identical(encoding, "UTF-8")) {
-    cli::cli_warn(c(
-      "roxygen2 requires Encoding: {.val UTF-8}",
+    cli::cli_inform(c(
+      x = "roxygen2 requires {.val Encoding: UTF-8}",
       i = "Current encoding is {.val {encoding}}"
     ))
   }
@@ -23,7 +25,22 @@ roxygen_setup <- function(path = ".", cur_version = NULL) {
   man_path <- file.path(path, "man")
   dir.create(man_path, recursive = TRUE, showWarnings = FALSE)
 
+  withr::local_envvar(
+    ROXYGEN_PKG = desc::desc_get("Package", path),
+    .local_envir = frame
+  )
+
   is_first
+}
+
+peek_roxygen_pkg <- function() {
+  pkg <- Sys.getenv("ROXYGEN_PKG")
+
+  if (nzchar(pkg)) {
+    pkg
+  } else {
+    NULL
+  }
 }
 
 update_roxygen_version <- function(path, cur_version = NULL) {
@@ -31,8 +48,8 @@ update_roxygen_version <- function(path, cur_version = NULL) {
   prev <- roxygen_version(path)
 
   if (!is.na(cur) && !is.na(prev) && package_version(cur) < package_version(prev)) {
-    cli::cli_warn(c(
-      "Installed roxygen2 is older than the version used with this package",
+    cli::cli_inform(c(
+      x = "Installed roxygen2 is older than the version used with this package",
       i = "You have {.str {cur}} but you need {.str {prev}}"
     ))
   } else if (!identical(cur, prev)) {

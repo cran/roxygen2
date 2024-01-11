@@ -16,15 +16,17 @@ roxy_tag_rd.roxy_tag_inheritParams <- function(x, base_path, env) {
 
 #' @export
 roxy_tag_parse.roxy_tag_inheritDotParams <- function(x) {
-  tag_two_part(x, "source", "args", required = FALSE, markdown = FALSE)
+  tag_two_part(x, "a source", "an argument list", required = FALSE, markdown = FALSE)
 }
 #' @export
 roxy_tag_rd.roxy_tag_inheritDotParams <- function(x, base_path, env) {
-  rd_section_inherit_dot_params(x$val$source, x$val$args)
+  rd_section_inherit_dot_params(x$val$name, x$val$description)
 }
 
 #' @export
-roxy_tag_parse.roxy_tag_inheritSection <- function(x) tag_name_description(x)
+roxy_tag_parse.roxy_tag_inheritSection <- function(x) {
+  tag_two_part(x, "a topic name", "a section title")
+}
 #' @export
 roxy_tag_rd.roxy_tag_inheritSection <- function(x, base_path, env) {
   rd_section_inherit_section(x$val$name, x$val$description)
@@ -109,6 +111,7 @@ topics_process_inherit <- function(topics, env) {
   topics$topo_apply(inherits("author"), inherit_field, "author")
   topics$topo_apply(inherits("source"), inherit_field, "source")
   topics$topo_apply(inherits("note"), inherit_field, "note")
+  topics$topo_apply(inherits("note"), inherit_field, "format")
 
   # First inherit individual sections, then all sections.
   topics$topo_apply(function(x) x$inherits_section_from(), inherit_section)
@@ -133,13 +136,10 @@ inherit_params <- function(topic, topics) {
   needed <- topic$get_value("formals")
   missing <- setdiff(needed, documented)
   if (length(missing) == 0) {
-    cli::cli_warn(
-      c(
-        "@inheritParams failed in topic {.str {topic$get_name()}}.",
-        x = "All parameters are already documented; none remain to be inherited."
-      ),
-      call = NULL
-    )
+    warn_roxy_topic(topic$get_name(), c(
+      x = "@inheritParams failed",
+      i = "All parameters are already documented; none remain to be inherited."
+    ))
     return()
   }
 
@@ -316,12 +316,9 @@ inherit_section <- function(topic, topics) {
     selected <- new_section$title %in% titles[[i]]
 
     if (sum(selected) != 1) {
-      cli::cli_warn(
-        c(
-          "@inheritSection failed in topic {.str {topic$get_name()}}.",
-          x = "Can't find section {.str {titles[[i]]}} in topic {sources[[i]]}."
-        ),
-        call = NULL
+      warn_roxy_topic(
+        topic$get_name(),
+        "@inheritSection failed to find section {.str {titles[[i]]}} in topic {sources[[i]]}"
       )
       return()
     }
@@ -431,13 +428,7 @@ get_rd <- function(name, topics, source) {
     # Current package
     rd_name <- topics$find_filename(name)
     if (identical(rd_name, NA_character_)) {
-      cli::cli_warn(
-        c(
-          "@inherits failed in topic {.str {source}}.",
-          x = "Can't find topic {.str {name}}."
-        ),
-        call = NULL
-      )
+      warn_roxy_topic(source, "@inherits failed to find topic {.str {name}}")
     }
     topics$get(rd_name)
   }
@@ -445,25 +436,13 @@ get_rd <- function(name, topics, source) {
 
 get_rd_from_help <- function(package, alias, source) {
   if (!is_installed(package)) {
-    cli::cli_warn(
-      c(
-        "@inherits failed in topic {.str {source}}.",
-        x = "Package {package} is not installed."
-      ),
-      call = NULL
-    )
+    warn_roxy_topic(source, "@inherits failed because {.pkg {package}} is not installed")
     return()
   }
 
   help <- utils::help((alias), (package))
   if (length(help) == 0) {
-    cli::cli_warn(
-      c(
-        "@inherits failed in topic {.str {source}}.",
-        x = "Can't find topic {package}::{alias}."
-      ),
-      call = NULL
-    )
+    warn_roxy_topic(source, "@inherits failed to find topic {package}::{alias}")
     return()
   }
 

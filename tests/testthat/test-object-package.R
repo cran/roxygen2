@@ -25,6 +25,20 @@ test_that("useful message if Authors@R is corrupted", {
   })
 })
 
+test_that("can convert quote percentage signs in urls", {
+  expect_equal(
+    package_seealso_urls("https://www.foo.bar/search?q=see%20also"),
+    "\\url{https://www.foo.bar/search?q=see\\%20also}"
+  )
+
+  expect_equal(
+    package_seealso_urls(
+      BugReports = "https://www.foo.bar/search?q=bug%20report"
+    ),
+    "Report bugs at \\url{https://www.foo.bar/search?q=bug\\%20report}"
+  )
+})
+
 test_that("can convert DOIs in url", {
   expect_equal(
     package_seealso_urls("https://doi.org/10.5281/zenodo.1485309"),
@@ -73,5 +87,13 @@ test_that("autolink several matching patterns", {
       "doi \\doi{xx}",
       "arxiv \\href{https://arxiv.org/abs/xx}{arXiv:xx}"
     )
+  )
+})
+
+test_that("multiple email addresses for a person are acceptable #1487", {
+  me <- person("me", email = c("one@email.me", "two@email.me"))
+  expect_equal(
+    author_desc(unclass(me)[[1]]),
+    "me \\email{one@email.me, two@email.me}"
   )
 })

@@ -1,12 +1,12 @@
 object_from_call <- function(call, env, block, file) {
   if (is.character(call)) {
     if (identical(call, "_PACKAGE")) {
-      parser_package(call, env, block, file)
+      parser_package(file)
     } else {
       parser_data(call, env, file)
     }
   } else if (is.call(call)) {
-    call <- call_standardise(call, env)
+    call <- call_match(call, eval(call[[1]], env))
     name <- deparse(call[[1]])
     switch(name,
       "=" = ,
@@ -36,6 +36,18 @@ object_from_call <- function(call, env, block, file) {
       NULL
     )
   } else {
+    # Patch @docType package to ensure that it gets a default alias
+    # and other "_PACKAGE" features
+    if (block_has_tags(block, "docType")) {
+      docType <- block_get_tag_value(block, "docType")
+      if (docType == "package") {
+        warn_roxy_block(block, c(
+          '`@docType "package"` is deprecated',
+          i = 'Please document "_PACKAGE" instead.'
+        ))
+        return(parser_package(file))
+      }
+    }
     NULL
   }
 }
@@ -59,7 +71,7 @@ object_from_name <- function(name, env, block) {
   } else if (is.function(value)) {
     # Potential S3 methods/generics need metadata added
     method <- block_get_tag_value(block, "method")
-    value <- add_s3_metadata(value, name, env, method)
+    value <- add_s3_metadata(value, name, env, block)
     if (inherits(value, "s3generic")) {
       type <- "s3generic"
     } else if (inherits(value, "s3method")) {
@@ -85,14 +97,14 @@ parser_data <- function(call, env, block) {
   object(value, call, type = "data")
 }
 
-parser_package <- function(call, env, block, file) {
+parser_package <- function(file) {
 
   pkg_path <- dirname(dirname(file))
   value <- list(
     desc = desc::desc(file = pkg_path),
     path = pkg_path
   )
-  object(value, call, type = "package")
+  object(value, NULL, type = "package")
 }
 
 parser_assignment <- function(call, env, block) {
@@ -173,8 +185,7 @@ parser_setMethodS3 <- function(call, env, block) {
   class <- as.character(call[[3]])
   name <- paste(method, class, sep = ".")
 
-  method <- block_get_tag_value(block, "method")
-  value <- add_s3_metadata(get(name, env), name, env, method)
+  value <- add_s3_metadata(get(name, env), name, env, block)
 
   object(value, name, "s3method")
 }
@@ -187,10 +198,19 @@ parser_setConstructorS3 <- function(call, env, block) {
 
 # helpers -----------------------------------------------------------------
 
-# @param override Either NULL to use default, or a character vector of length 2
-add_s3_metadata <- function(val, name, env, override = NULL) {
-  if (!is.null(override)) {
-    return(s3_method(val, override))
+add_s3_metadata <- function(val, name, env, block) {
+  if (block_has_tags(block, "method")) {
+    method <- block_get_tag_value(block, "method")
+    return(s3_method(val, method))
+  }
+
+  if (block_has_tags(block, "exportS3Method")) {
+    method <- block_get_tag_value(block, "exportS3Method")
+    if (length(method) == 1 && str_detect(method, "::")) {
+      generic <- strsplit(method, "::")[[1]][[2]]
+      class <- gsub(paste0("^", generic, "\\."), "", name)
+      return(s3_method(val, c(generic, class)))
+    }
   }
 
   if (is_s3_generic(name, env)) {

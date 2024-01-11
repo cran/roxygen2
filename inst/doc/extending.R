@@ -1,4 +1,4 @@
-## ---- include = FALSE---------------------------------------------------------
+## ----include = FALSE----------------------------------------------------------
 knitr::opts_chunk$set(comment = "#>", collapse = TRUE)
 
 ## ----setup--------------------------------------------------------------------
@@ -32,7 +32,7 @@ roxy_tag_parse.roxy_tag_tip <- function(x) {
   tag_markdown(x)
 }
 
-## ---- include = FALSE---------------------------------------------------------
+## ----include = FALSE----------------------------------------------------------
 # Needed for vignette
 registerS3method("roxy_tag_parse", "roxy_tag_tip", roxy_tag_parse.roxy_tag_tip)
 
@@ -57,7 +57,7 @@ roxy_tag_rd.roxy_tag_tip <- function(x, base_path, env) {
   rd_section("tip", x$val)
 }
 
-## ---- include = FALSE---------------------------------------------------------
+## ----include = FALSE----------------------------------------------------------
 # Needed for vignette
 registerS3method("roxy_tag_rd", "roxy_tag_tip", roxy_tag_rd.roxy_tag_tip)
 
@@ -72,7 +72,7 @@ format.rd_section_tip <- function(x, ...) {
   )
 }
 
-## ---- include = FALSE---------------------------------------------------------
+## ----include = FALSE----------------------------------------------------------
 # Needed for vignette
 registerS3method("format", "rd_section_tip", format.rd_section_tip)
 
@@ -96,7 +96,7 @@ roxy_tag_parse.roxy_tag_memo <- function(x) {
   x
 }
 
-## ---- include = FALSE---------------------------------------------------------
+## ----include = FALSE----------------------------------------------------------
 # Needed for vignette
 registerS3method("roxy_tag_parse", "roxy_tag_memo", roxy_tag_parse.roxy_tag_memo)
 
@@ -145,7 +145,7 @@ roclet_output.roclet_memo <- function(x, results, base_path, ...) {
   invisible(NULL)
 }
 
-## ---- include = FALSE---------------------------------------------------------
+## ----include = FALSE----------------------------------------------------------
 # Needed for vignette
 registerS3method("roclet_process", "roclet_memo", roclet_process.roclet_memo)
 registerS3method("roclet_output", "roclet_memo", roclet_output.roclet_memo)

@@ -59,13 +59,21 @@ test_that("relative links converted to absolute", {
 
 # tag parsing -------------------------------------------------------------
 
+test_that("invalid syntax gives useful warning", {
+  block <- "
+    #' @inheritDotParams
+    #' @inheritSection
+    NULL
+  "
+  expect_snapshot(. <- roc_proc_text(rd_roclet(), block))
+})
+
 test_that("warns on unknown inherit type", {
-  expect_snapshot_warning(
-    parse_text("
-      #' @inherit fun blah
-      NULL
-    ")
-  )
+  text <- "
+    #' @inherit fun blah
+    NULL
+  "
+  expect_snapshot(parse_text(text))
 })
 
 test_that("no options gives default values", {
@@ -74,13 +82,7 @@ test_that("no options gives default values", {
     NULL
   ")[[1]]
 
-  expect_equal(
-    block_get_tag_value(block, "inherit")$fields,
-    c(
-      "params", "return", "title", "description", "details", "seealso",
-      "sections", "references", "examples", "author", "source", "note"
-    )
-  )
+  expect_equal(block_get_tag_value(block, "inherit")$fields, inherit_components)
 })
 
 test_that("some options overrides defaults", {
@@ -276,7 +278,7 @@ test_that("warns if can't find section", {
     #' @inheritSection a A
     b <- function(y) {}
   "
-  expect_snapshot_warning(roc_proc_text(rd_roclet(), code))
+  expect_snapshot(. <- roc_proc_text(rd_roclet(), code))
 })
 
 # Inherit parameters ------------------------------------------------------
@@ -476,7 +478,7 @@ test_that("warned if no params need documentation", {
     #' @inheritParams foo
     x <- function(x, y) {}
   "
-  expect_snapshot_warning(roc_proc_text(rd_roclet(), code))
+  expect_snapshot(. <- roc_proc_text(rd_roclet(), code))
 })
 
 test_that("argument order, also for incomplete documentation", {
@@ -707,6 +709,7 @@ test_that("can inherit all from single function", {
     #' @author Hadley
     #' @source my mind
     #' @note my note
+    #' @format my format
     #' @examples
     #' x <- 1
     foo <- function(x, y) {}
@@ -722,6 +725,7 @@ test_that("can inherit all from single function", {
   expect_equal(out$get_value("examples"), rd("x <- 1"))
   expect_equal(out$get_value("author"), "Hadley")
   expect_equal(out$get_value("source"), "my mind")
+  expect_equal(out$get_value("format"), "my format")
   expect_equal(out$get_value("note"), "my note")
 })
 

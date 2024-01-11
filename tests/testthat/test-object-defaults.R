@@ -43,11 +43,56 @@ test_that("@docType class automatically added to reference class objects", {
   expect_equal(out$get_value("docType"), "class")
 })
 
+
+# imports -----------------------------------------------------------------
+
+test_that("only generates re-exports if no @name or @rdname", {
+  block <- "
+    #' @export
+    stats::median
+  "
+  out <- roc_proc_text(rd_roclet(), block)[[1]]
+  expect_equal(out$get_value("name"), "reexports")
+  expect_equal(out$get_value("keyword"), "internal")
+
+  block <- "
+    #' Title
+    #' @name stats-imports
+    #' @export
+    stats::median
+
+    #' @rdname stats-imports
+    stats::acf
+  "
+  out <- roc_proc_text(rd_roclet(), block)[[1]]
+  expect_equal(out$get_value("name")[[1]], "stats-imports")
+  expect_equal(out$get_value("alias"), c("stats-imports", "median", "acf"))
+  expect_equal(out$get_value("keyword"), NULL)
+})
+
+test_that("imports are automatically imported", {
+  block <- "
+    #' @export
+    stats::median
+  "
+  out <- roc_proc_text(namespace_roclet(), block)
+  expect_equal(out, c("export(median)", "importFrom(stats,median)"))
+
+  block <- "
+    #' @export
+    #' @name foo
+    stats::median
+  "
+  out <- roc_proc_text(namespace_roclet(), block)
+  expect_equal(out, c("export(median)", "importFrom(stats,median)"))
+})
+
 # packages -----------------------------------------------------------------
 
 test_that("can create package documentation", {
-  local_package_copy(test_path("empty"))
+  path <- local_package_copy(test_path("empty"))
   desc::desc_set(
+    file = path,
     Package = "roxygendevtest",
     Title = "Package Title",
     Description = "Package description."
@@ -57,7 +102,10 @@ test_that("can create package documentation", {
     #' @details Details.
   '_PACKAGE'
   "
-  blocks <- parse_text(block, env = new.env())
+  withr::with_dir(
+    path,
+    blocks <- parse_text(block, env = new.env())
+  )
   out <- roclet_process(rd_roclet(), blocks, env = new.env(), base_path = ".")[[1]]
 
   expect_equal(out$get_value("name"), "roxygendevtest-package")

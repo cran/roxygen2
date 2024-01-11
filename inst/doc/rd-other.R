@@ -1,4 +1,4 @@
-## ---- include = FALSE---------------------------------------------------------
+## ----include = FALSE----------------------------------------------------------
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
@@ -24,8 +24,10 @@ knitr::opts_chunk$set(
 #'   \item{depth}{total depth percentage = z / mean(x, y) = 2 * z / (x + y) (43--79)}
 #'   \item{table}{width of top of diamond relative to widest point (43--95)}
 #' }
+#' 
+#' @source {ggplot2} tidyverse R package.
 
-## ---- eval = FALSE------------------------------------------------------------
+## ----eval = FALSE-------------------------------------------------------------
 #  #' @keywords internal
 #  "_PACKAGE"
 

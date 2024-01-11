@@ -49,7 +49,7 @@ overflow: visible;
 </style>
 <style type="text/css" data-origin="pandoc">
 pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span { line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -346,25 +346,27 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 in the package. This means you need to document them in a slightly
 different way: instead of documenting the data directly, you quote the
 dataset’s name.</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39; Prices of over 50,000 round cut diamonds</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39;</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39; A dataset containing the prices and other attributes of almost 54,000</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39;  diamonds. The variables are as follows:</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39;</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39; @format A data frame with 53940 rows and 10 variables:</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39; \describe{</span></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39;   \item{price}{price in US dollars ($326--$18,823)}</span></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39;   \item{carat}{weight of the diamond (0.2--5.01)}</span></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39;   \item{cut}{quality of the cut (Fair, Good, Very Good, Premium, Ideal)}</span></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39;   \item{color}{diamond colour, from D (best) to J (worst)}</span></span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39;   \item{clarity}{a measurement of how clear the diamond is (I1 (worst), SI2,</span></span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39;     SI1, VS2, VS1, VVS2, VVS1, IF (best))}</span></span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39;   \item{x}{length in mm (0--10.74)}</span></span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39;   \item{y}{width in mm (0--58.9)}</span></span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39;   \item{z}{depth in mm (0--31.8)}</span></span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39;   \item{depth}{total depth percentage = z / mean(x, y) = 2 * z / (x + y) (43--79)}</span></span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39;   \item{table}{width of top of diamond relative to widest point (43--95)}</span></span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39; }</span></span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="co">#&#39; Prices of over 50,000 round cut diamonds</span></span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="co">#&#39;</span></span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="co">#&#39; A dataset containing the prices and other attributes of almost 54,000</span></span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="co">#&#39;  diamonds. The variables are as follows:</span></span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a><span class="co">#&#39;</span></span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a><span class="co">#&#39; @format A data frame with 53940 rows and 10 variables:</span></span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a><span class="co">#&#39; \describe{</span></span>
+<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a><span class="co">#&#39;   \item{price}{price in US dollars ($326--$18,823)}</span></span>
+<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a><span class="co">#&#39;   \item{carat}{weight of the diamond (0.2--5.01)}</span></span>
+<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a><span class="co">#&#39;   \item{cut}{quality of the cut (Fair, Good, Very Good, Premium, Ideal)}</span></span>
+<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a><span class="co">#&#39;   \item{color}{diamond colour, from D (best) to J (worst)}</span></span>
+<span id="cb1-12"><a href="#cb1-12" tabindex="-1"></a><span class="co">#&#39;   \item{clarity}{a measurement of how clear the diamond is (I1 (worst), SI2,</span></span>
+<span id="cb1-13"><a href="#cb1-13" tabindex="-1"></a><span class="co">#&#39;     SI1, VS2, VS1, VVS2, VVS1, IF (best))}</span></span>
+<span id="cb1-14"><a href="#cb1-14" tabindex="-1"></a><span class="co">#&#39;   \item{x}{length in mm (0--10.74)}</span></span>
+<span id="cb1-15"><a href="#cb1-15" tabindex="-1"></a><span class="co">#&#39;   \item{y}{width in mm (0--58.9)}</span></span>
+<span id="cb1-16"><a href="#cb1-16" tabindex="-1"></a><span class="co">#&#39;   \item{z}{depth in mm (0--31.8)}</span></span>
+<span id="cb1-17"><a href="#cb1-17" tabindex="-1"></a><span class="co">#&#39;   \item{depth}{total depth percentage = z / mean(x, y) = 2 * z / (x + y) (43--79)}</span></span>
+<span id="cb1-18"><a href="#cb1-18" tabindex="-1"></a><span class="co">#&#39;   \item{table}{width of top of diamond relative to widest point (43--95)}</span></span>
+<span id="cb1-19"><a href="#cb1-19" tabindex="-1"></a><span class="co">#&#39; }</span></span>
+<span id="cb1-20"><a href="#cb1-20" tabindex="-1"></a><span class="co">#&#39; </span></span>
+<span id="cb1-21"><a href="#cb1-21" tabindex="-1"></a><span class="co">#&#39; @source {ggplot2} tidyverse R package.</span></span></code></pre></div>
 <p>Note the use of two additional tags that are particularly useful for
 documenting data:</p>
 <ul>
@@ -389,8 +391,8 @@ authors, and useful URLs.</p>
 <code>@keywords internal</code>. Use
 <code>usethis::use_package_doc()</code> to set up automatically.</p>
 <p>Here’s an example:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39; @keywords internal </span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;_PACKAGE&quot;</span></span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="co">#&#39; @keywords internal </span></span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="st">&quot;_PACKAGE&quot;</span></span></code></pre></div>
 <p>Package documentation is a good place to put
 <code># Package options</code> that documents options used by the
 package.</p>
@@ -439,12 +441,12 @@ such.</p>
 <p>Document <strong>S4 classes</strong> by adding a roxygen block before
 <code>setClass()</code>. Use <code>@slot</code> to document the slots of
 the class. Here’s a simple example:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39; An S4 class to represent a bank account</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39;</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39; @slot balance A length-one numeric vector</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>Account <span class="ot">&lt;-</span> <span class="fu">setClass</span>(<span class="st">&quot;Account&quot;</span>,</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">slots =</span> <span class="fu">list</span>(<span class="at">balance =</span> <span class="st">&quot;numeric&quot;</span>)</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="co">#&#39; An S4 class to represent a bank account</span></span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="co">#&#39;</span></span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="co">#&#39; @slot balance A length-one numeric vector</span></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>Account <span class="ot">&lt;-</span> <span class="fu">setClass</span>(<span class="st">&quot;Account&quot;</span>,</span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>  <span class="at">slots =</span> <span class="fu">list</span>(<span class="at">balance =</span> <span class="st">&quot;numeric&quot;</span>)</span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a>)</span></code></pre></div>
 <p>S4 <strong>methods</strong> are a little more complicated. Unlike S3
 methods, all S4 methods must be documented. You can document them in
 three places:</p>
@@ -495,53 +497,53 @@ examples. This section is run by <code>R CMD check</code>, so method
 examples must work without errors.</p></li>
 </ul>
 <p>An example from the R6 tutorial:</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39; R6 Class Representing a Person</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39;</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39; @description</span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39; A person has a name and a hair color.</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39;</span></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39; @details</span></span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39; A person can also greet you.</span></span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>Person <span class="ot">&lt;-</span> R6<span class="sc">::</span><span class="fu">R6Class</span>(<span class="st">&quot;Person&quot;</span>,</span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="at">public =</span> <span class="fu">list</span>(</span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>    <span class="co">#&#39; @field name First or full name of the person.</span></span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">name =</span> <span class="cn">NULL</span>,</span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>    <span class="co">#&#39; @field hair Hair color of the person.</span></span>
-<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">hair =</span> <span class="cn">NULL</span>,</span>
-<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>    <span class="co">#&#39; @description</span></span>
-<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>    <span class="co">#&#39; Create a new person object.</span></span>
-<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>    <span class="co">#&#39; @param name Name.</span></span>
-<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>    <span class="co">#&#39; @param hair Hair color.</span></span>
-<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>    <span class="co">#&#39; @return A new `Person` object.</span></span>
-<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">initialize =</span> <span class="cf">function</span>(<span class="at">name =</span> <span class="cn">NA</span>, <span class="at">hair =</span> <span class="cn">NA</span>) {</span>
-<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>      self<span class="sc">$</span>name <span class="ot">&lt;-</span> name</span>
-<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>      self<span class="sc">$</span>hair <span class="ot">&lt;-</span> hair</span>
-<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>      self<span class="sc">$</span><span class="fu">greet</span>()</span>
-<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>    },</span>
-<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>    <span class="co">#&#39; @description</span></span>
-<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>    <span class="co">#&#39; Change hair color.</span></span>
-<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>    <span class="co">#&#39; @param val New hair color.</span></span>
-<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>    <span class="co">#&#39; @examples</span></span>
-<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a>    <span class="co">#&#39; P &lt;- Person(&quot;Ann&quot;, &quot;black&quot;)</span></span>
-<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a>    <span class="co">#&#39; P$hair</span></span>
-<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a>    <span class="co">#&#39; P$set_hair(&quot;red&quot;)</span></span>
-<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a>    <span class="co">#&#39; P$hair</span></span>
-<span id="cb4-37"><a href="#cb4-37" aria-hidden="true" tabindex="-1"></a>    <span class="at">set_hair =</span> <span class="cf">function</span>(val) {</span>
-<span id="cb4-38"><a href="#cb4-38" aria-hidden="true" tabindex="-1"></a>      self<span class="sc">$</span>hair <span class="ot">&lt;-</span> val</span>
-<span id="cb4-39"><a href="#cb4-39" aria-hidden="true" tabindex="-1"></a>    },</span>
-<span id="cb4-40"><a href="#cb4-40" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-41"><a href="#cb4-41" aria-hidden="true" tabindex="-1"></a>    <span class="co">#&#39; @description</span></span>
-<span id="cb4-42"><a href="#cb4-42" aria-hidden="true" tabindex="-1"></a>    <span class="co">#&#39; Say hi.</span></span>
-<span id="cb4-43"><a href="#cb4-43" aria-hidden="true" tabindex="-1"></a>    <span class="at">greet =</span> <span class="cf">function</span>() {</span>
-<span id="cb4-44"><a href="#cb4-44" aria-hidden="true" tabindex="-1"></a>      <span class="fu">cat</span>(<span class="fu">paste0</span>(<span class="st">&quot;Hello, my name is &quot;</span>, self<span class="sc">$</span>name, <span class="st">&quot;.</span><span class="sc">\n</span><span class="st">&quot;</span>))</span>
-<span id="cb4-45"><a href="#cb4-45" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb4-46"><a href="#cb4-46" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb4-47"><a href="#cb4-47" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co">#&#39; R6 Class Representing a Person</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="co">#&#39;</span></span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="co">#&#39; @description</span></span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="co">#&#39; A person has a name and a hair color.</span></span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a><span class="co">#&#39;</span></span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="co">#&#39; @details</span></span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a><span class="co">#&#39; A person can also greet you.</span></span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a></span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a>Person <span class="ot">&lt;-</span> R6<span class="sc">::</span><span class="fu">R6Class</span>(<span class="st">&quot;Person&quot;</span>,</span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a><span class="at">public =</span> <span class="fu">list</span>(</span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a></span>
+<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a>    <span class="co">#&#39; @field name First or full name of the person.</span></span>
+<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a>    <span class="at">name =</span> <span class="cn">NULL</span>,</span>
+<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a></span>
+<span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a>    <span class="co">#&#39; @field hair Hair color of the person.</span></span>
+<span id="cb4-16"><a href="#cb4-16" tabindex="-1"></a>    <span class="at">hair =</span> <span class="cn">NULL</span>,</span>
+<span id="cb4-17"><a href="#cb4-17" tabindex="-1"></a></span>
+<span id="cb4-18"><a href="#cb4-18" tabindex="-1"></a>    <span class="co">#&#39; @description</span></span>
+<span id="cb4-19"><a href="#cb4-19" tabindex="-1"></a>    <span class="co">#&#39; Create a new person object.</span></span>
+<span id="cb4-20"><a href="#cb4-20" tabindex="-1"></a>    <span class="co">#&#39; @param name Name.</span></span>
+<span id="cb4-21"><a href="#cb4-21" tabindex="-1"></a>    <span class="co">#&#39; @param hair Hair color.</span></span>
+<span id="cb4-22"><a href="#cb4-22" tabindex="-1"></a>    <span class="co">#&#39; @return A new `Person` object.</span></span>
+<span id="cb4-23"><a href="#cb4-23" tabindex="-1"></a>    <span class="at">initialize =</span> <span class="cf">function</span>(<span class="at">name =</span> <span class="cn">NA</span>, <span class="at">hair =</span> <span class="cn">NA</span>) {</span>
+<span id="cb4-24"><a href="#cb4-24" tabindex="-1"></a>      self<span class="sc">$</span>name <span class="ot">&lt;-</span> name</span>
+<span id="cb4-25"><a href="#cb4-25" tabindex="-1"></a>      self<span class="sc">$</span>hair <span class="ot">&lt;-</span> hair</span>
+<span id="cb4-26"><a href="#cb4-26" tabindex="-1"></a>      self<span class="sc">$</span><span class="fu">greet</span>()</span>
+<span id="cb4-27"><a href="#cb4-27" tabindex="-1"></a>    },</span>
+<span id="cb4-28"><a href="#cb4-28" tabindex="-1"></a></span>
+<span id="cb4-29"><a href="#cb4-29" tabindex="-1"></a>    <span class="co">#&#39; @description</span></span>
+<span id="cb4-30"><a href="#cb4-30" tabindex="-1"></a>    <span class="co">#&#39; Change hair color.</span></span>
+<span id="cb4-31"><a href="#cb4-31" tabindex="-1"></a>    <span class="co">#&#39; @param val New hair color.</span></span>
+<span id="cb4-32"><a href="#cb4-32" tabindex="-1"></a>    <span class="co">#&#39; @examples</span></span>
+<span id="cb4-33"><a href="#cb4-33" tabindex="-1"></a>    <span class="co">#&#39; P &lt;- Person(&quot;Ann&quot;, &quot;black&quot;)</span></span>
+<span id="cb4-34"><a href="#cb4-34" tabindex="-1"></a>    <span class="co">#&#39; P$hair</span></span>
+<span id="cb4-35"><a href="#cb4-35" tabindex="-1"></a>    <span class="co">#&#39; P$set_hair(&quot;red&quot;)</span></span>
+<span id="cb4-36"><a href="#cb4-36" tabindex="-1"></a>    <span class="co">#&#39; P$hair</span></span>
+<span id="cb4-37"><a href="#cb4-37" tabindex="-1"></a>    <span class="at">set_hair =</span> <span class="cf">function</span>(val) {</span>
+<span id="cb4-38"><a href="#cb4-38" tabindex="-1"></a>      self<span class="sc">$</span>hair <span class="ot">&lt;-</span> val</span>
+<span id="cb4-39"><a href="#cb4-39" tabindex="-1"></a>    },</span>
+<span id="cb4-40"><a href="#cb4-40" tabindex="-1"></a></span>
+<span id="cb4-41"><a href="#cb4-41" tabindex="-1"></a>    <span class="co">#&#39; @description</span></span>
+<span id="cb4-42"><a href="#cb4-42" tabindex="-1"></a>    <span class="co">#&#39; Say hi.</span></span>
+<span id="cb4-43"><a href="#cb4-43" tabindex="-1"></a>    <span class="at">greet =</span> <span class="cf">function</span>() {</span>
+<span id="cb4-44"><a href="#cb4-44" tabindex="-1"></a>      <span class="fu">cat</span>(<span class="fu">paste0</span>(<span class="st">&quot;Hello, my name is &quot;</span>, self<span class="sc">$</span>name, <span class="st">&quot;.</span><span class="sc">\n</span><span class="st">&quot;</span>))</span>
+<span id="cb4-45"><a href="#cb4-45" tabindex="-1"></a>    }</span>
+<span id="cb4-46"><a href="#cb4-46" tabindex="-1"></a>  )</span>
+<span id="cb4-47"><a href="#cb4-47" tabindex="-1"></a>)</span></code></pre></div>
 </div>
 
 

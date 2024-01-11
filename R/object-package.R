@@ -1,15 +1,16 @@
 package_seealso <- function(URL, BugReports) {
   itemize("Useful links:", package_seealso_urls(URL, BugReports))
 }
+
 package_seealso_urls <- function(URL = NULL, BugReports = NULL) {
   if (!is.null(URL)) {
-    links <- paste0("\\url{", strsplit(URL, ",\\s+")[[1]], "}")
+    links <- paste0("\\url{", escape(strsplit(URL, ",\\s+")[[1]]), "}")
     links <- gsub("\\url\\{https://doi.org/", "\\doi{", links)
   } else {
     links <- character()
   }
   if (!is.null(BugReports)) {
-    links <- c(links, paste0("Report bugs at \\url{", BugReports, "}"))
+    links <- c(links, paste0("Report bugs at \\url{", escape(BugReports), "}"))
   }
 
   links
@@ -18,7 +19,7 @@ package_seealso_urls <- function(URL = NULL, BugReports = NULL) {
 package_authors <- function(authors) {
   authors <- tryCatch(eval(parse(text = authors %||% "")),
     error = function(e) {
-      cli::cli_warn("Failed to evaluate Authors@R.", parent = e)
+      cli::cli_inform(c(x = "Failed to evaluate Authors@R."), parent = e)
       NULL
     }
   )
@@ -51,7 +52,7 @@ author_desc <- function(x) {
   }
 
   if (!is.null(x$email)) {
-    desc <- paste0(desc, " \\email{", x$email, "}")
+    desc <- paste0(desc, " \\email{", paste(x$email, collapse = ", "), "}")
   }
 
   if (!is.null(x$comment)) {

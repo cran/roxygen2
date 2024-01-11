@@ -3,7 +3,7 @@ object_defaults <- function(x, block) UseMethod("object_defaults")
 #' @export
 object_defaults.default <- function(x, block) list()
 
-#' @exportS3Method object_defaults "function"
+#' @export
 object_defaults.function <- function(x, block) {
   list(
     roxy_generated_tag(block, "usage", object_usage(x)),
@@ -61,10 +61,10 @@ object_defaults.package <- function(x, block) {
   authors <- package_authors(desc$get_field("Authors@R", NULL))
 
   list(
+    roxy_generated_tag(block, ".package", name),
     roxy_generated_tag(block, "docType", "package"),
     roxy_generated_tag(block, "name", package_suffix(name)),
-    # "NULL" prevents addition of default aliases, see also #202
-    roxy_generated_tag(block, "aliases", paste("NULL", name, package_suffix(name))),
+    # default aliases are added in topics_add_package_alias()
     roxy_generated_tag(block, "title", paste0(name, ": ", title)),
     roxy_generated_tag(block, "description", description),
     roxy_generated_tag(block, "seealso", seealso),
@@ -74,7 +74,16 @@ object_defaults.package <- function(x, block) {
 
 #' @export
 object_defaults.import <- function(x, block) {
+
+  importFrom <- roxy_generated_tag(block, "importFrom", c(x$value$pkg, x$value$fun))
+
+  if (block_has_tags(block, c("rdname", "name"))) {
+    obj <- object_from_name(x$value$fun, asNamespace(x$value$pkg), block)
+    return(c(list(importFrom), object_defaults(obj, block)))
+  }
+
   list(
+    importFrom,
     roxy_generated_tag(block, "docType", "import"),
     roxy_generated_tag(block, "name", "reexports"),
     roxy_generated_tag(block, "keywords", "internal"),

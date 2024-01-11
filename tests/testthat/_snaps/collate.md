@@ -9,10 +9,18 @@
 # DESCRIPTION file is re-written only if collate changes
 
     Code
-      update_collate(".")
+      update_collate(path)
     Message
-      Updating collate directive in './DESCRIPTION'
+      Updating collate directive in '<path>/DESCRIPTION'
     Code
       # Second run should be idempotent
+      update_collate(path)
+
+# drops bad collect directives
+
+    Code
       update_collate(".")
+    Message
+      x a.R: unknown path in `@include foo`.
+      Updating collate directive in './DESCRIPTION'
 

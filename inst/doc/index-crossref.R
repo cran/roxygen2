@@ -1,4 +1,4 @@
-## ---- include = FALSE---------------------------------------------------------
+## ----include = FALSE----------------------------------------------------------
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
@@ -8,7 +8,7 @@ knitr::opts_chunk$set(
 #' @seealso [prod()] for products, [cumsum()] for cumulative sums, and
 #'   [colSums()]/[rowSums()] marginal sums over high-dimensional arrays.
 
-## ---- eval = FALSE------------------------------------------------------------
+## ----eval = FALSE-------------------------------------------------------------
 #  list(
 #    rd_family_title = list(aggregations = "Aggregation functions")
 #  )

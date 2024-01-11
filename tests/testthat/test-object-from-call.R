@@ -6,12 +6,25 @@ test_that("undocumentable things return null", {
 
 # data / package -------------------------------------------------------
 
+test_that("recommends use of _PACKAGE", {
+  path <- local_package_copy(test_path("empty"))
+
+  block <- "
+    #' @docType package
+    NULL
+  "
+  withr::with_dir(path, expect_snapshot(out <- parse_text(block)[[1]]))
+
+  expect_s3_class(out$object, "package")
+  expect_equal(out$object$value$desc$get_field("Package"), "empty")
+})
+
 test_that("finds package description", {
   obj <- call_to_object("_PACKAGE", file = test_path("testEagerData/R/a.r"))
   expect_s3_class(obj, "package")
-  expect_equal(obj$alias, "_PACKAGE")
   expect_equal(obj$value$desc$get_field("Package"), "testEagerData")
 })
+
 
 test_that("finds datasets given by name", {
   obj <- call_to_object({
@@ -24,17 +37,19 @@ test_that("finds datasets given by name", {
 })
 
 test_that("can document eager data", {
-  local_package_copy(test_path('testEagerData'))
-  suppressMessages(roxygenise())
+  path <- local_package_copy(test_path('testEagerData'))
+  suppressMessages(roxygenise(path))
+  withr::defer(pkgload::unload("testEagerData"))
 
-  expect_true(file.exists("man/a.Rd"))
+  expect_true(file.exists(file.path(path, "man/a.Rd")))
 })
 
 test_that("can document lazy data", {
-  local_package_copy(test_path('testLazyData'))
-  suppressMessages(roxygenise())
+  path <- local_package_copy(test_path('testLazyData'))
+  suppressMessages(roxygenise(path))
+  withr::defer(pkgload::unload("testLazyData"))
 
-  expect_true(file.exists("man/a.Rd"))
+  expect_true(file.exists(file.path(path, "man/a.Rd")))
 })
 
 # imports -----------------------------------------------------------------
@@ -108,6 +123,39 @@ test_that("finds function created with delayed assignment", {
   expect_s3_class(obj, "function")
 })
 
+# S3 ----------------------------------------------------------------------
+
+test_that("can derive S3 metadata for base generics", {
+  block <- "
+    #' @export
+    mean.foo <- function(...) 1
+  "
+  out <- parse_text(block)[[1]]
+
+  expect_equal(s3_method_info(out$object$value), c("mean", "foo"))
+})
+
+test_that("@method overrides auto-detection", {
+  block <- "
+    #' @export
+    #' @method all.equal data.frame
+    all.equal.data.frame <- function(...) 1
+  "
+  out <- parse_text(block)[[1]]
+
+  expect_equal(s3_method_info(out$object$value), c("all.equal", "data.frame"))
+})
+
+test_that("exportS3Method registers S3 metadata", {
+  block <- "
+    #' @exportS3Method stats::median
+    median.foo <- function(...) 1
+  "
+  out <- parse_text(block)[[1]]
+  expect_equal(s3_method_info(out$object$value), c("median", "foo"))
+})
+
+
 # S4 ----------------------------------------------------------------------
 
 test_that("finds S4 and RC classes", {
@@ -165,9 +213,11 @@ test_that("finds arguments when S4 method wrapped inside .local()", {
   expect_named(formals(obj$value@.Data), c("x", "foo", "..."))
 })
 
+
 # R.oo / R.methodsS3 ------------------------------------------------------
 
 test_that("can define constructor with R.oo", {
+  skip_if_not_installed("R.oo")
   obj <- call_to_object({
     R.oo::setConstructorS3("Foo", function(x, y, z) {})
   })
@@ -176,6 +226,7 @@ test_that("can define constructor with R.oo", {
 })
 
 test_that("can define method for R.methodsS3", {
+  skip_if_not_installed("R.methodsS3")
   obj <- call_to_object({
     R.methodsS3::setMethodS3("foo", "default", function(x, ...) {})
   })

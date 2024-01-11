@@ -2,9 +2,8 @@
 
     Code
       out <- roc_proc_text(rd_roclet(), block)[[1]]
-    Condition
-      Warning:
-      [<text>:4] @description failed to evaluate inline markdown code
+    Message
+      x <text>:4: @description failed to evaluate inline markdown code.
       Caused by error:
       ! multi-line `r ` markup is not supported
 
@@ -15,14 +14,16 @@
     Output
       
     Message
-      Quitting from lines 1-1 () 
-    Condition
-      Warning:
-      [<text>:4] @description failed to evaluate inline markdown code
+      
+      Quitting from lines 1-1
+      x <text>:4: @description failed to evaluate inline markdown code.
+      Caused by error in `map_chr()`:
+      i In index: 1.
       Caused by error:
-      ! Failed to parse the inline R code: 1 +  (Reason: <text>:2:0: unexpected end of input
+      ! Failed to parse the inline R code: `r 1 + `
+      Reason: <text>:2:0: unexpected end of input
       1: 1 + 
-         ^)
+         ^
 
 # interleaving fences and inline code
 

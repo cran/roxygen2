@@ -49,7 +49,7 @@ overflow: visible;
 </style>
 <style type="text/css" data-origin="pandoc">
 pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span { line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -348,8 +348,8 @@ through cross-references and indexes.</p>
 either on the web (using a url) or to related functions (with a function
 link like <code>[function_name()])</code>. For <code>sum()</code>, this
 might look like:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39; @seealso [prod()] for products, [cumsum()] for cumulative sums, and</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39;   [colSums()]/[rowSums()] marginal sums over high-dimensional arrays.</span></span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="co">#&#39; @seealso [prod()] for products, [cumsum()] for cumulative sums, and</span></span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="co">#&#39;   [colSums()]/[rowSums()] marginal sums over high-dimensional arrays.</span></span></code></pre></div>
 </div>
 <div id="family" class="section level2">
 <h2>Family</h2>
@@ -360,12 +360,12 @@ families.</p>
 <p>By default <code>@family {family}</code>, will generate the see also
 text “Other {family}:”, so the <code>@family</code> name should be
 plural (i.e., “model building helpers” not “model building helper”).</p>
-<p>If you want to override default title, you can provide an
+<p>If you want to override the default title, you can provide an
 <code>rd_family_title</code> element in a list stored in
 <code>man/roxygen/meta.R</code>:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">list</span>(</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">rd_family_title =</span> <span class="fu">list</span>(<span class="at">aggregations =</span> <span class="st">&quot;Aggregation functions&quot;</span>)</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">list</span>(</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>  <span class="at">rd_family_title =</span> <span class="fu">list</span>(<span class="at">aggregations =</span> <span class="st">&quot;Aggregation functions&quot;</span>)</span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>)</span></code></pre></div>
 </div>
 <div id="references" class="section level2">
 <h2>References</h2>
@@ -412,8 +412,8 @@ Roxygen comments (e.g., the Rcpp package), the <code>@backref</code> tag
 is provided. This allows specifying the “true” source of the
 documentation, and will substitute the default list of source files. Use
 one tag per source file:</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39; @backref src/file.cpp</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39; @backref src/file.h</span></span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co">#&#39; @backref src/file.cpp</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="co">#&#39; @backref src/file.h</span></span></code></pre></div>
 </div>
 
 

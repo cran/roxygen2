@@ -4,7 +4,6 @@ test_that("tags containing only whitespace generate warning", {
     expect_parse_failure(tag_value(tag))
     expect_parse_failure(tag_inherit(tag))
     expect_parse_failure(tag_name(tag))
-    expect_parse_failure(tag_two_part(tag))
     expect_parse_failure(tag_name_description(tag))
     expect_parse_failure(tag_code(tag))
     expect_parse_failure(tag_examples(tag))
@@ -25,21 +24,21 @@ test_that("tags check for mismatched parents gives useful warnings", {
     expect_parse_failure(tag_examples(tag))
 
     "markdown tags return empty values"
-    (expect_warning(tag_markdown(tag)))
-    (expect_warning(tag_markdown_with_sections(tag)))
+    tag_markdown(tag)
+    tag_markdown_with_sections(tag)
   })
 
   local_markdown()
+  markdown_on()
   expect_snapshot({
-    markdown_on()
     tag <- roxy_test_tag("# one\ntwo\n# three\nfour {")
-    (expect_warning(tag_markdown_with_sections(tag)))
+    tag_markdown_with_sections(tag)
   })
 })
 
 test_that("tag_inhert checks for valid inherits", {
   expect_snapshot({
-    tag <- roxy_test_tag("foo params sction")
+    tag <- roxy_test_tag("foo params section")
     . <- tag_inherit(tag)
   })
 })
@@ -54,8 +53,9 @@ test_that("tag_name() checks for valid names", {
 test_that("tag_two_part() gives useful warnings", {
   local_markdown()
   expect_snapshot({
-    tag <- roxy_test_tag("a")
-    expect_parse_failure(tag_two_part(tag, "name", "value"))
+    tag <- roxy_test_tag("")
+    expect_parse_failure(tag_two_part(tag, "a name", "a value", required = FALSE))
+    expect_parse_failure(tag_two_part(tag, "a name", "a value"))
   })
 })
 
@@ -80,13 +80,13 @@ test_that("tag_words_line() gives useful warnings", {
 test_that("tag_toggle() gives useful warnings", {
   expect_snapshot({
     tag <- roxy_test_tag("x")
-    expect_parse_failure(tag_toggle(tag))
+    tag_toggle(tag)
   })
 })
 
 test_that("tag_code() gives useful warnings", {
   expect_snapshot({
     tag <- roxy_test_tag("a + ")
-    expect_parse_failure(tag_code(tag))
+    tag_code(tag)
   })
 })
