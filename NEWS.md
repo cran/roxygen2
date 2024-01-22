@@ -1,3 +1,20 @@
+# roxygen2 7.3.1
+
+* S3 method export warning no longer fails if class contains `{` or `}` (#1575).
+
+* `@family` lists are now ordered more carefully, "foo1" comes after "foo"
+  (#1563, @krlmlr).
+
+* `@importFrom` works again for quoted non-syntactic names, e.g.
+  `@importFrom magrittr "%>%"` or ``@importFrom rlang `:=` `` 
+  (#1570, @MichaelChirico). The unquoted form `@importFrom magrittr %>%`
+  continues to work. Relatedly, `@importFrom` directives matching no known
+  functions (e.g. `@importFrom utils plot pdf`) produce valid NAMESPACE files
+  again.
+
+* Multi-line `@rawNamespace` no longer break re-runs of `namespace_roclet()`
+  (#1572, @MichaelChirico).
+
 # roxygen2 7.3.0
 
 ## New features
