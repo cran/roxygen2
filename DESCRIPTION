@@ -1,6 +1,6 @@
 Package: roxygen2
 Title: In-Line Documentation for R
-Version: 7.3.1
+Version: 7.3.2
 Authors@R: c(
     person("Hadley", "Wickham", , "hadley@posit.co", role = c("aut", "cre", "cph"),
            comment = c(ORCID = "0000-0003-4757-117X")),
@@ -32,9 +32,9 @@ Config/testthat/edition: 3
 Config/testthat/parallel: TRUE
 Encoding: UTF-8
 Language: en-GB
-RoxygenNote: 7.3.0.9000
+RoxygenNote: 7.3.1.9000
 NeedsCompilation: yes
-Packaged: 2024-01-22 19:47:59 UTC; hadleywickham
+Packaged: 2024-06-27 21:29:24 UTC; hadleywickham
 Author: Hadley Wickham [aut, cre, cph]
     (<https://orcid.org/0000-0003-4757-117X>),
   Peter Danenberg [aut, cph],
@@ -43,4 +43,4 @@ Author: Hadley Wickham [aut, cre, cph]
   Posit Software, PBC [cph, fnd]
 Maintainer: Hadley Wickham <hadley@posit.co>
 Repository: CRAN
-Date/Publication: 2024-01-22 21:10:03 UTC
+Date/Publication: 2024-06-28 08:20:02 UTC
