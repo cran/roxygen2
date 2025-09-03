@@ -48,8 +48,9 @@ overflow: visible;
 }
 </style>
 <style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
 pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -60,7 +61,7 @@ div.sourceCode { overflow: auto; }
 }
 @media print {
 pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
 }
 pre.numberSource code
 { counter-reset: source-line 0; }
@@ -350,8 +351,8 @@ is a little frustrating at first, but soon becomes second-nature.</p>
 must <strong>export</strong> it. In most cases, you can just use the
 <code>@export</code> tag, and roxygen2 will automatically figure out
 which <code>NAMESPACE</code> directive (i.e. <code>export()</code>,
-<code>exportS3method()</code>, <code>exportClasses()</code>,
-or<code>exportMethods()</code>) you need.</p>
+<code>S3method()</code>, <code>exportClasses()</code>, or
+<code>exportMethods()</code>) you need.</p>
 <p>Note that datasets should never be exported as they are not found in
 <code>NAMESPACE</code>. Instead, datasets will either be automatically
 exported if you set <code>LazyData: true</code> in your

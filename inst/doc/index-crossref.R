@@ -9,9 +9,9 @@ knitr::opts_chunk$set(
 #'   [colSums()]/[rowSums()] marginal sums over high-dimensional arrays.
 
 ## ----eval = FALSE-------------------------------------------------------------
-#  list(
-#    rd_family_title = list(aggregations = "Aggregation functions")
-#  )
+# list(
+#   rd_family_title = list(aggregations = "Aggregation functions")
+# )
 
 ## -----------------------------------------------------------------------------
 #' @backref src/file.cpp

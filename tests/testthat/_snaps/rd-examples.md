@@ -24,11 +24,12 @@
 # @examplesIf
 
     \examples{
-    \dontshow{if (foo::bar()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+    \dontshow{if (foo::bar()) withAutoprint(\{ # examplesIf}
     maybe-run-this-code
     \dontshow{\}) # examplesIf}
-    \dontshow{if (foobar()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+    \dontshow{if (foobar()) withAutoprint(\{ # examplesIf}
     and-this
+    and-that
     \dontshow{\}) # examplesIf}
     } 
 

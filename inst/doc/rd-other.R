@@ -28,8 +28,8 @@ knitr::opts_chunk$set(
 #' @source {ggplot2} tidyverse R package.
 
 ## ----eval = FALSE-------------------------------------------------------------
-#  #' @keywords internal
-#  "_PACKAGE"
+# #' @keywords internal
+# "_PACKAGE"
 
 ## -----------------------------------------------------------------------------
 #' An S4 class to represent a bank account

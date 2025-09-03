@@ -48,8 +48,9 @@ overflow: visible;
 }
 </style>
 <style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
 pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -60,7 +61,7 @@ div.sourceCode { overflow: auto; }
 }
 @media print {
 pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
 }
 pre.numberSource code
 { counter-reset: source-line 0; }
@@ -504,6 +505,15 @@ topics. There are two basic forms:</p>
 the topic.</li>
 <li><code>[text][topic]</code>: You supply the link text.</li>
 </ul>
+<p>If <code>topic</code> is not a help topic within the package you are
+documenting, but it is in one of its dependent packages, roxygen2 will
+try to find which package it is coming from to generate a fully
+qualified link. Fully qualified links are required by R 4.5.0 and
+later.</p>
+<p>If multiple dependent packages document <code>topic</code>, then
+roxygen2 will stop with an error. Re-exported functions and objects do
+not generate an error, however, but roxygen2 will link to the package
+that originally defines the re-exported object.</p>
 <div id="default-link-text" class="section level3">
 <h3>Default link text</h3>
 <p>First we explore the simplest form: <code>[ref]</code>. The presence
