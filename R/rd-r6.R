@@ -1,474 +1,290 @@
+# Pass 1: within-class resolution ---------------------------------------------
+# Resolves params from method @param -> class-level @param -> @field.
+# See r6_resolve_params() for the core logic.
 
-topic_add_r6_methods <- function(rd, block, env) {
-  r6data <- block_get_tag_value(block, ".r6data")
-  self <- r6data$self
-  methods <- self[self$type == "method", ]
-  methods <- methods[order(methods$file, methods$line), ]
-  methods$tags <- replicate(nrow(methods), list(), simplify = FALSE)
+topic_add_r6_methods <- function(rd, block, env, base_path) {
+  docs <- r6_class_from_block(block, env)
+  block <- r6_fix_intro(block)
 
-  r6_tags <- c("description", "details", "param", "return", "examples")
-
-  del <- integer()
-  for (i in seq_along(block$tags)) {
-    tag <- block$tags[[i]]
-    # Not inline?
-    if (is.na(tag$line) || tag$line < block$line) next
-    # Not a method tag?
-    if (! tag$tag %in% r6_tags) next
-    del <- c(del, i)
-    meth <- find_method_for_tag(methods, tag)
-    if (is.na(meth)) {
-      warn_roxy_tag(tag, "Cannot find matching R6 method")
-      next
-    }
-    midx <- which(meth == methods$name)
-    methods$tags[[midx]] <- c(methods$tags[[midx]], list(tag))
-    del <- c(del, i)
-  }
-
-  methods <- add_default_methods(methods, block)
-
-  nodoc <- map_int(methods$tags, length) == 0
-  if (any(nodoc)) {
-    warn_roxy_block(block, "Undocumented R6 method{?s}: {methods$name[nodoc]}")
-  }
-
-  block$tags[del] <- NULL
-
-  # Now do the main tags first. We leave out the param tags, those are
-  # for the methods
+  # Add class-level tags (skip tags stamped for a specific method)
   for (tag in block$tags) {
-    if (! tag$tag %in% c("param", "field")) {
+    if (r6_tag_type(tag, block) == "class") {
       rd$add(roxy_tag_rd(tag, env = env, base_path = base_path))
     }
   }
 
-  # We need to add the whole thing as a big section.
-  rd_lines <- c(
-    r6_superclass(block, r6data, env),
-    r6_fields(block, r6data),
-    r6_active_bindings(block, r6data),
-    r6_methods(block, r6data, methods)
+  # Store unresolved R6 docs; pass 2 will inherit and format. The value is a
+  # named list keyed by classname so that multiple R6 classes sharing a topic
+  # (via @rdname) can coexist and be looked up individually.
+  classname <- block$object$value$classname %||% ""
+  rd$add(rd_section("r6_class", set_names(list(docs), classname)))
+}
+
+#' @export
+format.rd_section_r6_class <- function(x, ...) NULL
+
+#' @export
+merge.rd_section_r6_class <- function(x, y, ...) {
+  rd_section("r6_class", c(x$value, y$value))
+}
+
+# When an R6 class has inline @description tags for methods, parse_description()
+# parser puts the class description into @details instead of @description.
+# This function detects that case and promotes the class-level @details back
+# to @description.
+r6_fix_intro <- function(block) {
+  types <- map_chr(block$tags, \(t) r6_tag_type(t, block))
+  tags <- map_chr(block$tags, \(t) t$tag)
+
+  has_class_desc <- any(tags == "description" & types == "class")
+  has_class_details <- any(tags == "details" & types == "class")
+  has_method_desc <- any(tags == "description" & types == "method")
+
+  if (!has_class_desc && has_class_details && has_method_desc) {
+    # Promote the first class-level @details to @description
+    for (i in seq_along(block$tags)) {
+      if (tags[[i]] == "details" && types[[i]] == "class") {
+        block$tags[[i]]$tag <- "description"
+        break
+      }
+    }
+  }
+
+  block
+}
+
+# Classify an R6 block tag:
+# - "class": top-level Rd (e.g. @title, @description before class body)
+# - "method": inline tag associated with a method
+# - "other": @field/@param tags consumed by field/param extraction
+r6_tag_type <- function(tag, block) {
+  if (!is.null(tag$r6method)) {
+    return("method")
+  }
+
+  inline <- !is.na(tag$line) && tag$line >= block$line
+  method_tags <- c(
+    "description",
+    "details",
+    "return",
+    "returns",
+    "examples",
+    "noRd"
   )
 
-  rd$add(rd_section("rawRd", paste(rd_lines, collapse = "\n")))
-
-  # Dump all method examples at the end of the examples block
-  ex_lines <- r6_all_examples(block, methods)
-  if (length(ex_lines) > 0) {
-    ex_txt <- paste0(r6_all_examples(block, methods), collapse = "\n")
-    rd$add(rd_section("examples", ex_txt), overwrite = FALSE)
+  if (tag$tag %in% c("field", "name", "title")) {
+    "other"
+  } else if (tag$tag %in% method_tags && inline) {
+    "method"
+  } else if (tag$tag == "param") {
+    # class-level @param are used as defaults for all methods
+    if (inline) "method" else "other"
+  } else {
+    "class"
   }
 }
 
-add_default_methods <- function(methods, block) {
-  defaults <- list(
-    clone = list(
-      roxy_generated_tag(
-        block,
-        "description",
-        "The objects of this class are cloneable with this method."
-      ),
-      roxy_generated_tag(
-        block,
-        "param",
-        list(name = "deep", description = "Whether to make a deep clone.")
-      )
-    )
-  )
+tag_is <- function(tag, name) {
+  tag$tag == name
+}
 
-  for (mname in names(defaults)) {
-    mline <- match(mname, methods$name)
-    if (is.na(mline)) next
-    if (length(methods$tags[[mline]]) > 0) next
-    methods$tags[[mline]] <- defaults[[mname]]
+tag_names <- function(tag) {
+  trimws(strsplit(tag$val$name, ",")[[1]])
+}
+
+tag_has_name <- function(tag, names) {
+  any(tag_names(tag) %in% names)
+}
+
+# Pass 2: R6 inheritance resolution -----------------------------------------
+
+# Resolve R6 superclass inheritance after all blocks have been converted
+# to topics. Mirrors topics_process_inherit() but for R6 field/param docs.
+topics_process_r6_inherit <- function(topics) {
+  r6_deps <- function(topic) {
+    docs_list <- topic$get_value("r6_class")
+    unlist(lapply(docs_list, \(d) d$superclasses$classname))
   }
 
-  methods
+  topics$topo_apply(r6_deps, r6_resolve_topic)
 }
 
-r6_superclass <- function(block, r6data, env) {
-  super <- r6data$super
-  cls <- unique(super$classes$classname)
-  if (length(cls) == 0) return()
-
-  lines <- character()
-  push <- function(...) lines <<- c(lines, ...)
-
-  title <- if (length(cls) > 1) "Super classes" else "Super class"
-  push(paste0("\\section{", title, "}{"))
-
-  pkgs <- super$classes$package[match(cls, super$classes$classname)]
-  has_topic <- purrr::map2_lgl(cls, pkgs, has_topic)
-
-  path <- ifelse(
-    has_topic,
-    sprintf("\\code{\\link[%s:%s]{%s::%s}}", pkgs, cls, pkgs, cls),
-    sprintf("\\code{%s::%s}", pkgs, cls)
-  )
-  me <- sprintf("\\code{%s}", block$object$value$classname)
-  push(paste(c(rev(path), me), collapse = " -> "))
-
-  push("}")
-
-  lines
-}
-
-r6_fields <- function(block, r6data) {
-  self <- r6data$self
-  fields <- self$name[self$type == "field"]
-  active <- self$name[self$type == "active"]
-
-  tags <- purrr::keep(
-    block$tags,
-    function(t) t$tag == "field" && ! t$val$name %in% active
-  )
-
-  labels <- gsub(",", ", ", map_chr(tags, c("val", "name")))
-  docd <- str_trim(unlist(strsplit(labels, ",")))
-
-  # Check for missing fields
-  miss <- setdiff(fields, docd)
-  if (length(miss) > 0) {
-    warn_roxy_block(block, "Undocumented R6 field{?s}: {miss}")
-  }
-
-  # Check for duplicate fields
-  dup <- unique(docd[duplicated(docd)])
-  if (length(dup) > 0) {
-    warn_roxy_block(block, "R6 field{?s} documented multiple times: {dup}")
-  }
-
-  # Check for extra fields
-  xtra <- setdiff(docd, fields)
-  if (length(xtra) > 0) {
-    warn_roxy_block(block, "Unknown R6 field{?s}: {xtra}")
-  }
-
-  if (length(docd) == 0) return()
-
-  # We keep the order of the documentation
-
-  vals <- map_chr(tags, c("val", "description"))
-  c("\\section{Public fields}{",
-    "\\if{html}{\\out{<div class=\"r6-fields\">}}",
-    "\\describe{",
-    paste0("\\item{\\code{", labels, "}}{", vals, "}", collapse = "\n\n"),
-    "}",
-    "\\if{html}{\\out{</div>}}",
-    "}"
-  )
-}
-
-r6_active_bindings <- function(block, r6data) {
-  self <- r6data$self
-  fields <- self$name[self$type == "field"]
-  active <- self$name[self$type == "active"]
-
-  tags <- purrr::keep(
-    block$tags,
-    function(t) t$tag == "field" && ! t$val$name %in% fields
-  )
-
-  labels <- gsub(",", ", ", map_chr(tags, c("val", "name")))
-  docd <- str_trim(unlist(strsplit(labels, ",")))
-
-  # Check for missing bindings
-  miss <- setdiff(active, docd)
-  if (length(miss) > 0) {
-    warn_roxy_block(block, "Undocumented R6 active binding{?s}: {miss}")
-  }
-
-  # Check for duplicate bindings
-  dup <- unique(docd[duplicated(docd)])
-  if (length(dup) > 0) {
-    warn_roxy_block(block, "R6 active binding{?s} documented multiple times: {dup}")
-  }
-
-  if (length(docd) == 0) return()
-
-  # We keep the order of the documentation
-
-  vals <- map_chr(tags, c("val", "description"))
-  c("\\section{Active bindings}{",
-    "\\if{html}{\\out{<div class=\"r6-active-bindings\">}}",
-    "\\describe{",
-    paste0("\\item{\\code{", labels, "}}{", vals, "}", collapse = "\n\n"),
-    "}",
-    "\\if{html}{\\out{</div>}}",
-    "}"
-  )
-}
-
-r6_methods <- function(block, r6data, methods) {
-  # And then the methods, if any
-  if (nrow(methods) == 0) return()
-
-  lines <- character()
-  push <- function(...) lines <<- c(lines, ...)
-
-  push("\\section{Methods}{")
-  push(r6_method_list(block, methods))
-  push(r6_inherited_method_list(block, r6data))
-  for (i in seq_len(nrow(methods))) {
-    push(r6_method_begin(block, methods[i,]))
-    push(r6_method_description(block, methods[i,]))
-    push(r6_method_usage(block, methods[i,]))
-    push(r6_method_params(block, methods[i,]))
-    push(r6_method_details(block, methods[i,]))
-    push(r6_method_return(block, methods[i,]))
-    push(r6_method_examples(block, methods[i,]))
-    push(r6_method_end(block, methods[i,]))
-  }
-  push("}")
-
-  lines
-}
-
-find_method_for_tag <- function(methods, tag) {
-  w <- which(
-    basename(methods$file) == basename(tag$file) &
-    methods$line > tag$line
-  )[1]
-  methods$name[w]
-}
-
-# vectorized
-
-r6_show_name <- function(names) {
-  ifelse(names == "initialize", "new", names)
-}
-
-r6_method_list <- function(block, methods) {
-  nms <- r6_show_name(methods$name)
-  c("\\subsection{Public methods}{",
-    "\\itemize{",
-    sprintf(
-      "\\item \\href{#method-%s-%s}{\\code{%s$%s()}}",
-      methods$class,
-      nms,
-      block$object$alias,
-      nms
-    ),
-    "}",
-    "}"
-  )
-}
-
-r6_inherited_method_list <- function(block, r6data) {
-  super <- r6data$super
-  if (is.null(super)) return()
-
-  # drop methods that were shadowed in a subclass
-  super_meth <- super$members[super$members$type == "method", ]
-  self <- r6data$self
-  super_meth <- super_meth[! super_meth$name %in% self$name, ]
-  super_meth <- super_meth[! duplicated(super_meth$name), ]
-  if (nrow(super_meth) == 0) {
+r6_resolve_topic <- function(topic, topics) {
+  docs_list <- topic$get_value("r6_class")
+  if (is.null(docs_list)) {
     return()
   }
 
-  super_meth <- super_meth[rev(seq_len(nrow(super_meth))), ]
-  details <- paste0(
-    "<details",
-    if (nrow(super_meth) <= 5) " open",
-    "><summary>Inherited methods</summary>"
+  topic_name <- topic$get_name()
+
+  resolved <- lapply(docs_list, function(docs) {
+    r6_resolve_class(docs, topic_name, topics)
+  })
+
+  # Update stored docs (now resolved, so child classes can read them)
+  topic$sections$r6_class <- rd_section("r6_class", resolved)
+
+  # Format and inject into topic. Each class produces its own block of Rd.
+  rd_lines <- unlist(lapply(resolved, format))
+  topic$add(rd_section("rawRd", paste(rd_lines, collapse = "\n")))
+
+  # Add combined examples across all methods of all classes in the topic
+  all_methods <- list(
+    self = unlist(lapply(resolved, \(d) d$methods$self), recursive = FALSE)
   )
-
-  c("\\if{html}{\\out{", details,
-    "<ul>",
-    sprintf(
-      paste0(
-        "<li>",
-        "<span class=\"pkg-link\" data-pkg=\"%s\" data-topic=\"%s\" data-id=\"%s\">",
-        "<a href='../../%s/html/%s.html#method-%s-%s'><code>%s::%s$%s()</code></a>",
-        "</span>",
-        "</li>"
-      ),
-      super_meth$package,
-      super_meth$classname,
-      super_meth$name,
-      super_meth$package,
-      super_meth$classname,
-      super_meth$classname,
-      super_meth$name,
-      super_meth$package,
-      super_meth$classname,
-      super_meth$name
-    ),
-    "</ul>",
-    "</details>",
-    "}}"
-  )
-}
-
-r6_method_begin <- function(block, method) {
-  nm <- r6_show_name(method$name)
-  c(
-    "\\if{html}{\\out{<hr>}}",
-    paste0("\\if{html}{\\out{<a id=\"method-", method$class, "-", nm, "\"></a>}}"),
-    paste0("\\if{latex}{\\out{\\hypertarget{method-", method$class, "-", nm, "}{}}}"),
-    paste0("\\subsection{Method \\code{", nm, "()}}{")
-  )
-}
-
-r6_method_description <- function(block, method) {
-  det <- purrr::keep(method$tags[[1]], function(t) t$tag == "description")
-  # Add an empty line between @description tags, if there isn't one
-  # there already
-  txt <- map_chr(det, "val")
-  c(
-    sub("\n?\n?$", "\n\n", head(txt, -1)),
-    utils::tail(txt, 1)
-  )
-}
-
-r6_method_usage <- function(block, method) {
-  name <- paste0(block$object$alias, "$", r6_show_name(method$name))
-  fake <- paste(rep("X", nchar(name)), collapse = "")
-  usage <- format(function_usage(fake, method$formals[[1]]))
-  c(
-    "\\subsection{Usage}{",
-    paste0(
-      "\\if{html}{\\out{<div class=\"r\">}}",
-      "\\preformatted{", sub(paste0("^", fake), name, usage),
-      "}",
-      "\\if{html}{\\out{</div>}}"
-    ),
-    "}\n"
-  )
-}
-
-r6_method_details <- function(block, method) {
-  det <- purrr::keep(method$tags[[1]], function(t) t$tag == "details")
-  # Add an empty line between @details tags, if there isn't one
-  # there already
-  txt <- map_chr(det, "val")
-  if (length(txt) == 0) return()
-  c(
-    "\\subsection{Details}{",
-    sub("\n?\n?$", "\n\n", head(txt, -1)),
-    utils::tail(txt, 1),
-    "}\n"
-  )
-}
-
-r6_method_params <- function(block, method) {
-  par <- purrr::keep(method$tags[[1]], function(t) t$tag == "param")
-  nms <- gsub(",", ", ", map_chr(par, c("val", "name")))
-
-  # Each arg should appear exactly once
-  mnames <- str_trim(unlist(strsplit(nms, ",")))
-  dup <- unique(mnames[duplicated(mnames)])
-  for (m in dup) {
-    warn_roxy_block(block, c(
-      "Must use one @param for each argument",
-      x = "${method$name}({m}) is documented multiple times"
-    ))
+  ex_lines <- r6_all_examples(all_methods)
+  if (length(ex_lines) > 0) {
+    ex_txt <- paste0(ex_lines, collapse = "\n")
+    topic$add(rd_section("examples", ex_txt), overwrite = FALSE)
   }
+}
 
-  # Now add the missing ones from the class
-  fnames <- names(method$formals[[1]])
-  miss <- setdiff(fnames, mnames)
-  is_in_cls <- map_lgl(
-    block$tags,
-    function(t) {
-      !is.na(t$line) && t$line < block$line && t$tag == "param" &&
-        t$val$name %in% miss
+r6_resolve_class <- function(docs, topic_name, topics) {
+  # Collect resolved parent docs from already-processed topics
+  parent_docs <- list()
+  for (classname in docs$superclasses$classname) {
+    parent_file <- topics$find_filename(classname)
+    if (is.na(parent_file)) {
+      next
     }
-  )
-  par <- c(par, block$tags[is_in_cls])
+    parent_topic <- topics$get(parent_file)
+    if (is.null(parent_topic)) {
+      next
+    }
+    parent_r6 <- parent_topic$get_value("r6_class")
+    # Parent topic may contain multiple R6 classes; pick the one by name
+    parent_docs[[classname]] <- parent_r6[[classname]]
+  }
 
-  # Check if anything is missing
-  nms <- gsub(",", ", ", map_chr(par, c("val", "name")))
-  mnames <- str_trim(unlist(strsplit(nms, ",")))
-  miss <- setdiff(fnames, mnames)
+  # Inherit fields and active bindings
+  docs$fields <- r6_resolve_fields(docs$fields, parent_docs, topic_name)
+  docs$active_bindings <- r6_resolve_fields(
+    docs$active_bindings,
+    parent_docs,
+    topic_name
+  )
+
+  # Inherit method params
+  docs$methods$self <- lapply(docs$methods$self, function(method) {
+    r6_resolve_method_params(method, parent_docs, topic_name)
+  })
+
+  docs
+}
+
+# Field inheritance ----------------------------------------------------------
+
+r6_resolve_fields <- function(fields_obj, parent_docs, topic_name) {
+  label <- if (fields_obj$type == "field") "field" else "active binding"
+  section <- if (fields_obj$type == "field") "fields" else "active_bindings"
+
+  docd <- r6_field_names(fields_obj$fields)
+  expected <- fields_obj$expected
+
+  miss <- setdiff(expected, docd)
+  inherited <- r6_find_super_fields(miss, parent_docs, section)
+  fields_obj$fields <- c(fields_obj$fields, inherited)
+  docd <- c(docd, r6_field_names(inherited))
+
+  miss <- setdiff(expected, docd)
+  if (length(miss) > 0) {
+    warn_roxy_topic(topic_name, "Undocumented R6 {label}{?s}: {miss}")
+  }
+
+  fields_obj
+}
+
+r6_find_super_fields <- function(missing, parent_docs, section) {
+  if (length(missing) == 0 || length(parent_docs) == 0) {
+    return(list())
+  }
+
+  result <- list()
+  for (super_doc in parent_docs) {
+    if (is.null(super_doc)) {
+      next
+    }
+
+    for (field in super_doc[[section]]$fields) {
+      if (field$name %in% missing) {
+        result <- c(result, list(field))
+        missing <- setdiff(missing, field$name)
+      }
+    }
+    if (length(missing) == 0) break
+  }
+
+  result
+}
+
+# Param inheritance ----------------------------------------------------------
+
+# Inherit params from parent classes (child -> parent -> grandparent).
+# Within-class param resolution (method -> class-level -> @field) is handled
+# earlier by r6_resolve_params().
+r6_resolve_method_params <- function(method, parent_docs, topic_name) {
+  fnames <- names(method$formals)
+  if (length(fnames) == 0) {
+    return(method)
+  }
+
+  miss <- setdiff(fnames, r6_param_names(method$params))
+  if (length(miss) > 0) {
+    inherited <- r6_find_super_params(method$name, miss, parent_docs)
+    method$params <- c(method$params, inherited)
+
+    # Re-order according to formals
+    firstnames <- map_chr(
+      strsplit(map_chr(method$params, \(x) x$name), ","),
+      \(x) trimws(x[[1]])
+    )
+    method$params <- method$params[order(match(firstnames, fnames))]
+  }
+
+  # Only now, after two rounds of resolution can we warn about missing params.
+  miss <- setdiff(fnames, r6_param_names(method$params))
   for (m in miss) {
-    warn_roxy_block(block, c(
-      "Must use one @param for each argument",
-      x = "${method$name}({m}) is not documented"
-    ))
-  }
-
-  if (length(par) == 0) return()
-
-  # Order them according to formals
-  firstnames <- str_trim(
-    map_chr(strsplit(map_chr(par, c("val", "name")), ","), 1)
-  )
-  par <- par[order(match(firstnames, fnames))]
-
-  val <- map_chr(par, c("val", "description"))
-  nms <- gsub(",", ", ", map_chr(par, c("val", "name")))
-
-  # Ready to go
-  c(
-    "\\subsection{Arguments}{",
-    "\\if{html}{\\out{<div class=\"arguments\">}}",
-    "\\describe{",
-    paste0("\\item{\\code{", nms, "}}{", val, "}", collapse = "\n\n"),
-    "}",
-    "\\if{html}{\\out{</div>}}",
-    "}"
-  )
-}
-
-r6_method_return <- function(block, method) {
-  ret <- purrr::keep(method$tags[[1]], function(t) t$tag == "return")
-  if (length(ret) == 0) return()
-  if (length(ret) > 1) {
-    warn_roxy_block(block, "Must use one @return per R6 method")
-  }
-  ret <- ret[[1]]
-  c(
-    "\\subsection{Returns}{",
-    ret$val,
-    "}"
-  )
-}
-
-r6_method_examples <- function(block, method) {
-  exa <- purrr::keep(method$tags[[1]], function(t) t$tag == "examples")
-  if (length(exa) == 0) return()
-
-  txt <- map_chr(exa, "val")
-
-  c("\\subsection{Examples}{",
-    paste0(
-      "\\if{html}{\\out{<div class=\"r example copy\">}}\n",
-      "\\preformatted{", txt, "\n",
-      "}\n",
-      "\\if{html}{\\out{</div>}}\n",
-      collapse = "\n"
-    ),
-    "}\n"
-  )
-}
-
-r6_method_end <- function(block, method) {
-  c(
-    "}"
-  )
-}
-
-r6_all_examples <- function(block, methods) {
-  unlist(lapply(
-    seq_len(nrow(methods)),
-    function(i) {
-      exa <- purrr::keep(methods$tags[[i]], function(t) t$tag == "examples")
-      if (length(exa) == 0) return()
-      name <- paste0(block$object$alias, "$", r6_show_name(methods$name[i]))
+    warn_roxy_topic(
+      topic_name,
       c(
-        "\n## ------------------------------------------------",
-        paste0("## Method `", name, "`"),
-        "## ------------------------------------------------\n",
-        paste(map_chr(exa, "val"), collapse = "\n")
+        "Must use one @param for each argument",
+        x = "{method$name}({m}) is not documented"
       )
-  }))
+    )
+  }
+
+  method
 }
 
-first_five <- function(x) {
-  x <- encodeString(x, quote = "`")
-  if (length(x) > 5) x <- c(x[1:5], "...")
-  paste(x, collapse = ", ")
+r6_find_super_params <- function(method_name, missing, parent_docs) {
+  if (length(parent_docs) == 0) {
+    return(list())
+  }
+
+  for (super_doc in parent_docs) {
+    if (is.null(super_doc)) {
+      next
+    }
+
+    super_method <- Find(
+      \(m) m$name == method_name,
+      super_doc$methods$self
+    )
+    if (is.null(super_method)) {
+      next
+    }
+
+    result <- list()
+    for (param in super_method$params) {
+      param_names <- trimws(unlist(strsplit(param$name, ",")))
+      if (any(param_names %in% missing)) {
+        result <- c(result, list(param))
+        missing <- setdiff(missing, param_names)
+      }
+    }
+
+    if (length(result) > 0) return(result)
+  }
+
+  list()
 }

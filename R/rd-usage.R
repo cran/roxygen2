@@ -1,6 +1,6 @@
 #' @export
 roxy_tag_parse.roxy_tag_usage <- function(x) {
-  x <- tag_value(x)
+  x <- tag_value(x, multiline = TRUE)
   x$val <- rd(x$val)
   x
 }
@@ -33,6 +33,15 @@ object_usage.default <- function(x) {
 
 #' @export
 object_usage.data <- function(x) {
+  if (roxy_meta_get("lazy_data", FALSE)) {
+    rd(x$alias)
+  } else {
+    rd(paste0("data(", x$alias, ")"))
+  }
+}
+
+#' @export
+object_usage.value <- function(x) {
   rd(x$alias)
 }
 
@@ -66,6 +75,31 @@ object_usage.s4method <- function(x) {
   function_usage(x$value@generic, formals(x$value), s4method)
 }
 
+#' @export
+object_usage.s7class <- object_usage.function
+
+#' @export
+object_usage.s7generic <- object_usage.function
+
+#' @export
+object_usage.s7method <- function(x) {
+  generic <- x$value$generic
+  classes <- x$value$classes
+
+  formatted <- map_chr(classes, \(nms) paste0("<", nms, ">", collapse = "/"))
+  if (length(formatted) == 1) {
+    comment <- paste0("## S7 method for class ", formatted)
+  } else {
+    comment <- paste0(
+      "## S7 method for classes ",
+      paste0(formatted, collapse = ", ")
+    )
+  }
+
+  usage <- function_usage(generic, formals(x$value$fn), identity)
+  rd(paste0(comment, "\n", usage))
+}
+
 # Function usage ----------------------------------------------------------
 
 # Usage:
@@ -74,7 +108,7 @@ object_usage.s4method <- function(x) {
 
 function_usage <- function(name, formals, format_name = identity) {
   if (is_replacement_fun(name) && !is_infix_fun(name)) {
-    name <- str_replace(name, fixed("<-"), "")
+    name <- sub("<-", "", name, fixed = TRUE)
     if (identical(format_name, identity)) {
       name <- auto_backtick(name)
     }
@@ -100,24 +134,48 @@ function_usage <- function(name, formals, format_name = identity) {
 }
 
 is_replacement_fun <- function(name) {
-  str_detect(name, fixed("<-"))
+  grepl("<-", name, fixed = TRUE)
 }
 is_infix_fun <- function(name) {
   ops <- c(
-    "+", "-", "*", "^", "/",
-    "==", ">", "<", "!=", "<=", ">=",
-    "&", "|",
-    "[[", "[", "$", ":", "::", ":::"
+    "+",
+    "-",
+    "*",
+    "^",
+    "/",
+    "==",
+    ">",
+    "<",
+    "!=",
+    "<=",
+    ">=",
+    "&",
+    "|",
+    "[[",
+    "[",
+    "$",
+    ":",
+    "::",
+    ":::"
   )
-  str_detect(name, "^%.*%$") || name %in% ops
+  grepl("^%.*%$", name) | name %in% ops
 }
 is_padded_infix_fun <- function(name) {
   ops <- c(
-    "+", "-", "*", "/",
-    "==", ">", "<", "!=", "<=", ">=",
-    "&", "|"
+    "+",
+    "-",
+    "*",
+    "/",
+    "==",
+    ">",
+    "<",
+    "!=",
+    "<=",
+    ">=",
+    "&",
+    "|"
   )
-  str_detect(name, "^%.*%$") || name %in% ops
+  grepl("^%.*%$", name) || name %in% ops
 }
 
 usage_args <- function(args) {
@@ -125,7 +183,9 @@ usage_args <- function(args) {
     is.symbol(arg) && deparse(arg) == ""
   }
   arg_to_text <- function(arg) {
-    if (is.missing.arg(arg)) return("")
+    if (is.missing.arg(arg)) {
+      return("")
+    }
     text <- enc2utf8(deparse(arg, backtick = TRUE, width.cutoff = 500L))
     text <- paste0(text, collapse = "\n")
     Encoding(text) <- "UTF-8"
@@ -168,14 +228,19 @@ wrap_usage <- function(name, format_name, formals, suffix = NULL, width = 80L) {
   args <- args_string(usage_args(formals))
   bare <- args_call(name, args)
 
-  if (!str_detect(bare, "\n") && nchar(bare, type = "width") < width) {
+  if (!grepl("\n", bare, fixed = TRUE) && nchar(bare, type = "width") < width) {
     # Don't need to wrap
     out <- args_call(format_name(name), args)
   } else {
     # Wrap each argument and put on own line
     args <- paste0("  ", args)
     args <- map_chr(args, wrapUsage, width = 90, indent = 4)
-    out <- paste0(format_name(name), "(\n", paste0(args, collapse = ",\n"), "\n)")
+    out <- paste0(
+      format_name(name),
+      "(\n",
+      paste0(args, collapse = ",\n"),
+      "\n)"
+    )
   }
 
   rd(paste0(out, suffix))

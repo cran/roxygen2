@@ -8,7 +8,7 @@
 #' Define a method for `roxy_tag_parse` to support new tags. See [tag_parsers]
 #' for more details.
 #'
-#' @keywords internal
+#' @family extending
 #' @export
 #' @param tag Tag name. Arguments starting with `.` are reserved for internal
 #'   usage.
@@ -16,7 +16,13 @@
 #' @param val Parsed tag value, typically a character vector, but sometimes
 #'   a list. Usually filled in by `tag_parsers`
 #' @param file,line Location of the tag
-roxy_tag <- function(tag, raw, val = NULL, file = NA_character_, line = NA_character_) {
+roxy_tag <- function(
+  tag,
+  raw,
+  val = NULL,
+  file = NA_character_,
+  line = NA_character_
+) {
   structure(
     list(
       file = file,

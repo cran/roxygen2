@@ -1,15 +1,20 @@
-roxygen_setup <- function(path = ".",
-                          cur_version = NULL,
-                          frame = caller_env()) {
+roxygen_setup <- function(
+  path = ".",
+  cur_version = NULL,
+  frame = caller_env()
+) {
   if (!file.exists(file.path(path, "DESCRIPTION"))) {
     cli::cli_abort(
-      "{.arg package.dir} ({.path {path}}) does not contain a DESCRIPTION"
+      "{.arg package.dir} ({.path {path}}) does not contain a DESCRIPTION file.",
+      call = frame
     )
   }
 
   is_first <- first_time(path)
   if (is_first) {
-    cli::cli_inform("First time using {.pkg roxygen2}. Upgrading automatically...")
+    cli::cli_inform(
+      "First time using {.pkg roxygen2}. Upgrading automatically..."
+    )
   }
 
   update_roxygen_version(path, cur_version = cur_version)
@@ -47,7 +52,9 @@ update_roxygen_version <- function(path, cur_version = NULL) {
   cur <- cur_version %||% as.character(utils::packageVersion("roxygen2"))
   prev <- roxygen_version(path)
 
-  if (!is.na(cur) && !is.na(prev) && package_version(cur) < package_version(prev)) {
+  if (
+    !is.na(cur) && !is.na(prev) && package_version(cur) < package_version(prev)
+  ) {
     cli::cli_inform(c(
       x = "Installed {.pkg roxygen2} is older than the version used with this package",
       i = "You have {.val {cur}} but you need {.val {prev}}"
@@ -63,8 +70,11 @@ update_roxygen_version <- function(path, cur_version = NULL) {
       cli::cli_rule()
     }
 
-    cli::cli_inform(c(i = "Setting {.field RoxygenNote} to {.val {cur}}"))
-    desc::desc_set(RoxygenNote = cur, file = path)
+    cli::cli_inform(c(
+      i = "Setting {.field Config/roxygen2/version} to {.val {cur}}"
+    ))
+    desc::desc_set("Config/roxygen2/version" = cur, file = path)
+    desc::desc_del("RoxygenNote", file = path)
   }
 }
 
@@ -86,5 +96,9 @@ first_time <- function(path) {
 }
 
 roxygen_version <- function(path = ".") {
-  stringr::str_trim(desc::desc_get("RoxygenNote", path)[[1]])
+  version <- desc::desc_get("Config/roxygen2/version", file = path)[[1]]
+  if (is.na(version)) {
+    version <- desc::desc_get("RoxygenNote", file = path)[[1]]
+  }
+  trimws(version)
 }

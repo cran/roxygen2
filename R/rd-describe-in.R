@@ -1,13 +1,16 @@
 #' @export
 roxy_tag_parse.roxy_tag_describeIn <- function(x) {
-  if (!is.na(x$raw) && !str_detect(x$raw, "[[:space:]]+")) {
-    warn_roxy_tag(x, c(
-      "requires a name and description",
-      i = "Did you want @rdname instead?"
-    ))
+  if (!is.na(x$raw) && !grepl("[[:space:]]+", x$raw)) {
+    warn_roxy_tag(
+      x,
+      c(
+        "requires a name and description",
+        i = "Did you want @rdname instead?"
+      )
+    )
     NULL
   } else {
-    tag_two_part(x, "a topic name", "a description")
+    tag_two_part(x, "a topic name", "a description", multiline = TRUE)
   }
 }
 
@@ -65,24 +68,25 @@ topic_add_describe_in <- function(topic, block, env) {
 #' @return a dataframe with one row for each `@describeIn`, wrapped inside
 #' `rd_section()`
 #' @noRd
-rd_section_minidesc <- function(name,
-                                desc,
-                                extends = c("", "generic", "class"),
-                                generic = "",
-                                class = "") {
-  stopifnot(is_string(name))
-  stopifnot(is_character(desc))
+rd_section_minidesc <- function(
+  name,
+  desc,
+  extends = c("", "generic", "class"),
+  generic = "",
+  class = ""
+) {
+  check_string(name)
+  check_character(desc)
   rlang::arg_match(extends)
-  stopifnot(is_string(generic))
-  stopifnot(is_string(class))
+  check_string(generic)
+  check_string(class)
 
   data <- data.frame(
     name = name,
     desc = desc,
     extends = extends,
     generic = generic,
-    class = class,
-    stringsAsFactors = FALSE
+    class = class
   )
   rd_section("minidesc", data)
 }
@@ -101,13 +105,14 @@ format.rd_section_minidesc <- function(x, ...) {
   order <- intersect(c("generic", "class", ""), unique(x$value$extends))
   by <- factor(x$value$extends, levels = order)
   subsections <- split(x$value, by)
-  body <- purrr::map2_chr(subsections, names(subsections), format_section)
+  body <- map2_chr(subsections, names(subsections), format_section)
 
   paste0(body, collapse = "\n")
 }
 
 format_section <- function(df, type) {
-  title <- switch(type,
+  title <- switch(
+    type,
     class = "Methods (by generic)",
     generic = "Methods (by class)",
     "Functions"
@@ -205,7 +210,6 @@ fits_constructor <- function(dest_name, src) {
 }
 
 
-
 object_name <- function(x) {
   UseMethod("object_name")
 }
@@ -223,9 +227,9 @@ object_name.s3generic <- object_name.function
 object_name.s3method <- function(x) {
   method <- attr(x$value, "s3method")
   as.character(function_usage(method[[1]], list(as.name(method[[2]]))))
-#
-#   name <- paste(, collapse = ".")
-#   object_name_fun(name, x)
+  #
+  #   name <- paste(, collapse = ".")
+  #   object_name_fun(name, x)
 }
 #' @export
 object_name.s4generic <- function(x) {

@@ -1,60 +1,87 @@
-#' Escape Rd markup, to avoid interpreting it as markdown
+#' Escape fragile Rd tags
 #'
-#' This is needed, if we want to stay compatible with
-#' existing markup, even if markdown mode is switched on.
-#' Fragile Rd tags (tags that may contain markup that
-#' can be picked up by the markdown parser), are replaced
-#' by placeholders. After the markdown to Rd conversion
-#' is done, the original text is put back in place of the
-#' placeholders.
-#'
-#' The list of protected Rd tags is in `escaped_for_md`.
+#' @description
+#' `escape_rd_for_md()` replaces fragile Rd tags with placeholders, to avoid
+#' interpreting them as markdown. `unescape_rd_for_md()` puts the original
+#' text back in place of the placeholders after the markdown parsing is done.
+#' The fragile tags are listed in `escaped_for_md`.
 #'
 #' Some Rd macros are treated specially:
 #'
 #' * For `if`, markdown is only allowed in the second argument.
 #' * For `ifelse` markdown is allowed in the second and third arguments.
 #'
-#' See also `roclet-rd.R` for the list of tags that
-#' uses the markdown-enabled parser. Some tags, e.g.
-#' `@aliases`, `@backref`, etc. only use the
-#' standard Roxygen parser.
-#'
 #' @param text Input text. Potentially contains Rd and/or
 #'   markdown markup.
-#' @return For `escape_rd_for_md`:
-#'   A \dQuote{safe} version of the input text, where
+#' @returns
+#' * `escape_rd_for_md`: a "safe" version of the input text, where
 #'   each fragile Rd tag is replaced by a placeholder. The
 #'   original text is added as an attribute for each placeholder.
+#' * `unescape_rd_for_md`: the original Rd text.
 #' @rdname markdown-internals
 #' @keywords internal
-
 escape_rd_for_md <- function(text) {
   rd_tags <- find_fragile_rd_tags(text, escaped_for_md)
   protected <- protect_rd_tags(text, rd_tags)
   double_escape_md(protected)
 }
 
-escaped_for_md <- paste0("\\", c(
-  "acronym", "code", "command", "CRANpkg", "deqn", "doi", "dontrun",
-  "dontshow", "donttest", "email", "env", "eqn", "figure", "file",
-  "if", "ifelse", "kbd", "link", "linkS4class", "method",
-  "mjeqn", "mjdeqn", "mjseqn", "mjsdeqn", "mjteqn", "mjtdeqn",
-  "newcommand", "option", "out", "packageAuthor",
-  "packageDescription", "packageDESCRIPTION", "packageIndices",
-  "packageMaintainer", "packageTitle", "pkg", "PR", "preformatted",
-  "renewcommand", "S3method", "S4method", "samp", "special",
-  "testonly", "url", "var", "verb"
-))
+escaped_for_md <- paste0(
+  "\\",
+  c(
+    "acronym",
+    "code",
+    "command",
+    "CRANpkg",
+    "deqn",
+    "doi",
+    "dontrun",
+    "dontshow",
+    "donttest",
+    "email",
+    "env",
+    "eqn",
+    "figure",
+    "file",
+    "if",
+    "ifelse",
+    "kbd",
+    "link",
+    "linkS4class",
+    "method",
+    "mjeqn",
+    "mjdeqn",
+    "mjseqn",
+    "mjsdeqn",
+    "mjteqn",
+    "mjtdeqn",
+    "newcommand",
+    "option",
+    "out",
+    "packageAuthor",
+    "packageDescription",
+    "packageDESCRIPTION",
+    "packageIndices",
+    "packageMaintainer",
+    "packageTitle",
+    "pkg",
+    "PR",
+    "preformatted",
+    "renewcommand",
+    "S3method",
+    "S4method",
+    "samp",
+    "special",
+    "testonly",
+    "url",
+    "var",
+    "verb"
+  )
+)
 
-#' @description
-#' It puts back the protected fragile Rd commands into
-#' the text after the markdown parsing.
-#'
 #' @param rd_text The markdown parsed and interpreted text.
 #' @param esc_text The original escaped text from
 #'   `escape_rd_for_md()`.
-#' @return For `unescape_rd_for_md`: Rd text.
 #' @rdname markdown-internals
 unescape_rd_for_md <- function(rd_text, esc_text) {
   id <- attr(esc_text, "roxygen-markdown-subst")$id
@@ -82,7 +109,7 @@ unescape_rd_for_md <- function(rd_text, esc_text) {
 
 find_fragile_rd_tags <- function(text, fragile) {
   tags <- find_all_rd_tags(text)
-  ftags <- tags[ tags$tag %in% fragile, ]
+  ftags <- tags[tags$tag %in% fragile, ]
 
   ## Remove embedded ones
   keep <- map_lgl(seq_len(nrow(ftags)), function(i) {
@@ -92,7 +119,7 @@ find_fragile_rd_tags <- function(text, fragile) {
   ftags <- ftags[keep, ]
 
   if (nrow(ftags)) {
-    ftags$text <- str_sub(text, ftags$start, ftags$argend)
+    ftags$text <- substring(text, ftags$start, ftags$argend)
   }
 
   ftags
@@ -107,7 +134,6 @@ find_fragile_rd_tags <- function(text, fragile) {
 #' @noRd
 
 find_all_rd_tags <- function(text) {
-
   text_len <- nchar(text)
 
   ## Find the tag names
@@ -116,8 +142,8 @@ find_all_rd_tags <- function(text) {
   ## Find the end of the argument list for each tag. Note that
   ## tags might be embedded into the arguments of other tags.
   tags$argend <- map_int(seq_len(nrow(tags)), function(i) {
-      tag_plus <- str_sub(text, tags$end[i], text_len)
-      findEndOfTag(tag_plus, is_code = FALSE) + tags$end[i]
+    tag_plus <- substr(text, tags$end[i], text_len)
+    findEndOfTag(tag_plus, is_code = FALSE, start = 0L) + tags$end[i]
   })
 
   tags
@@ -137,13 +163,28 @@ find_all_rd_tags <- function(text) {
 
 find_all_tag_names <- function(text) {
   ## Find the tags without arguments first
-  tag_pos <- str_locate_all(text, "\\\\[a-zA-Z][a-zA-Z0-9]*")[[1]]
+  m <- gregexpr(r"(\\[a-zA-Z][a-zA-Z0-9]*)", text)[[1]]
+  if (m[[1]] == -1L) {
+    tag_pos <- matrix(
+      integer(),
+      ncol = 2,
+      dimnames = list(NULL, c("start", "end"))
+    )
+  } else {
+    tag_pos <- cbind(
+      start = as.integer(m),
+      end = as.integer(m) + attr(m, "match.length") - 1L
+    )
+  }
 
-  data.frame(
-    stringsAsFactors = FALSE,
-    tag = str_sub(text, tag_pos[, "start"], tag_pos[, "end"]),
-    as.data.frame(tag_pos)
-  )
+  if (nrow(tag_pos) == 0) {
+    data.frame(tag = character(), start = integer(), end = integer())
+  } else {
+    data.frame(
+      tag = substring(text, tag_pos[, "start"], tag_pos[, "end"]),
+      as.data.frame(tag_pos)
+    )
+  }
 }
 
 #' Replace fragile Rd tags with placeholders
@@ -159,7 +200,7 @@ find_all_tag_names <- function(text) {
 protect_rd_tags <- function(text, rd_tags) {
   id <- make_random_string()
 
-  text <- str_sub_same(text, rd_tags, id)
+  text <- re_sub_same(text, rd_tags, id)
 
   attr(text, "roxygen-markdown-subst") <-
     list(tags = rd_tags, id = id)
@@ -182,17 +223,21 @@ protect_rd_tags <- function(text, rd_tags) {
 #'
 #' @noRd
 
-str_sub_same <- function(str, repl, id) {
-  repl <- repl[ order(repl$start), ]
+re_sub_same <- function(str, repl, id) {
+  repl <- repl[order(repl$start), ]
 
   if (is.unsorted(repl$end) || is.unsorted(repl$argend)) {
-    cli::cli_abort("Replacement intervals must not overlap", .internal = TRUE)
+    cli::cli_abort("Replacement intervals must not overlap.", .internal = TRUE)
   }
 
   for (i in seq_len(nrow(repl))) {
     ## The trailing - is needed, to distinguish between -1 and -10
     new_text <- paste0(id, "-", i, "-")
-    str_sub(str, repl$start[i], repl$argend[i]) <- new_text
+    str <- paste0(
+      substr(str, 1, repl$start[i] - 1),
+      new_text,
+      substr(str, repl$argend[i] + 1, nchar(str))
+    )
 
     ## Need to shift other coordinates (we shift everything,
     ## it is just simpler).
@@ -242,10 +287,10 @@ make_random_string <- function(length = 32) {
 #' "\"" # double quote
 #' '\'' # single quote
 double_escape_md <- function(text) {
-  text <- gsub("\\", "\\\\", text, fixed = TRUE)
+  text <- gsub(r"(\)", r"(\\)", text, fixed = TRUE)
 
   # De-dup escaping used to avoid [] creating a link
-  text <- gsub("\\\\[", "\\[", text, fixed = TRUE)
-  text <- gsub("\\\\]", "\\]", text, fixed = TRUE)
+  text <- gsub(r"(\\[)", r"(\[)", text, fixed = TRUE)
+  text <- gsub(r"(\\])", r"(\])", text, fixed = TRUE)
   text
 }

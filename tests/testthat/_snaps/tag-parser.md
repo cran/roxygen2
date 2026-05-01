@@ -84,12 +84,6 @@
       Message:
       x test.R:1: @test has mismatched braces or quotes.
     Code
-      expect_parse_failure(tag_words_line(tag))
-    Output
-      <message/rlang_message>
-      Message:
-      x test.R:1: @test has mismatched braces or quotes.
-    Code
       expect_parse_failure(tag_examples(tag))
     Output
       <message/rlang_message>
@@ -135,7 +129,7 @@
     Output
       <message/rlang_message>
       Message:
-      x test.R:1: @test must have only one argument, not 2.
+      x test.R:1: @test must have only one argument, not 3.
 
 # tag_two_part() gives useful warnings
 
@@ -169,24 +163,44 @@
       Message:
       x test.R:1: @test must have at most 1 word, not 2.
 
-# tag_words_line() gives useful warnings
+# tag_words() warns on multi-line content and preserves value
 
     Code
       tag <- roxy_test_tag("a\nb")
-      expect_parse_failure(tag_words_line(tag))
-    Output
-      <message/rlang_message>
-      Message:
-      x test.R:1: @test must be a single line, not 2.
+      out <- tag_words(tag)
+    Message
+      x test.R:1: @test must be only 1 line long, not 2.
       i The first line is "a"
+
+# tag_two_part() warns on multi-line content and preserves value
+
     Code
-      tag <- roxy_test_tag("a\nb\n2")
-      expect_parse_failure(tag_words_line(tag))
-    Output
-      <message/rlang_message>
-      Message:
-      x test.R:1: @test must be a single line, not 3.
+      tag <- roxy_test_tag("foo bar\nbaz")
+      out <- tag_two_part(tag, "a name", "a value")
+    Message
+      x test.R:1: @test must be only 1 line long, not 2.
+      i The first line is "foo bar"
+
+# tag_value() warns on multi-line content and preserves value
+
+    Code
+      tag <- roxy_test_tag("a\nb")
+      out <- tag_value(tag)
+    Message
+      x test.R:1: @test must be only 1 line long, not 2.
       i The first line is "a"
+
+# tag_words_line() is deprecated
+
+    Code
+      tag <- roxy_test_tag("a b")
+      tag_words_line(tag)
+    Condition
+      Warning:
+      `tag_words_line()` was deprecated in roxygen2 8.0.0.
+      i Please use `tag_words()` instead.
+    Output
+      [test.R:  1] @test 'a b' {parsed}
 
 # tag_toggle() gives useful warnings
 

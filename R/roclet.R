@@ -1,13 +1,19 @@
-#' Build a new roclet.
+#' Build a new roclet
 #'
-#' To create a new roclet, you will need to create a constructor function
-#' that wraps `roclet`, and then implement the methods described below.
+#' @description
+#' Roclets are roxygen2's plugin system for producing different types of output,
+#' like Rd files ([rd_roclet()]) or the `NAMESPACE` file ([namespace_roclet()]).
+#'
+#' To create a new roclet, you will need to create a constructor function that
+#' calls `roclet()`, and then implement the methods described below.
+#'
+#' See `vignette("extending")` for more details.
 #'
 #' @section Methods:
 #'
 #' * `roclet_preprocess()` is called after blocks have been parsed but before
 #'   code has been evaluated. This should only be needed if your roclet affects
-#'   how code will evaluated. Should return a roclet.
+#'   how code will be evaluated. Should return a roclet.
 #'
 #' * `roclet_process()` called after blocks have been evaluated; i.e. the
 #'   `@eval` tag has been processed, and the object associated with each block
@@ -35,6 +41,12 @@ NULL
 
 #' @export
 #' @rdname roclet
+#' @param subclass Class of the roclet, character vector.
+#' @examples
+#' # Custom roclet
+#' custom_roclet <- roclet("custom")
+#' # Roclet that extends the existing Rd roclet.
+#' supercharged_rd_roclet <- roclet(c("cool", "rd"))
 roclet <- function(subclass, ...) {
   structure(list(...), class = c(paste0("roclet_", subclass), "roclet"))
 }
@@ -74,12 +86,12 @@ roclet_tags <- function(x) {
   UseMethod("roclet_tags")
 }
 
-#' Create a roclet from a string.
+#' Create a roclet from a string
 #'
 #' This provides a flexible way of specifying a roclet in a string.
 #'
 #' @param x Arbitrary R code evaluated in roxygen2 package.
-#' @keywords internal
+#' @family extending
 #' @export
 #' @examples
 #' # rd, namespace, and vignette work for backward compatibility
@@ -96,6 +108,8 @@ roclet_tags <- function(x) {
 #' # to call the function
 #' roclet_find("roxygen2::rd_roclet()")
 roclet_find <- function(x) {
+  check_string(x)
+
   env <- new.env(parent = getNamespace("roxygen2"))
   env$rd <- rd_roclet
   env$namespace <- namespace_roclet
@@ -109,7 +123,7 @@ roclet_find <- function(x) {
   }
 
   if (!is.roclet(res)) {
-    cli::cli_abort("Must return a roclet")
+    cli::cli_abort("Must return a roclet.")
   }
 
   res
@@ -117,7 +131,7 @@ roclet_find <- function(x) {
 
 is.roclet <- function(x) inherits(x, "roclet")
 
-#' Process roclet on string and capture results.
+#' Process roclet on string and capture results
 #'
 #' Useful for testing.
 #'
@@ -125,7 +139,7 @@ is.roclet <- function(x) inherits(x, "roclet")
 #' @param input Source string
 #' @param wd Working directory
 #' @export
-#' @keywords internal
+#' @family extending
 roc_proc_text <- function(roclet, input, wd = NULL) {
   stopifnot(is.roclet(roclet))
 

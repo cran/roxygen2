@@ -1,5 +1,7 @@
 test_that("long families are wrapped", {
-  out <- roc_proc_text(rd_roclet(), "
+  out <- roc_proc_text(
+    rd_roclet(),
+    "
     #' Title
     #' @family Long family name
     #'
@@ -17,15 +19,18 @@ test_that("long families are wrapped", {
     #' Title
     #' @family Long family name
     long_function_name_________________________4 <- function() {}
-  ")[[1]]
+  "
+  )[[1]]
 
   seealso <- out$get_value("seealso")
   expect_true(grepl("^Other Long family name:", seealso))
-  expect_equal(str_count(seealso, "\n"), 3)
+  expect_equal(re_count(seealso, "\n"), 3)
 })
 
 test_that("special names escaped in family tag", {
-  out <- roc_proc_text(rd_roclet(), "
+  out <- roc_proc_text(
+    rd_roclet(),
+    "
     #' Title
     #' @family Long family name
     f <- function() {}
@@ -33,16 +38,18 @@ test_that("special names escaped in family tag", {
     #' Title
     #' @family Long family name
     '%+%' <- function(a, b) {}
-  ")[[1]]
+  "
+  )[[1]]
 
   seealso <- out$get_value("seealso")
   expect_true(grepl("^Other Long family name:", seealso))
   expect_match(seealso, "\\\\%\\+\\\\%")
-
 })
 
 test_that("family links to name only, not all aliases", {
-  out <- roc_proc_text(rd_roclet(), "
+  out <- roc_proc_text(
+    rd_roclet(),
+    "
     #' Title
     #' @aliases f2 f3
     #'
@@ -54,16 +61,18 @@ test_that("family links to name only, not all aliases", {
     #'
     #' @family many aliases
     g <- function() {}
-  ")[[1]]
+  "
+  )[[1]]
 
   seealso <- out$get_value("seealso")
   expect_true(grepl("^Other many aliases:", seealso))
-  expect_equal(str_count(seealso, fixed("\\code{\\link")), 1)
-
+  expect_match(seealso, r"(\code{\link)", fixed = TRUE)
 })
 
 test_that("families listed in same order as input", {
-  out <- roc_proc_text(rd_roclet(), "
+  out <- roc_proc_text(
+    rd_roclet(),
+    "
     #' foo
     #' @family a
     foo <- function() {}
@@ -76,7 +85,8 @@ test_that("families listed in same order as input", {
     #' foo
     #' @family b
     baz <- function() {}
-  ")[[2]]
+  "
+  )[[2]]
 
   seealso <- out$get_value("seealso")
   expect_match(seealso[1], "^Other b")
@@ -84,7 +94,9 @@ test_that("families listed in same order as input", {
 })
 
 test_that("only functions get () suffix", {
-  out <- roc_proc_text(rd_roclet(), "
+  out <- roc_proc_text(
+    rd_roclet(),
+    "
     #' foo
     #' @family a
     foo <- function() {}
@@ -92,42 +104,65 @@ test_that("only functions get () suffix", {
     #' bar
     #' @family a
     bar <- 1:10
-  ")
+  "
+  )
 
-  expect_equal(out[[1]]$get_value("seealso"), "Other a: \n\\code{\\link{bar}}")
-  expect_equal(out[[2]]$get_value("seealso"), "Other a: \n\\code{\\link{foo}()}")
+  expect_equal(
+    out[[1]]$get_value("seealso"),
+    "Other a:\n\\code{\\link{bar}}"
+  )
+  expect_equal(
+    out[[2]]$get_value("seealso"),
+    "Other a:\n\\code{\\link[=foo]{foo()}}"
+  )
 })
 
 test_that("family also included in concepts", {
-  out <- roc_proc_text(rd_roclet(), "
+  out <- roc_proc_text(
+    rd_roclet(),
+    "
     #' foo
     #' @family a
     foo <- function() {}
-  ")[[1]]
+  "
+  )[[1]]
 
   expect_equal(out$get_value("concept"), "a")
 })
 
-test_that("custom family prefixes can be set", {
+test_that("custom family prefixes can get colon if needed", {
+  seealso <- function() {
+    out <- roc_proc_text(
+      rd_roclet(),
+      "
+      #' foo
+      #' @family a
+      foo <- function() {}
 
-  local_roxy_meta_set("rd_family_title", list(a = "Custom prefix: "))
-  out <- roc_proc_text(rd_roclet(), "
-    #' foo
-    #' @family a
-    foo <- function() {}
+      #' bar
+      #' @family a
+      bar <- function() {}
+    "
+    )[[1]]
 
-    #' bar
-    #' @family a
-    bar <- function() {}
-  ")[[1]]
+    out$get_value("seealso")
+  }
 
-  expect_match(out$get_value("seealso"), "^Custom prefix:")
+  local_roxy_meta_set("rd_family_title", list(a = "Custom prefix"))
+  expect_match(seealso(), "^Custom prefix:")
+
+  local_roxy_meta_set("rd_family_title", list(a = "Custom prefix:"))
+  expect_match(seealso(), "^Custom prefix:[^:]")
 })
 
 test_that("custom family prefixes can include Markdown", {
-
-  local_roxy_meta_set("rd_family_title", list(a = "Custom ***strongly emphasized*** prefix: "))
-  out <- roc_proc_text(rd_roclet(), "
+  local_roxy_meta_set(
+    "rd_family_title",
+    list(a = "Custom ***strongly emphasized*** prefix")
+  )
+  out <- roc_proc_text(
+    rd_roclet(),
+    "
     #' foo
     #' @family a
     foo <- function() {}
@@ -135,13 +170,42 @@ test_that("custom family prefixes can include Markdown", {
     #' bar
     #' @family a
     bar <- function() {}
-  ")[[1]]
+  "
+  )[[1]]
 
-  expect_match(out$get_value("seealso"), "^Custom \\\\emph\\{\\\\strong\\{strongly emphasized\\}} prefix:")
+  expect_match(
+    out$get_value("seealso"),
+    "^Custom \\\\emph\\{\\\\strong\\{strongly emphasized\\}} prefix:"
+  )
+})
+
+test_that("@family with @rdname doesn't produce duplicate seealso (#1530)", {
+  out <- roc_proc_text(
+    rd_roclet(),
+    "
+    #' Title
+    #' @family a
+    foo <- function() {}
+
+    #' @rdname foo
+    #' @family a
+    bar <- function() {}
+
+    #' baz
+    #' @family a
+    baz <- function() {}
+  "
+  )
+
+  seealso <- out[["foo.Rd"]]$get_value("seealso")
+  expect_length(seealso, 1)
+  expect_match(seealso, "^Other a:")
 })
 
 test_that("careful ordering", {
-  out <- roc_proc_text(rd_roclet(), "
+  out <- roc_proc_text(
+    rd_roclet(),
+    "
     #' foo1
     #' @family a
     foo1 <- function() {}
@@ -157,7 +221,8 @@ test_that("careful ordering", {
     #' foo
     #' @family a
     foo <- function() {}
-  ")
+  "
+  )
 
   expect_snapshot({
     out

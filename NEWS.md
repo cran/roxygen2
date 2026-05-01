@@ -1,3 +1,94 @@
+# roxygen2 8.0.0
+
+* roxygen2 now requires R 4.1 (#1632) and no longer depends on purrr, stringr, or stringi. As a result, no package in the devtools constellation depends on stringr, which means you no longer need stringi, making it a bit easier to install in constrained Linux environments.
+* All generated links now share the same style and code path. This will produce some minor differences when you re-document, but links will be more consistent overall (#1792).
+* roxygen2 options can now be set using `Config/roxygen2/` fields in `DESCRIPTION` (e.g. `Config/roxygen2/markdown: TRUE`) instead of the `Roxygen` field. The old `Roxygen` field is still supported. Similarly, the roxygen2 version is now stored in `Config/roxygen2/version` instead of `RoxygenNote` (#1328). roxygen2 will migrate this automatically the next time you document.
+* `needs_roxygenize()` provides a lightweight check that man pages are up-to-date by comparing modification times of `.Rd` files with their source files (#1411).
+* `roxygenize()` is no longer very slow when the package contains large non-function objects like datasets (#1720).
+* `vignette("rd-other")` has been split into individual vignettes: `vignette("rd-datasets")`, `vignette("rd-packages")`, `vignette("rd-S3")`, `vignette("rd-S4")`, and `vignette("rd-R6")`. `vignette("rd")` has been renamed to `vignette("rd-functions")`, and its basics section has been moved to `vignette("roxygen2")`.
+
+## Markdown improvements
+
+* `` `Rd expr` `` inline code now generates `\Sexpr[stage=render,results=rd]{expr}`, providing a convenient syntax for evaluating R code at documentation render time (#1214).
+* Indented bullet lists in `@param` and other two-part tags are no longer incorrectly nested (#1102).
+* Horizontal rules (e.g. `----`) now generate a clear warning instead of an internal error about an unknown `thematic_break` XML node (#1707).
+* Inline R code (`` `r expr` ``) in non-indented list continuation lines no longer causes an error (#1651).
+* Link text now supports non-code markup like bold and italic, e.g. `[*italic text*][func]` generates `\link[=func]{\emph{italic text}}`, matching the markup support added to `\link` in R 4.5.0.
+* Links now do a better job of resolving package names, and the process is cached for better performance (#1724); infix operators (e.g. `[%in%]`) can now be linked (#1728); custom link text is better preserved (#1662); and base packages are included when reporting ambiguous functions (#1725). Links to external packages now use the topic alias instead of the Rd file name as the anchor, which fixes "Non-topic package-anchored link(s)" notes from `R CMD check` (#1709).
+
+## Data/value docs
+
+* Documenting values (e.g. `x <- 1:10`) no longer adds `\docType{data}`, `\keyword{datasets}`, or a `\format{}` section (#1666). To document a dataset, use the approach introduced in 2013: place a roxygen block above a string that names the dataset (e.g. `"diamonds"`).
+* The automatic usage for a data object now includes `data()` when the package doesn't have `LazyData: true` in its `DESCRIPTION` (#1425).
+* `object_format()` now escapes braces in class names, fixing broken Rd output for data objects with class `{` (like `quote({})`) (#1744).
+
+## Package docs
+
+* DOIs containing percent-encoded characters (e.g. `%3C`) in `DESCRIPTION` no longer generate invalid Rd (#1321).
+* Multiple comments in the `comment` argument of `person()` in `Authors@R` are now handled correctly (#1746).
+* Multiple email addresses in `Authors@R` now generate separate `\email{}` tags (#1689).
+* People with both `"aut"` and `"cre"` roles are now listed in both the Maintainer and Authors sections (#1588).
+* Only values that look like URLs in the `URL` field of `DESCRIPTION` are wrapped in `\url{}` (#1420).
+* The package logo now prefers `logo.svg` over `logo.png` when both are available (#1640).
+
+## S3
+
+* `vignette("rd-S3")` now includes improved advice for documenting S3 generics, classes, and methods, including how to use the new [doclisting](https://doclisting.r-lib.org/) package to automatically list methods for a generic (#1513).
+* Methods of `all.equal()` (e.g. `all.equal.numeric`) are no longer incorrectly identified as methods of `all()` (#1587).
+* The warning about undocumented methods no longer errors when the function lacks a srcref, e.g. because a debugger breakpoint is set (#1589, #1710).
+* The warning about undocumented methods no longer incorrectly flags S4 methods of S3 generics as unexported (#1715).
+
+## R6 docs
+
+There are two new ways to document methods outside of the class definition. Methods added via `$set()` can now be documented with a roxygen block placed directly above the `$set()` call (#931). `@R6method Class$method` lets you document R6 methods anywhere, for cases where they are generated in a way that roxygen2 doesn't currently recognize (#991).
+
+You can also suppress documentation for individual fields and methods: `@noRd` before an R6 method suppresses its documentation, and `@field name NULL` suppresses documentation for a field or active binding (#1067).
+
+Classes now inherit more from their parents (#996):
+
+* Methods automatically inherit parameter documentation from overridden superclass methods.
+* Fields and active bindings inherit documentation from superclasses.
+
+There were also a large number of bug fixes and minor improvements:
+
+* Inherited method links now only link to parent classes that have documentation, preventing broken links to undocumented parents (#963, #1155).
+* R6 classes with only active bindings and `cloneable = FALSE` no longer error during documentation (#1610).
+* R6 method examples shown in method subsections now strip `\dontrun{}`, `\donttest{}`, and `\dontshow{}` wrappers, since these Rd macros are not interpreted inside `\preformatted{}` blocks (#1072).
+* The "Super classes" section now omits the `pkg::` prefix for parent classes from the same package, making the inheritance chain easier to read (#1567).
+* Method usage now shows `ClassName$new(args)` for constructors and `obj$method(args)` for other methods, making it clearer how each method is actually called (#1026).
+* `@description` and `@details` for R6 methods now support markdown headings (#1647).
+* `@example` (singular, with a file path) now works correctly in R6 class documentation (#1158).
+* `@field` with comma-separated names (e.g. `@field var_1,var_2 description`) no longer produces spurious warnings about undocumented active bindings or fields (#1600).
+* `@returns` now works as a method-level tag in R6 classes, just like `@return` (#1148).
+* `initialize()` method parameters now automatically inherit documentation from `@field` tags with the same name, so you don't need to duplicate descriptions. Explicit `@param` tags still take precedence (#1004).
+
+## S7 docs
+
+Added initial support for S7 classes, generics, and methods (#1484):
+
+* S7 generics are documented like regular functions.
+* S7 classes are documented like regular functions, but you can use `@prop` to document additional properties that are not constructor parameters. If multiple classes share one page, use `@prop ClassName@prop_name description` to group properties by class.
+* S7 methods registered with `method(generic, class) <- fn` are detected automatically and generate usage of the form `## S7 method for class <ClassName>`.
+
+See `vignette("rd-S7")` for best practices.
+
+## Individual tags
+
+* Tags that expect single-line input now warn when they span multiple lines, catching a common class of mistake. Affected tags: `@aliases`, `@concept`, `@encoding`, `@exportClass`, `@exportMethod`, `@exportPattern`, `@exportS3Method`, `@importFrom`, `@importClassesFrom`, `@importMethodsFrom`, `@include`, `@includeRmd`, `@inheritDotParams`, `@inheritParams`, `@inheritSection`, `@keywords`, `@method`, `@name`, `@order`, `@rdname`, `@S3method`, `@template`, and `@useDynLib` (#1642, #1688). This may break some existing usage, but it prevents a wide range of otherwise silent errors.
+* Reexported functions now display with `()` appended (e.g. `fun()` instead of `fun`) on the reexports page, except for infix operators like `%>%` (#1222). They also use the modern (>= 4.1.0) linking style.
+* `@description` no longer errors when the markdown text starts with a heading (#1705).
+* `@examples` no longer warns about unmatched braces inside raw strings, or inside strings within R comments, e.g. `# '{greeting}'` (#1492).
+* `@examplesIf` now warns if there is no example code after the condition (#1695).
+* `@family` tags no longer generate duplicate "See also" entries when multiple blocks share the same `@rdname` (#1530), and no longer add a trailing space after the colon in the default family prefix (#1628). Custom `rd_family_title` values now automatically get a colon appended if they don't already end with one (#1656).
+* `@inheritDotParams` generates an informative warning when the source function can't be found, instead of a cryptic error (#1602). It also warns and produces no output when there are no parameters to inherit, instead of generating an empty `\describe` block that causes HTML validation warnings (#1671).
+* `@inheritDotParams` now uses documented parameters rather than formals, so it works the same way as `@inheritParams` (#1840). This may introduce new false positives (replacing the old approach's false negatives), which you can prevent by explicitly listing the argument names to inherit.
+* `@inheritDotParams` now correctly matches parameters documented with a dot-prefixed alias (e.g. `.by, by`) whose formal argument lacks the dot (e.g. `by`), as is common in the tidyverse (#1826).
+* `@inheritParams` now supports argument filtering using the same syntax as `@inheritDotParams`. For example, `@inheritParams foo x y` inherits only `x` and `y`, and `@inheritParams foo -z` inherits everything except `z` (#1849).
+* `@inheritParams` now correctly inherits parameters that are documented together with `\dots` using comma-separated names, e.g. `@param b,\dots description` (#1718).
+* `@inheritParams` now correctly updates `\linkS4class{}` links when inheriting parameter documentation from other packages, converting them to absolute links (#1634).
+* `@param` (and other two-part tags) now correctly handles backtick-quoted names that contain spaces, e.g. `` @param `arg 1` description `` (#1696).
+* `tag_words_line()` is deprecated in favor of `tag_words()`, which now checks for single-line content by default. Use `tag_words(x, multiline = TRUE)` or `tag_value(x, multiline = TRUE)` if your tag legitimately spans multiple lines.
+
 # roxygen2 7.3.3
 
 * Package documentation now converts ROR IDs into a useful link (#1698, @maelle).
@@ -371,7 +462,7 @@
 
 * `@includeRmd {path.Rmd}` converts an `.Rmd`/`.md` file to `.Rd` and includes
   it in the manual page. This allows sharing text between vignettes,
-  `README.Rmd`, and the documentation. See `vignette("rd")` for details (#902).
+  `README.Rmd`, and the documentation. See `vignette("rd-functions")` for details (#902).
 
 * `@order {n}` tag controls the order in which blocks are processed. You can
   use it to override the usual ordering which proceeds from the top of
@@ -416,7 +507,7 @@
 
 ### R6
 
-roxygen2 can now document R6 classes (#922). See `vignette("rd")` for details.
+roxygen2 can now document R6 classes (#922). See `vignette("rd-R6")` for details.
 
 ### Markdown improvements
 
@@ -669,7 +760,7 @@ A big thanks goes to @mikldk for starting on the vignette and motivating me to m
 
 * `@inherits` can now inherit examples (#588).
 
-* `vignette("rd")` received a thorough updating for current best-practices.
+* `vignette("rd-functions")` received a thorough updating for current best-practices.
   The vignette still needs more work so pull requests are greatly appreciated
   (#650).
 

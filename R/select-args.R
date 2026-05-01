@@ -1,25 +1,27 @@
-select_args_text <- function(fun, select = "", topic) {
+select_args_text <- function(args, select, topic_name) {
+  check_character(args, allow_null = TRUE)
+  check_string(select)
+  check_string(topic_name)
+
   pieces <- strsplit(select, " +")[[1]]
 
   tryCatch(
     {
-      parsed <- lapply(pieces, function(x) parse(text = x)[[1]])
-      select_args(fun, parsed)
+      parsed <- lapply(pieces, \(x) parse(text = x)[[1]])
+      select_args(args, parsed)
     },
     error = function(e) {
-      warn_roxy_topic(topic$get_name(), "@inheritDotsParam failed", parent = e)
+      warn_roxy_topic(topic_name, "argument selection failed", parent = e)
       character()
     }
   )
 }
 
-# Figure out which arguments that the user wants given a function and
-# unevaluated list
-select_args <- function(fun, select = list()) {
-  stopifnot(is.function(fun))
+# Figure out which arguments that the user wants given a character vector of
+# arg names and an unevaluated list of selections
+select_args <- function(args, select = list()) {
   stopifnot(is.list(select))
 
-  args <- names(formals(fun))
   args <- args[args != "..."]
 
   if (length(select) == 0) {
@@ -52,16 +54,16 @@ select_args <- function(fun, select = list()) {
 select_check <- function(x, call) {
   if (!is.numeric(x)) {
     cli::cli_abort(c(
-      "Argument specification must evaluate to a numeric vector",
-      "Problem in {.code {deparse(call)}}"
+      "Argument specification must evaluate to a numeric vector.",
+      "Problem in {.code {deparse(call)}}."
     ))
   }
 
   if (!(all(x > 0) || all(x < 0))) {
     cli::cli_abort(
       c(
-        "Argument specification must be all positive or all negative, not a mixture",
-        i = "Problem in {.code {deparse(call)}}"
+        "Argument specification must be all positive or all negative, not a mixture.",
+        i = "Problem in {.code {deparse(call)}}."
       ),
       call = NULL
     )

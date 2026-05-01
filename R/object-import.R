@@ -1,43 +1,35 @@
 # Re-export ----------------------------------------------------------------
-rd_section_reexport <- function(pkg, fun, file) {
-  stopifnot(is.character(pkg), is.character(fun), is.character(file))
+rd_section_reexport <- function(pkg, fun) {
+  check_character(pkg)
+  check_character(fun)
   stopifnot(length(pkg) == length(fun))
 
-  rd_section("reexport", list(pkg = pkg, fun = fun, file = file))
+  rd_section("reexport", list(pkg = pkg, fun = fun))
 }
 
 #' @export
 roxy_tag_rd.roxy_tag_.reexport <- function(x, base_path, env) {
-  file <- find_topic_filename(x$val$pkg, x$val$fun, tag = x)
-  rd_section_reexport(x$val$pkg, x$val$fun, file)
+  rd_section_reexport(x$val$pkg, x$val$fun)
 }
 #' @export
 merge.rd_section_reexport <- function(x, y, ...) {
   stopifnot(identical(class(x), class(y)))
   rd_section_reexport(
     c(x$value$pkg, y$value$pkg),
-    c(x$value$fun, y$value$fun),
-    c(x$value$file, y$value$file)
+    c(x$value$fun, y$value$fun)
   )
 }
 #' @export
 format.rd_section_reexport <- function(x, ...) {
-
   info <- data.frame(
     pkg = x$value$pkg,
-    fun = x$value$fun,
-    file = x$value$file,
-    stringsAsFactors = FALSE
+    fun = x$value$fun
   )
 
   pkgs <- split(info, x$value$pkg)
   pkg_links <- map(pkgs, function(pkg) {
     pkg <- pkg[order(pkg$fun), ]
-    links <- paste0(
-      "\\code{\\link[", pkg$pkg,
-      ifelse(pkg$file == pkg$fun, "", paste0(":", pkg$file)),
-      "]{", escape(pkg$fun), "}}",
-      collapse = ", ")
+    links <- paste0(reexport_link(pkg$pkg, pkg$fun), collapse = ", ")
     paste0("\\item{", pkg$pkg[[1]], "}{", links, "}")
   })
 
@@ -50,4 +42,16 @@ format.rd_section_reexport <- function(x, ...) {
     paste0("  ", unlist(pkg_links), collapse = "\n\n"),
     "\n}}\n"
   )
+}
+
+reexport_link <- function(pkg, fun) {
+  env <- tryCatch(asNamespace(pkg), error = function(e) emptyenv())
+  map_chr(seq_along(fun), function(i) {
+    rd_link(
+      pkg[[i]],
+      escape(fun[[i]]),
+      escape(fun_suffix(fun[[i]], env)),
+      code = TRUE
+    )
+  })
 }

@@ -1,8 +1,8 @@
 #' @export
-roxy_tag_parse.roxy_tag_aliases <- function(x) tag_value(x)
+roxy_tag_parse.roxy_tag_aliases <- function(x) tag_words(x, min = 1)
 #' @export
 format.rd_section_alias <- function(x, ...) {
-  x$value <- str_replace_all(x$value, fixed("%"), "\\%")
+  x$value <- gsub("%", "\\%", x$value, fixed = TRUE)
   format_rd(x, ..., sort = FALSE)
 }
 
@@ -10,7 +10,7 @@ format.rd_section_alias <- function(x, ...) {
 roxy_tag_parse.roxy_tag_name <- function(x) tag_value(x)
 #' @export
 format.rd_section_name <- function(x, ...) {
-  x$value <- str_replace_all(x$value, fixed("%"), "\\%")
+  x$value <- gsub("%", "\\%", x$value, fixed = TRUE)
   format_first(x, ...)
 }
 
@@ -20,8 +20,7 @@ topic_add_name_aliases <- function(topic, block, name) {
   if (length(tags) == 0) {
     aliases <- character()
   } else {
-    vals <- map_chr(tags, "val")
-    aliases <- unlist(str_split(vals, "\\s+"))
+    aliases <- unlist(map(tags, \(x) x[["val"]]))
   }
 
   if (any(aliases == "NULL")) {

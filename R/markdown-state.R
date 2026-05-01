@@ -25,7 +25,7 @@ local_markdown <- function(env = parent.frame()) {
 markdown_activate <- function(tags) {
   ## markdown on/off based on global flag and presence of @md & @nomd
 
-  names <- purrr::map_chr(tags, "tag")
+  names <- map_chr(tags, \(x) x[["tag"]])
   has_md <- "md" %in% names
   has_nomd <- "noMd" %in% names
 
@@ -36,7 +36,9 @@ markdown_activate <- function(tags) {
     md <- FALSE
   } else {
     md <- roxy_meta_get("markdown", FALSE)
-    if (has_md) md <- TRUE
+    if (has_md) {
+      md <- TRUE
+    }
     if (has_nomd) md <- FALSE
   }
 

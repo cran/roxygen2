@@ -1,7 +1,7 @@
-## ----include = FALSE----------------------------------------------------------
+## -----------------------------------------------------------------------------
 knitr::opts_chunk$set(comment = "#>", collapse = TRUE)
 
-## ----setup--------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 library(roxygen2)
 
 ## -----------------------------------------------------------------------------
@@ -32,7 +32,7 @@ roxy_tag_parse.roxy_tag_tip <- function(x) {
   tag_markdown(x)
 }
 
-## ----include = FALSE----------------------------------------------------------
+## -----------------------------------------------------------------------------
 # Needed for vignette
 registerS3method("roxy_tag_parse", "roxy_tag_tip", roxy_tag_parse.roxy_tag_tip)
 
@@ -57,7 +57,7 @@ roxy_tag_rd.roxy_tag_tip <- function(x, base_path, env) {
   rd_section("tip", x$val)
 }
 
-## ----include = FALSE----------------------------------------------------------
+## -----------------------------------------------------------------------------
 # Needed for vignette
 registerS3method("roxy_tag_rd", "roxy_tag_tip", roxy_tag_rd.roxy_tag_tip)
 
@@ -72,7 +72,7 @@ format.rd_section_tip <- function(x, ...) {
   )
 }
 
-## ----include = FALSE----------------------------------------------------------
+## -----------------------------------------------------------------------------
 # Needed for vignette
 registerS3method("format", "rd_section_tip", format.rd_section_tip)
 
@@ -81,24 +81,34 @@ topic <- roc_proc_text(rd_roclet(), text)[[1]]
 topic$get_section("tip")
 
 ## -----------------------------------------------------------------------------
+#' @memo [Headline] Description
+
+## -----------------------------------------------------------------------------
+#' @memo [EFFICIENCY] Currently brute-force; find better algorithm.
+
+## -----------------------------------------------------------------------------
 roxy_tag_parse.roxy_tag_memo <- function(x) {
   if (!grepl("^\\[.*\\].*$", x$raw)) {
     roxy_tag_warning(x, "Invalid memo format")
     return()
   }
 
-  parsed <- stringi::stri_match(str = x$raw, regex = "\\[(.*)\\](.*)")[1, ]
+  parsed <- regmatches(x$raw, regexec("\\[(.*)\\](.*)", x$raw))[[1]]
 
   x$val <- list(
-    header = parsed[[2]], 
+    header = parsed[[2]],
     message = parsed[[3]]
   )
   x
 }
 
-## ----include = FALSE----------------------------------------------------------
+## -----------------------------------------------------------------------------
 # Needed for vignette
-registerS3method("roxy_tag_parse", "roxy_tag_memo", roxy_tag_parse.roxy_tag_memo)
+registerS3method(
+  "roxy_tag_parse",
+  "roxy_tag_memo",
+  roxy_tag_parse.roxy_tag_memo
+)
 
 ## -----------------------------------------------------------------------------
 text <- "
@@ -121,7 +131,7 @@ memo_roclet <- function() {
 ## -----------------------------------------------------------------------------
 roclet_process.roclet_memo <- function(x, blocks, env, base_path) {
   results <- list()
-  
+
   for (block in blocks) {
     tags <- block_get_tags(block, "memo")
 
@@ -130,7 +140,7 @@ roclet_process.roclet_memo <- function(x, blocks, env, base_path) {
       results[[tag$val$header]] <- c(results[[tag$val$header]], msg)
     }
   }
-  
+
   results
 }
 
@@ -145,13 +155,15 @@ roclet_output.roclet_memo <- function(x, results, base_path, ...) {
   invisible(NULL)
 }
 
-## ----include = FALSE----------------------------------------------------------
+## -----------------------------------------------------------------------------
 # Needed for vignette
 registerS3method("roclet_process", "roclet_memo", roclet_process.roclet_memo)
 registerS3method("roclet_output", "roclet_memo", roclet_output.roclet_memo)
 
 ## -----------------------------------------------------------------------------
-results <- roc_proc_text(memo_roclet(), "
+results <- roc_proc_text(
+  memo_roclet(),
+  "
 #' @memo [TBI] Remember to implement this!
 #' @memo [API] Check best API
 f <- function(x, y) {
@@ -162,6 +174,7 @@ f <- function(x, y) {
 g <- function(x, y) {
   # ...
 }
-")
+"
+)
 roclet_output(memo_roclet(), results)
 

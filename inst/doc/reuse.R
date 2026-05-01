@@ -1,4 +1,4 @@
-## ----include = FALSE----------------------------------------------------------
+## -----------------------------------------------------------------------------
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
@@ -23,19 +23,19 @@ cos_ish <- function(x) 1 - x^2 / 2
 tan_ish <- function(x) x + x^3 / 3
 
 ## -----------------------------------------------------------------------------
-#' Logarithms
-#' 
-#' @param x A numeric vector
-#' @export
-log <- function(x, base) ...
-
-#' @rdname log
-#' @export
-log2 <- function(x) log(x, 2)
-
-#' @rdname log
-#' @export
-ln <- function(x) log(x, exp(1))
+# #' Logarithms
+# #'
+# #' @param x A numeric vector
+# #' @export
+# log <- function(x, base) ...
+# 
+# #' @rdname log
+# #' @export
+# log2 <- function(x) log(x, 2)
+# 
+# #' @rdname log
+# #' @export
+# ln <- function(x) log(x, exp(1))
 
 ## -----------------------------------------------------------------------------
 #' @rdname arith
@@ -81,7 +81,7 @@ mutate <- function(.data, ...) {}
 #'   lazy data frames (e.g. from dbplyr or dtplyr). See *Methods*, below, for
 #'   more details.
 
-## ----include = FALSE----------------------------------------------------------
+## -----------------------------------------------------------------------------
 roxygen2:::markdown_on()
 
 simple_inline <- "#' Title `r 1 + 1`
@@ -97,7 +97,7 @@ foo <- function() NULL
 foo <- function() NULL
 
 
-## ----code = roxygen2:::markdown(simple_inline)--------------------------------
+## ----code=roxygen2:::markdown(simple_inline)----------------------------------
 #' Title 2
 #'
 #' Description 4
@@ -108,7 +108,7 @@ alphabet <- function(n) {
   paste0("`", letters[1:n], "`", collapse = ", ")
 }
 
-## ----echo=FALSE---------------------------------------------------------------
+## -----------------------------------------------------------------------------
 env <- new.env()
 env$alphabet <- alphabet
 roxygen2:::roxy_meta_set("evalenv", env)
@@ -119,17 +119,33 @@ backtick <- "#' Title
 foo <- function(x) NULL
 "
 
-## ----code = backtick----------------------------------------------------------
+## ----code=backtick------------------------------------------------------------
 #' Title
 #' 
 #' @param x A string. Must be one of `r alphabet(5)`
 foo <- function(x) NULL
 
 
-## ----code = roxygen2:::markdown_pass1(backtick)-------------------------------
+## ----code=roxygen2:::markdown_evaluate(backtick)------------------------------
 #' Title
 #' 
 #' @param x A string. Must be one of `a`, `b`, `c`, `d`, `e`
 foo <- function(x) NULL
 
+
+## -----------------------------------------------------------------------------
+# greeting <- function() {
+#   hour <- as.POSIXlt(Sys.time(), tz = "UTC")$hour
+#   if (hour < 12) {
+#     "Good morning!"
+#   } else if (hour < 18) {
+#     "Good afternoon!"
+#   } else {
+#     "Good evening!"
+#   }
+# }
+# #' Title
+# #'
+# #' `Rd roxygen2:::greeting()`
+# foo <- function() NULL
 

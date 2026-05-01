@@ -11,15 +11,18 @@ roxy_tag_rd.roxy_tag_backref <- function(x, base_path, env) {
 #' @export
 format.rd_section_backref <- function(x, ...) {
   filename <- unique(x$value)
-  filename <- file.path(basename(dirname(filename)), basename(filename), fsep = "/")
+  filename <- file.path(
+    basename(dirname(filename)),
+    basename(filename),
+    fsep = "/"
+  )
 
-  lines <- stringi::stri_wrap(
+  lines <- strwrap(
     paste0("Please edit documentation in ", paste(filename, collapse = ", ")),
     initial = "% ",
     prefix = "%   ",
-    width = 80,
-    whitespace_only = TRUE
+    width = 80
   )
 
-  paste0(paste0(lines, collapse = "\n"))
+  paste0(lines, collapse = "\n")
 }

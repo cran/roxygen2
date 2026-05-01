@@ -11,19 +11,22 @@ roxy_meta_get(key = NULL, default = NULL)
 }
 \arguments{
 \item{base_path}{Path to package.}
+
+\item{key}{Key of the options, e.g. \code{"packages"}.}
+
+\item{default}{Default value.}
 }
 \description{
-Options can be stored in the \code{Roxygen} field of the \code{DESCRIPTION}, or
-in \code{man/roxygen/meta.R}. In either case, the code is parsed and evaluated
-in a child of the base environment. Call \code{roxy_meta_get()} to access
-current option values from within tag and roclet methods.
+Options can be stored in \code{DESCRIPTION} using \verb{Config/roxygen2/} fields,
+or in \code{man/roxygen/meta.R}. Call \code{roxy_meta_get()} to access current
+option values from within tag and roclet methods.
 
 Options in \code{man/roxygen/meta.R} override those present in \code{DESCRIPTION}.
 }
 \section{Possible options}{
 
 \itemize{
-\item \code{roclets} \verb{<character>}: giving names of roclets to run. See
+\item \code{roclets} \verb{<character>}: giving names of \link[=roclet]{roclets} to run. See
 \code{\link[=roclet_find]{roclet_find()}} for details.
 \item \code{packages} \verb{<character>}: packages to load that implement new tags.
 \item \code{load} \verb{<string>}: how to load R code. See \link{load} for details.
@@ -32,7 +35,7 @@ Options in \code{man/roxygen/meta.R} override those present in \code{DESCRIPTION
 \item \code{r6} \verb{<flag>}: document R6 classes?
 \item \code{current_package} \verb{<string>} (read only): name of package being documented.
 \item \code{rd_family_title} \verb{<list>}: overrides for \verb{@family} titles. See the
-\emph{rd} vignette for details: \code{vignette("rd", package = "roxygen2")}
+\emph{rd-functions} vignette for details: \code{vignette("rd-functions")}
 \item \code{knitr_chunk_options} \verb{<list>}: default chunk options used for knitr.
 \item \code{restrict_image_formats} \verb{<flag>}: if \code{TRUE} then PDF images are only
 included in the PDF manual, and SVG images are only included in the HTML
@@ -42,18 +45,32 @@ manual. (This only applies to images supplied via markdown.)
 
 \section{How to set}{
 
-Either set in \code{DESCRIPTION}:
+Either set in \code{DESCRIPTION} using \verb{Config/roxygen2/} fields:
 
-\if{html}{\out{<div class="sourceCode">}}\preformatted{Roxygen: list(markdown = TRUE, load = "installed")
+\if{html}{\out{<div class="sourceCode">}}\preformatted{Config/roxygen2/markdown: TRUE
+Config/roxygen2/load: installed
 }\if{html}{\out{</div>}}
 
-Or if longer, you can put in \verb{/man/roxygen/meta.R}:
+Or if you need more complex options (like \code{rd_family_title} or
+\code{knitr_chunk_options}), put them in \code{man/roxygen/meta.R}:
 
 \if{html}{\out{<div class="sourceCode">}}\preformatted{list(
-  markdown = TRUE,
-  load = "installed"
+  rd_family_title = list(models = "Model functions"),
+  knitr_chunk_options = list(fig.width = 7)
 )
 }\if{html}{\out{</div>}}
 }
 
-\keyword{internal}
+\seealso{
+Other extending:
+\code{\link[=parse_package]{parse_package()}},
+\code{\link[=rd_section]{rd_section()}},
+\code{\link[=roc_proc_text]{roc_proc_text()}},
+\code{\link[=roclet_find]{roclet_find()}},
+\code{\link[=roxy_block]{roxy_block()}},
+\code{\link[=roxy_tag]{roxy_tag()}},
+\code{\link[=roxy_tag_rd]{roxy_tag_rd()}},
+\code{\link{tag_parsers}},
+\code{\link[=tags_list]{tags_list()}}
+}
+\concept{extending}

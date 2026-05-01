@@ -1,7 +1,7 @@
 markdown <- function(text, tag = NULL, sections = FALSE) {
   tag <- tag %||% list(file = NA, line = NA)
   expanded_text <- tryCatch(
-    markdown_pass1(text),
+    markdown_evaluate(text),
     error = function(e) {
       warn_roxy_tag(tag, "failed to evaluate inline markdown code", parent = e)
       text
@@ -16,8 +16,6 @@ markdown <- function(text, tag = NULL, sections = FALSE) {
     }
   )
 }
-
-mddata <- new.env(parent = emptyenv())
 
 #' Expand the embedded inline code
 #'
@@ -70,16 +68,17 @@ mddata <- new.env(parent = emptyenv())
 #' @keywords internal
 
 markdown_pass1 <- function(text) {
-  rm(list = ls(envir = mddata), envir = mddata)
   text <- paste(text, collapse = "\n")
   mdxml <- xml_ns_strip(md_to_mdxml(text, sourcepos = TRUE))
   code_nodes <- xml_find_all(mdxml, ".//code | .//code_block")
   rcode_nodes <- keep(code_nodes, is_markdown_code_node)
-  if (length(rcode_nodes) == 0) return(text)
+  if (length(rcode_nodes) == 0) {
+    return(text)
+  }
   rcode_pos <- parse_md_pos(map_chr(rcode_nodes, xml_attr, "sourcepos"))
   rcode_pos <- work_around_cmark_sourcepos_bug(text, rcode_pos)
   out <- eval_code_nodes(rcode_nodes)
-  str_set_all_pos(text, rcode_pos, out, rcode_nodes)
+  re_set_all_pos(text, rcode_pos, out, rcode_nodes)
 }
 
 # Work around commonmark sourcepos bug for inline R code
@@ -89,16 +88,20 @@ work_around_cmark_sourcepos_bug <- function(text, rcode_pos) {
     return(rcode_pos)
   }
 
-  lines <- str_split(text, fixed("\n"))[[1]]
+  lines <- strsplit(text, "\n", fixed = TRUE)[[1]]
 
   for (l in seq_len(nrow(rcode_pos))) {
     # Do not try to fix multi-line code, we error for that (below)
-    if (rcode_pos$start_line[l] != rcode_pos$end_line[l]) next
+    if (rcode_pos$start_line[l] != rcode_pos$end_line[l]) {
+      next
+    }
     line <- lines[rcode_pos$start_line[l]]
     start <- rcode_pos$start_column[l]
 
     # Maybe correct? At some point this will be fixed upstream, hopefully.
-    if (str_sub(line, start - 1, start + 1) == "`r ") next
+    if (substr(line, start - 1, start + 1) == "`r ") {
+      next
+    }
 
     # Maybe indented and we can shift it?
     # It is possible that the shift that we try accidentally matches
@@ -108,8 +111,12 @@ work_around_cmark_sourcepos_bug <- function(text, rcode_pos) {
     # the real "`r " left by six characters, there happens to be another
     # "`r " there.
 
-    indent <- nchar(str_extract(line, "^[ ]+"))
-    if (str_sub(line, start - 1 + indent, start + 1 + indent) == "`r ") {
+    m <- regexpr("^[ ]+", line)
+    indent <- attr(m, "match.length")
+    if (
+      m > 0L &&
+        substr(line, start - 1 + indent, start + 1 + indent) == "`r "
+    ) {
       rcode_pos$start_column[l] <- rcode_pos$start_column[l] + indent
       rcode_pos$end_column[l] <- rcode_pos$end_column[l] + indent
     }
@@ -120,24 +127,26 @@ work_around_cmark_sourcepos_bug <- function(text, rcode_pos) {
 
 is_markdown_code_node <- function(x) {
   info <- xml_attr(x, "info")
-  str_sub(xml_text(x), 1, 2) == "r " ||
+  substr(xml_text(x), 1, 2) == "r " ||
     (!is.na(info) && grepl("^[{][a-zA-z]+[}, ]", info))
 }
 
 parse_md_pos <- function(text) {
   nums <- map(strsplit(text, "[:-]"), as.integer)
   data.frame(
-    start_line = map_int(nums, 1),
-    start_column = map_int(nums, 2),
-    end_line = map_int(nums, 3),
-    end_column = map_int(nums, 4)
+    start_line = map_int(nums, \(x) x[[1]]),
+    start_column = map_int(nums, \(x) x[[2]]),
+    end_line = map_int(nums, \(x) x[[3]]),
+    end_column = map_int(nums, \(x) x[[4]])
   )
 }
 
 eval_code_nodes <- function(nodes) {
   evalenv <- roxy_meta_get("evalenv")
   # This should only happen in our test cases
-  if (is.null(evalenv)) evalenv <- new.env(parent = baseenv())
+  if (is.null(evalenv)) {
+    evalenv <- new.env(parent = baseenv())
+  }
 
   map_chr(nodes, eval_code_node, env = evalenv)
 }
@@ -170,18 +179,18 @@ knitr_chunk_defaults <- function() {
   )
 }
 
-str_set_all_pos <- function(text, pos, value, nodes) {
+re_set_all_pos <- function(text, pos, value, nodes) {
   # Cmark has a bug when reporting source positions for multi-line
   # code tags, and it does not count the indenting space in the
   # continuation lines: https://github.com/commonmark/cmark/issues/296
   types <- xml_name(nodes)
   if (any(types == "code" & pos$start_line != pos$end_line)) {
-    cli::cli_abort("multi-line `r ` markup is not supported", call = NULL)
+    cli::cli_abort("Multi-line `r ` markup is not supported.", call = NULL)
   }
 
   # Need to split the string, because of the potential multi-line
   # code tags, and then also recode the positions
-  lens <- nchar(str_split(text, fixed("\n"))[[1]])
+  lens <- nchar(strsplit(text, "\n", fixed = TRUE)[[1]])
   shifts <- c(0, cumsum(lens + 1L))
   shifts <- shifts[-length(shifts)]
   start <- shifts[pos$start_line] + pos$start_column
@@ -214,7 +223,12 @@ markdown_pass2 <- function(text, tag = NULL, sections = FALSE) {
 }
 
 md_to_mdxml <- function(x, ...) {
-  md <- commonmark::markdown_xml(x, hardbreaks = TRUE, extensions = "table", ...)
+  md <- commonmark::markdown_xml(
+    x,
+    hardbreaks = TRUE,
+    extensions = "table",
+    ...
+  )
   xml2::read_xml(md)
 }
 
@@ -222,11 +236,13 @@ mdxml_children_to_rd_top <- function(xml, state) {
   state$section_tag <- uuid()
   out <- map_chr(xml_children(xml), mdxml_node_to_rd, state)
   out <- c(out, mdxml_close_sections(state))
-  rd <- str_trim(paste0(out, collapse = ""))
+  rd <- trimws(paste0(out, collapse = ""))
   if (state$has_sections) {
     secs <- strsplit(rd, state$section_tag, fixed = TRUE)[[1]] %||% ""
     titles <- c("", state$titles)
-    rd <- structure(str_trim(secs), names = titles)
+    # strsplit drops trailing empty strings, so pad to match titles length
+    secs <- c(secs, rep("", length(titles) - length(secs)))
+    rd <- structure(trimws(secs), names = titles)
   }
   rd
 }
@@ -237,23 +253,33 @@ mdxml_children_to_rd <- function(xml, state) {
 }
 
 mdxml_node_to_rd <- function(xml, state) {
-  if (!inherits(xml, "xml_node") ||
-      ! xml_type(xml) %in% c("text", "element")) {
-    warn_roxy_tag(state$tag, c(
-      "markdown translation failed",
-      x = "Unexpected internal error",
-      i = "Please file an issue at https://github.com/r-lib/roxygen2/issues"
-    ))
+  if (
+    !inherits(xml, "xml_node") ||
+      !xml_type(xml) %in% c("text", "element")
+  ) {
+    warn_roxy_tag(
+      state$tag,
+      c(
+        "markdown translation failed",
+        x = "Unexpected internal error",
+        i = "Please file an issue at https://github.com/r-lib/roxygen2/issues"
+      )
+    )
     return("")
   }
 
-  switch(xml_name(xml),
+  switch(
+    xml_name(xml),
     html = ,
     document = ,
     unknown = mdxml_children_to_rd(xml, state),
 
     paragraph = paste0("\n\n", mdxml_children_to_rd(xml, state)),
-    text = if (is_true(state$in_link_code)) escape_verb(xml_text(xml)) else escape_comment(xml_text(xml)),
+    text = if (is_true(state$in_link_code)) {
+      escape_verb(xml_text(xml))
+    } else {
+      escape_comment(xml_text(xml))
+    },
     emph = paste0("\\emph{", mdxml_children_to_rd(xml, state), "}"),
     strong = paste0("\\strong{", mdxml_children_to_rd(xml, state), "}"),
     softbreak = mdxml_break(state),
@@ -275,24 +301,30 @@ mdxml_node_to_rd <- function(xml, state) {
 
     # Not supported
     block_quote = mdxml_unsupported(xml, state$tag, "block quotes"),
-    hrule = mdxml_unsupported(xml, state$tag, "horizontal rules"),
+    thematic_break = mdxml_unsupported(xml, state$tag, "horizontal rules"),
     mdxml_unknown(xml, state$tag)
   )
 }
 
 mdxml_unknown <- function(xml, tag) {
-  warn_roxy_tag(tag, c(
-    "markdown translation failed",
-    x = "Internal error: unknown xml node {xml_name(xml)}",
-    i = "Please file an issue at https://github.com/r-lib/roxygen2/issues"
-  ))
+  warn_roxy_tag(
+    tag,
+    c(
+      "markdown translation failed",
+      x = "Internal error: unknown xml node {xml_name(xml)}",
+      i = "Please file an issue at https://github.com/r-lib/roxygen2/issues"
+    )
+  )
   escape_comment(xml_text(xml))
 }
 mdxml_unsupported <- function(xml, tag, feature) {
-  warn_roxy_tag(tag, c(
-    "markdown translation failed",
-    x = "{feature} are not currently supported"
-  ))
+  warn_roxy_tag(
+    tag,
+    c(
+      "markdown translation failed",
+      x = "{feature} are not currently supported"
+    )
+  )
   escape_comment(xml_text(xml))
 }
 
@@ -303,9 +335,15 @@ mdxml_break <- function(state) {
 mdxml_code <- function(xml, tag) {
   code <- xml_text(xml)
 
-  # See escaping details at
-  # https://cran.rstudio.com/doc/manuals/r-devel/R-exts.html#Insertions
-  if (can_parse(code) || code %in% special) {
+  if (grepl("^Rd ", code)) {
+    paste0(
+      "\\Sexpr[stage=render,results=rd]{",
+      substr(code, 4, nchar(code)),
+      "}"
+    )
+  } else if (can_parse(code) || code %in% special) {
+    # See escaping details at
+    # https://cran.rstudio.com/doc/manuals/r-devel/R-exts.html#Insertions
     paste0("\\code{", gsub("%", "\\\\%", code), "}")
   } else {
     paste0("\\verb{", escape_verb(code), "}")
@@ -313,19 +351,54 @@ mdxml_code <- function(xml, tag) {
 }
 
 special <- c(
-  "-", ":", "::", ":::", "!", "!=", "(", "[", "[[", "@",
-  "*", "/", "&", "&&", "%*%", "%/%", "%%", "%in%", "%o%", "%x%",
-  "^", "+", "<", "<=", "=", "==", ">", ">=", "|", "||", "~", "$",
-  "for", "function", "if", "repeat", "while"
+  "-",
+  ":",
+  "::",
+  ":::",
+  "!",
+  "!=",
+  "(",
+  "[",
+  "[[",
+  "@",
+  "*",
+  "/",
+  "&",
+  "&&",
+  "%*%",
+  "%/%",
+  "%%",
+  "%in%",
+  "%o%",
+  "%x%",
+  "^",
+  "+",
+  "<",
+  "<=",
+  "=",
+  "==",
+  ">",
+  ">=",
+  "|",
+  "||",
+  "~",
+  "$",
+  "for",
+  "function",
+  "if",
+  "repeat",
+  "while"
 )
 
 mdxml_code_block <- function(xml, state) {
   info <- xml_attr(xml, "info", default = "")[1]
-  if (nchar(info[1]) == 0) info <- NA_character_
+  if (nchar(info[1]) == 0) {
+    info <- NA_character_
+  }
   paste0(
     "\n\n",
     "\\if{html}{\\out{<div class=\"sourceCode",
-      if (!is.na(info)) paste0(" ", info),
+    if (!is.na(info)) paste0(" ", info),
     "\">}}",
     "\\preformatted{",
     escape_verb(xml_text(xml)),
@@ -335,10 +408,13 @@ mdxml_code_block <- function(xml, state) {
 }
 
 can_parse <- function(x) {
-  tryCatch({
-    parse_expr(x)
-    TRUE
-  }, error = function(x) FALSE)
+  tryCatch(
+    {
+      parse_expr(x)
+      TRUE
+    },
+    error = function(x) FALSE
+  )
 }
 
 escape_verb <- function(x) {
@@ -356,12 +432,16 @@ mdxml_table <- function(xml, state) {
   rows <- xml_find_all(xml, "d1:table_row|d1:table_header")
   cells <- map(rows, xml_find_all, "d1:table_cell")
 
-  cells_rd <- map(cells, ~ map(.x, mdxml_children_to_rd, state = state))
+  cells_rd <- map(cells, \(x) map(x, mdxml_children_to_rd, state = state))
   rows_rd <- map_chr(cells_rd, paste0, collapse = " \\tab ")
 
-  paste0("\\tabular{", paste(align, collapse = ""), "}{\n",
+  paste0(
+    "\\tabular{",
+    paste(align, collapse = ""),
+    "}{\n",
     paste("  ", rows_rd, "\\cr\n", collapse = ""),
-  "}\n")
+    "}\n"
+  )
 }
 
 # A list, either bulleted or numbered
@@ -399,13 +479,13 @@ mdxml_link <- function(xml, state) {
   link <- parse_link(dest, contents, state)
 
   if (!is.null(link)) {
-    paste0(link, collapse = "")
+    link
   } else if (dest == "" || dest == xml_text(xml)) {
     paste0("\\url{", escape_comment(xml_text(xml)), "}")
   } else {
-    paste0(
-      "\\href{", escape_comment(dest), "}",
-      "{", mdxml_link_text(contents, state), "}"
+    paste_c(
+      c("\\href{", escape_comment(dest), "}"),
+      c("{", mdxml_link_text(contents, state), "}")
     )
   }
 }
@@ -429,7 +509,9 @@ mdxml_image <- function(xml) {
   paste0(
     if (fmt == "html") "\\if{html}{",
     if (fmt == "pdf") "\\if{pdf}{",
-    "\\figure{", dest, "}",
+    "\\figure{",
+    dest,
+    "}",
     if (nchar(title)) paste0("{", title, "}"),
     if (fmt %in% c("html", "pdf")) "}"
   )
@@ -469,12 +551,15 @@ escape_comment <- function(x) {
 
 mdxml_heading <- function(xml, state) {
   level <- xml_attr(xml, "level")
-  if (! state$has_sections && level == 1) {
-    warn_roxy_tag(state$tag, c(
-      "markdown translation failed",
-      x = "Level 1 headings are not supported in @{state$tag$tag}",
-      i = "Do you want to put the heading in @description or @details?"
-    ))
+  if (!state$has_sections && level == 1) {
+    warn_roxy_tag(
+      state$tag,
+      c(
+        "markdown translation failed",
+        x = "Level 1 headings are not supported in @{state$tag$tag}",
+        i = "Do you want to put the heading in @description or @details?"
+      )
+    )
     return(escape_comment(xml_text(xml)))
   }
 

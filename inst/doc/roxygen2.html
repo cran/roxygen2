@@ -365,26 +365,29 @@ details.</p></li>
 <p>As well as generating <code>.Rd</code> files, roxygen will also
 create a <code>NAMESPACE</code> for you, and will manage the
 <code>Collate</code> field in <code>DESCRIPTION</code>.</p>
-<div id="learn-more" class="section level2">
-<h2>Learn more</h2>
-<p>This vignette provides a high-level description of roxygen2 and the
-overall workflow you’ll use with it. The other vignettes provide more
-detail on the most important individual components:</p>
-<ul>
-<li><p>Start with <code>vignette(&quot;rd&quot;)</code> to learn how document your
-functions with roxygen2.</p></li>
-<li><p><code>vignette(&quot;rd-other&quot;)</code> discusses how to document other
-things like datasets, the package itself, and the various pieces used by
-R’s OOP systems.</p></li>
-<li><p><code>vignette(&quot;rd-formatting&quot;)</code> gives the details of
-roxygen2’s rmarkdown support.</p></li>
-<li><p><code>vignette(&quot;reuse&quot;)</code> demonstrates the tools available
-to reuse documentation in multiple places.</p></li>
-<li><p><code>vignette(&quot;namespace&quot;)</code> describes how to generate a
-<code>NAMESPACE</code> file, how namespacing works in R, and how you can
-use roxygen2 to be specific about what your package needs and
-supplies.</p></li>
-</ul>
+<div id="basics" class="section level2">
+<h2>Basics</h2>
+<p>A roxygen <strong>block</strong> is a sequence of lines starting with
+<code>#&#39;</code> (optionally preceded by white space).</p>
+<p>The first lines of the block is called the
+<strong>introduction</strong> and forms the title, description, and
+details, as described below. The introduction continues until the first
+<strong>tag</strong>.</p>
+<p>Tags start with <code>@</code>, like <code>@details</code> or
+<code>@param</code>. Tags must appear at the beginning of a line and
+their content extends to the start of the next tag or the end of the
+block. Text within the description or tags can be formatted using
+Markdown or <code>Rd</code> commands; see
+<code>vignette(&quot;rd-formatting&quot;)</code> for details.</p>
+<p>A block ends when it hits R code, usually a function or object
+assignment. Blocks ignore empty lines, including lines made up of
+non-roxygen comments. If you need to separate two blocks, use
+<code>NULL</code>.</p>
+<p>If you want to use roxygen2 documentation tags without generating an
+<code>.Rd</code> file, you can use <code>@noRd</code> to suppress file
+generation for a given topic. This is useful if you want to use roxygen2
+conventions for documenting an internal function; only people reading
+the source doc will be able to read the docs.</p>
 </div>
 <div id="running-roxygen" class="section level2">
 <h2>Running roxygen</h2>
@@ -392,13 +395,15 @@ supplies.</p></li>
 <ul>
 <li><p><code>roxygen2::roxygenise()</code>.</p></li>
 <li><p><code>devtools::document()</code>.</p></li>
-<li><p><code>Ctrl + Shift + D</code>, if you’re using RStudio.</p></li>
+<li><p><code>Ctrl + Shift + D</code>, if you’re using RStudio or
+Positron (with <a href="https://positron.posit.co/migrate-rstudio-keybindings.html">RStudio
+keybindings</a> enabled).</p></li>
 </ul>
 <p>You can mix handwritten Rd and roxygen2; roxygen2 will never
 overwrite a file it didn’t create.</p>
 </div>
-<div id="basic-process" class="section level2">
-<h2>Basic process</h2>
+<div id="basic-process-human-readable-documentation" class="section level2">
+<h2>Basic process: human readable documentation</h2>
 <p>There are three steps in the transformation from roxygen comments in
 your source file to human readable documentation:</p>
 <ol style="list-style-type: decimal">
@@ -416,12 +421,13 @@ can continue to use regular comments for other purposes.</p>
 <span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="co">#&#39; @param x A number.</span></span>
 <span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="co">#&#39; @param y A number.</span></span>
 <span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a><span class="co">#&#39; @return A number.</span></span>
-<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a><span class="co">#&#39; @examples</span></span>
-<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a><span class="co">#&#39; add(1, 1)</span></span>
-<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a><span class="co">#&#39; add(10, 1)</span></span>
-<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a>add <span class="ot">&lt;-</span> <span class="cf">function</span>(x, y) {</span>
-<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a>  x <span class="sc">+</span> y</span>
-<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a>}</span></code></pre></div>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a><span class="co">#&#39; @export</span></span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a><span class="co">#&#39; @examples</span></span>
+<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a><span class="co">#&#39; add(1, 1)</span></span>
+<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a><span class="co">#&#39; add(10, 1)</span></span>
+<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a>add <span class="ot">&lt;-</span> <span class="cf">function</span>(x, y) {</span>
+<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a>  x <span class="sc">+</span> y</span>
+<span id="cb1-12"><a href="#cb1-12" tabindex="-1"></a>}</span></code></pre></div>
 <p>For the example above, this will generate <code>man/add.Rd</code>
 that looks like:</p>
 <pre class="rd"><code>% Generated by roxygen2: do not edit by hand
@@ -462,6 +468,38 @@ development, because you want to use the <code>.Rd</code> files in the
 roxygen2 in conjunction with devtools: <code>devtools::load_all()</code>
 automatically adds shims so that <code>?</code> and friends will look in
 the development package.</p>
+</div>
+<div id="basic-process-making-functions-available-to-users" class="section level2">
+<h2>Basic process: making functions available to users</h2>
+<p>The example above, that includes an <code>@export</code> tag to
+indicate the <code>add()</code> function should be part of the interface
+of the package available to users, would also be converted by
+<code>roxygenize()</code> into a line in the <code>NAMESPACE</code>
+file:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode txt"><code class="sourceCode default"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>export(add)</span></code></pre></div>
+</div>
+<div id="learn-more" class="section level2">
+<h2>Learn more</h2>
+<p>The other vignettes provide more detail on the most important
+individual components:</p>
+<ul>
+<li><p><code>vignette(&quot;rd-functions&quot;)</code> describes how to document
+your functions with roxygen2.</p></li>
+<li><p><code>vignette(&quot;rd-datasets&quot;)</code> and
+<code>vignette(&quot;rd-packages&quot;)</code> cover documenting datasets and the
+package itself.</p></li>
+<li><p><code>vignette(&quot;rd-S3&quot;)</code>, <code>vignette(&quot;rd-S4&quot;)</code>,
+<code>vignette(&quot;rd-R6&quot;)</code>, and <code>vignette(&quot;rd-S7&quot;)</code>
+discuss documenting the various OOP systems.</p></li>
+<li><p><code>vignette(&quot;rd-formatting&quot;)</code> gives the details of
+roxygen2’s rmarkdown support.</p></li>
+<li><p><code>vignette(&quot;reuse&quot;)</code> demonstrates the tools available
+to reuse documentation in multiple places.</p></li>
+<li><p><code>vignette(&quot;namespace&quot;)</code> describes how to generate a
+<code>NAMESPACE</code> file, how namespacing works in R, and how you can
+use roxygen2 to be specific about what your package needs and
+supplies.</p></li>
+</ul>
 </div>
 
 

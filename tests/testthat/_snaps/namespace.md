@@ -1,9 +1,19 @@
+# parsing warnings only fire once
+
+    Code
+      roxygenise(path)
+    Message
+      Writing 'NAMESPACE'
+      i Loading testNamespace
+      x multiline.R:1: @importFrom must be only 1 line long, not 2.
+      i The first line is "stats median"
+
 # @exportS3Method generates fully automatically
 
     Code
       . <- roc_proc_text(namespace_roclet(), block)
     Message
-      x <text>:2: @exportS3Method must be used with an known S3 method.
+      x <text>:2: @exportS3Method must be used with a known S3 method.
 
 # @exportS3Method can extract class from generic
 
@@ -32,6 +42,14 @@
       . <- roc_proc_text(namespace_roclet(), block)
     Message
       x <text>:2: @importFrom must have at least 2 words, not 1.
+
+# multiline importFrom generates warning
+
+    Code
+      . <- roc_proc_text(namespace_roclet(), block)
+    Message
+      x <text>:2: @importFrom must be only 1 line long, not 2.
+      i The first line is "test test1"
 
 # can regenerate NAMESPACE even if its broken
 

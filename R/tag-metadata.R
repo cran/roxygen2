@@ -1,7 +1,9 @@
-#' Access metadata about built-in tags
+#' Access metadata about built-in or available tags
 #'
 #' @export
-#' @keywords internal
+#' @family extending
+#' @param built_in Logical. Whether to restrict the result to built-in tags
+#' (`TRUE`) or to extend it to available tags (`FALSE`).
 tags_list <- function(built_in = TRUE) {
   if (isTRUE(built_in)) {
     methods <- attr(methods('roxy_tag_parse'), "info")
@@ -22,13 +24,12 @@ tags_metadata <- function() {
 
   meta <- yaml::read_yaml(yaml_path())
   data.frame(
-    tag = map_chr(meta, "name"),
-    description = map_chr(meta, "description"),
+    tag = map_chr(meta, \(x) x[["name"]]),
+    description = map_chr(meta, \(x) x[["description"]]),
     # \n not useful outside of RStudio
-    template = sub("\n", "", map_chr(meta, "template", .default = "")),
-    vignette = map_chr(meta, "vignette", .default = NA),
-    recommend = map_lgl(meta, "recommend", .default = FALSE),
-    stringsAsFactors = FALSE
+    template = sub("\n", "", map_chr(meta, \(x) x[["template"]] %||% "")),
+    vignette = map_chr(meta, \(x) x[["vignette"]] %||% NA_character_),
+    recommend = map_lgl(meta, \(x) x[["recommend"]] %||% FALSE)
   )
 }
 
@@ -36,49 +37,69 @@ yaml_path <- function() {
   system.file("roxygen2-tags.yml", package = "roxygen2")
 }
 
-tags_rd <- function(type) {
+tags_rd <- function(type, vignette = type) {
   tags <- tags_metadata()
   tags <- tags[tags$vignette == type & !is.na(tags$vignette), ]
 
   c(
     paste0("@name tags-", type),
-    "@aliases",
-    tags_rd_section(tags, "aliases"),
+    paste0("@aliases ", "@", tags$tag),
     "@description",
-    paste0("Learn the full details in `vignette('", type, "')`."),
+    paste0("Learn the full details in `vignette('", vignette, "')`."),
     "",
-    if (any(tags$recommend)) c(
-      "Key tags:",
-      tags_rd_section(tags[tags$recommend, ], "description")
-    ),
-    if (any(!tags$recommend)) c(
-      "Other less frequently used tags:",
-      "",
-      tags_rd_section(tags[!tags$recommend, ], "description")
-    ),
+    if (any(tags$recommend)) {
+      c(
+        "Key tags:",
+        tags_rd_desc(tags[tags$recommend, ])
+      )
+    },
+    if (any(!tags$recommend)) {
+      c(
+        "Other less frequently used tags:",
+        tags_rd_desc(tags[!tags$recommend, ])
+      )
+    },
     "@usage",
-    tags_rd_section(tags, "usage")
+    paste0("#' @", tags$tag, tags$template)
   )
 }
-tags_rd_section <- function(tags, section) {
-  if (nrow(tags) == 0) return()
-
-  switch(section,
-    aliases = paste0("  @", tags$tag),
-    usage = paste0("#' @", tags$tag, tags$template),
-    description = paste0("* `@", tags$tag, tags$template, "`: ", tags$description)
-  )
+tags_rd_desc <- function(tags, section) {
+  paste0("* `@", tags$tag, tags$template, "`: ", tags$description)
 }
 
 #' Tags for documenting functions
 #'
-#' @eval tags_rd("rd")
+#' @eval tags_rd("rd-functions")
 #' @family documentation tags
 NULL
 
-#' Tags for documenting datasets and classes
+#' Tags for documenting datasets
 #'
-#' @eval tags_rd("rd-other")
+#' @eval tags_rd("rd-datasets")
+#' @family documentation tags
+NULL
+
+#' Tags for documenting S3
+#'
+#' @eval tags_rd("rd-S3")
+#' @family documentation tags
+NULL
+
+#' Tags for documenting S4
+#'
+#' @eval tags_rd("rd-S4")
+#' @family documentation tags
+NULL
+
+#' Tags for documenting S7
+#'
+#' @eval tags_rd("rd-S7")
+#' @family documentation tags
+NULL
+
+#' Tags for documenting R6
+#'
+#' @eval tags_rd("rd-R6")
 #' @family documentation tags
 NULL
 
@@ -103,4 +124,3 @@ NULL
 #' @eval tags_rd("index-crossref")
 #' @family documentation tags
 NULL
-

@@ -2,7 +2,7 @@
 % Please edit documentation in R/roclet.R
 \name{roclet_find}
 \alias{roclet_find}
-\title{Create a roclet from a string.}
+\title{Create a roclet from a string}
 \usage{
 roclet_find(x)
 }
@@ -27,4 +27,16 @@ roclet_find("roxygen2::rd_roclet")
 # to call the function
 roclet_find("roxygen2::rd_roclet()")
 }
-\keyword{internal}
+\seealso{
+Other extending:
+\code{\link[=load_options]{load_options()}},
+\code{\link[=parse_package]{parse_package()}},
+\code{\link[=rd_section]{rd_section()}},
+\code{\link[=roc_proc_text]{roc_proc_text()}},
+\code{\link[=roxy_block]{roxy_block()}},
+\code{\link[=roxy_tag]{roxy_tag()}},
+\code{\link[=roxy_tag_rd]{roxy_tag_rd()}},
+\code{\link{tag_parsers}},
+\code{\link[=tags_list]{tags_list()}}
+}
+\concept{extending}

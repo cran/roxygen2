@@ -8,6 +8,10 @@ test_that("nice_name protects against invalid characters", {
   expect_equal(nice_name("[.a"), "sub-.a")
 })
 
+test_that("nice_name strips ::", {
+  expect_equal(nice_name("print,pkg::Class-method"), "print-pkg-Class-method")
+})
+
 test_that("is_namespaced works as expected", {
   expect_true(is_namespaced("a::b"))
   expect_false(is_namespaced("b::"))
@@ -34,8 +38,8 @@ test_that("write_if_different produces informative messages", {
 
 test_that("write_if_different and end of line", {
   cnt_unix <- c("foo\nbar\nbaz", "foobar")
-  cnt_win  <- c("foo\r\nbar\r\nbaz", "foobar")
-  cnt_mix  <- c("foo\nbar\r\nbaz", "foobar")
+  cnt_win <- c("foo\r\nbar\r\nbaz", "foobar")
+  cnt_mix <- c("foo\nbar\r\nbaz", "foobar")
 
   tmp <- tempfile("roxy-", fileext = ".Rd")
   on.exit(unlink(tmp), add = TRUE)
@@ -43,14 +47,14 @@ test_that("write_if_different and end of line", {
   # do not change unix le
   write_lines(cnt_unix, tmp, line_ending = "\n")
   expect_message(write_if_different(tmp, cnt_unix, check = FALSE), NA)
-  expect_message(write_if_different(tmp, cnt_win,  check = FALSE), NA)
-  expect_message(write_if_different(tmp, cnt_mix,  check = FALSE), NA)
+  expect_message(write_if_different(tmp, cnt_win, check = FALSE), NA)
+  expect_message(write_if_different(tmp, cnt_mix, check = FALSE), NA)
 
   # do not change windows le
   write_lines(cnt_win, tmp, line_ending = "\r\n")
   expect_message(write_if_different(tmp, cnt_unix, check = FALSE), NA)
-  expect_message(write_if_different(tmp, cnt_win,  check = FALSE), NA)
-  expect_message(write_if_different(tmp, cnt_mix,  check = FALSE), NA)
+  expect_message(write_if_different(tmp, cnt_win, check = FALSE), NA)
+  expect_message(write_if_different(tmp, cnt_mix, check = FALSE), NA)
 
   # change mixed le to windows
   tmp_win <- tempfile("roxy-", fileext = ".Rd")
@@ -73,6 +77,18 @@ test_that("write_if_different and end of line", {
   expect_identical(readBin(tmp, "raw", 100), readBin(tmp_win, "raw", 100))
 })
 
+test_that("write_if_different touches unchanged files", {
+  dir <- withr::local_tempdir()
+  path <- file.path(dir, "test.R")
+  write_lines(made_by("#"), path)
+
+  old_time <- as.POSIXct("2000-01-01")
+  Sys.setFileTime(path, old_time)
+  write_if_different(path, made_by("#"))
+
+  expect_gt(file.mtime(path), old_time)
+})
+
 test_that("write_if_different produces correct command hyperlink", {
   testthat::local_reproducible_output(hyperlinks = TRUE)
 
@@ -80,5 +96,9 @@ test_that("write_if_different produces correct command hyperlink", {
   path <- file.path(dir, "test.R")
 
   write_lines(made_by("#"), path)
-  expect_snapshot(write_if_different(path, "a <- 2", command = "rlang::inform('hi')"))
+  expect_snapshot(write_if_different(
+    path,
+    "a <- 2",
+    command = "rlang::inform('hi')"
+  ))
 })

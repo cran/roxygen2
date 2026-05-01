@@ -1,6 +1,6 @@
 #' @export
 roxy_tag_parse.roxy_tag_param <- function(x) {
-  tag_two_part(x, "an argument name", "a description")
+  tag_two_part(x, "an argument name", "a description", multiline = TRUE)
 }
 
 #' @export
@@ -55,7 +55,10 @@ topics_fix_params_order <- function(topics) {
     # and append everything that's missing in the order found
     required_order <- match(needed, documented)
     required_order <- required_order[!is.na(required_order)]
-    required_order <- c(required_order, setdiff(documented_indexes, required_order))
+    required_order <- c(
+      required_order,
+      setdiff(documented_indexes, required_order)
+    )
 
     # Overwrite all param fields to fix order
     param <- topic$get_value("param")[required_order]

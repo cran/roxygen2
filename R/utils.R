@@ -1,6 +1,6 @@
 internal_f <- function(p, f) {
-  stopifnot(is.character(p), length(p) == 1)
-  stopifnot(is.character(f), length(f) == 1)
+  check_string(p)
+  check_string(f)
 
   get(f, envir = asNamespace(p))
 }
@@ -9,55 +9,56 @@ internal_f <- function(p, f) {
   if (length(a) > 0) a else b
 }
 
-subs <- matrix(ncol = 2, byrow = T, c(
+subs <- c(
   # Common special function names
-  '[<-', 'subset',
-  '[', 'sub',
-  '<-', 'set',
+  "[<-" = "-subset-",
+  "[" = "-sub-",
+  "<-" = "-set-",
+  "::" = "-",
 
   # Infix verbs
-  '!', 'not',
-  '&', 'and',
-  '|', 'or',
-  '*', 'times',
-  '+', 'plus',
-  '^', 'pow',
+  "!" = "-not-",
+  "&" = "-and-",
+  "|" = "-or-",
+  "*" = "-times-",
+  "+" = "-plus-",
+  "^" = "-pow-",
 
   # Others
-  '"', 'quote',
-  '#', 'hash',
-  '$', 'cash',
-  '%', 'grapes',
-  "'", 'single-quote',
-  '(', 'open-paren',
-  ')', 'close-paren',
-  ':', 'colon',
-  ';', 'semi-colon',
-  '<', 'less-than',
-  '==', 'equals',
-  '=', 'equals',
-  '>', 'greater-than',
-  '?', 'help',
-  '@', 'at',
-  ']', 'close-brace',
-  '\\', 'backslash',
-  '/', 'slash',
-  '`', 'tick',
-  '{', 'open-curly',
-  '}', 'close',
-  '~', 'twiddle'
-))
-subs[, 2] <- paste0("-", subs[, 2], "-")
+  '"' = "-quote-",
+  "#" = "-hash-",
+  "$" = "-cash-",
+  "%" = "-grapes-",
+  "'" = "-single-quote-",
+  "(" = "-open-paren-",
+  ")" = "-close-paren-",
+  ":" = "-colon-",
+  ";" = "-semi-colon-",
+  "<" = "-less-than-",
+  "==" = "-equals-",
+  "=" = "-equals-",
+  ">" = "-greater-than-",
+  "?" = "-help-",
+  "@" = "-at-",
+  "]" = "-close-brace-",
+  "\\" = "-backslash-",
+  "/" = "-slash-",
+  "`" = "-tick-",
+  "{" = "-open-curly-",
+  "}" = "-close-",
+  "~" = "-twiddle-"
+)
 
 nice_name <- function(x) {
-  x <- stringi::stri_replace_all_fixed(x, subs[, 1], subs[, 2],
-    vectorize_all = FALSE)
+  for (i in seq_along(subs)) {
+    x <- gsub(names(subs)[[i]], subs[[i]], x, fixed = TRUE)
+  }
 
   # Clean up any remaining
-  x <- str_replace_all(x, "[^A-Za-z0-9_.-]+", "-")
-  x <- str_replace_all(x, "-+", "-")
-  x <- str_replace_all(x, "^-|-$", "")
-  x <- str_replace_all(x, "^\\.", "dot-")
+  x <- gsub("[^A-Za-z0-9_.-]+", "-", x)
+  x <- gsub("-+", "-", x)
+  x <- gsub("^-|-$", "", x)
+  x <- gsub("^\\.", "dot-", x)
   x
 }
 
@@ -78,9 +79,13 @@ write_if_different <- function(path, contents, command = NULL, check = TRUE) {
   line_ending <- detect_line_ending(path)
   contents <- paste0(paste0(contents, collapse = line_ending), line_ending)
   contents <- enc2utf8(gsub("\r?\n", line_ending, contents))
-  if (same_contents(path, contents)) return(FALSE)
+  if (same_contents(path, contents)) {
+    # Touch so mtime reflects last run, even though file wasn't changed
+    Sys.setFileTime(path, Sys.time())
+    return(FALSE)
+  }
 
-  if (!str_detect(name, "^[a-zA-Z][a-zA-Z0-9_.-]*$")) {
+  if (!grepl("^[a-zA-Z][a-zA-Z0-9_.-]*$", name)) {
     cli::cli_inform(c(
       x = "Skipping {.path {name}}",
       i = "Invalid file name"
@@ -101,9 +106,11 @@ write_if_different <- function(path, contents, command = NULL, check = TRUE) {
 
 same_contents <- function(path, contents) {
   if (length(contents) != 1) {
-    cli::cli_abort("`contents` must be character(1)", .internal = TRUE)
+    cli::cli_abort("{.arg contents} must be a single string.", .internal = TRUE)
   }
-  if (!file.exists(path)) return(FALSE)
+  if (!file.exists(path)) {
+    return(FALSE)
+  }
 
   text_hash <- cli::hash_sha256(contents)
 
@@ -118,21 +125,26 @@ compact <- function(x) {
 }
 
 invert <- function(x) {
-  if (length(x) == 0) return()
+  if (length(x) == 0) {
+    return()
+  }
   stacked <- utils::stack(x)
   tapply(as.character(stacked$ind), stacked$values, list)
 }
 
 is_namespaced <- function(x) {
-  tryCatch({
-    expr <- parse_expr(x)
-    is_call(expr, "::", n = 2)
-  }, error = function(err) FALSE)
+  tryCatch(
+    {
+      expr <- parse_expr(x)
+      is_call(expr, "::", n = 2)
+    },
+    error = function(err) FALSE
+  )
 }
 
 # Collapse the values associated with duplicated keys
 collapse <- function(key, value, fun, ...) {
-  stopifnot(is.character(key))
+  check_character(key)
   stopifnot(length(key) == length(value))
 
   dedup <- tapply(value, key, fun, ..., simplify = FALSE)
@@ -166,6 +178,10 @@ uuid <- function(nchar = 8) {
   )
 }
 
+paste_c <- function(...) {
+  paste(c(...), collapse = "")
+}
+
 # quoting -----------------------------------------------------------------
 auto_backtick <- function(x) {
   needs_backtick <- !has_quotes(x) & !is_syntactic(x)
@@ -179,32 +195,31 @@ auto_quote <- function(x) {
   x
 }
 
-is_syntactic <- function(x) make.names(x) == x
-has_quotes <- function(x) str_detect(x, "^(`|'|\").*\\1$")
-strip_quotes <- function(x) str_replace(x, "^(`|'|\")(.*)\\1$", "\\2")
-
-base_packages <- function() {
-  if (getRversion() >= "4.4.0") {
-    asNamespace("tools")$standard_package_names()[["base"]]
+re_split_half <- function(x, pattern) {
+  m <- regexpr(pattern, x)
+  if (m > 0L) {
+    left <- substr(x, 1, m - 1)
+    right <- substr(x, m + attr(m, "match.length"), nchar(x))
   } else {
-    c("base", "compiler", "datasets",
-      "graphics", "grDevices", "grid", "methods", "parallel",
-      "splines", "stats", "stats4", "tcltk", "tools", "utils"
-    )
+    left <- x
+    right <- ""
   }
+  c(left, right)
 }
 
-# Note that this caches the result regardless of
-# pkgdir! pkgdir is mainly for testing, in which case you
-# need to clear the cache manually.
-
-local_pkg_deps <- function(pkgdir = NULL) {
-  if (!is.null(mddata[["deps"]])) {
-    return(mddata[["deps"]])
-  }
-  pkgdir <- pkgdir %||% roxy_meta_get("current_package_dir")
-  deps <- desc::desc_get_deps(pkgdir)
-  deps <- deps[deps$package != "R", ]
-  deps <- deps[deps$type %in% c("Depends", "Imports", "Suggests"), ]
-  deps$package
+re_count <- function(x, pattern, fixed = FALSE) {
+  m <- gregexpr(pattern, x, fixed = fixed)
+  vapply(m, \(i) sum(i > 0L), integer(1))
 }
+
+re_replace_all <- function(x, pattern, fun) {
+  m <- gregexpr(pattern, x, perl = TRUE)
+  regmatches(x, m) <- lapply(regmatches(x, m), \(matches) {
+    vapply(matches, fun, character(1))
+  })
+  x
+}
+
+is_syntactic <- function(x) make.names(x) == x
+has_quotes <- function(x) grepl(r"[^(`|'|").*\1$]", x)
+strip_quotes <- function(x) sub(r"[^(`|'|")(.*)\1$]", r"(\2)", x)

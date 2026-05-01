@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>Documenting functions</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Documenting functions</h1>
+
+
+
+<p>This vignette describes the most important roxygen2 tags for
+documenting functions. See <code>vignette(&quot;reuse&quot;)</code> for reusing
+documentation across topics.</p>
+<div id="exporting" class="section level2">
+<h2>Exporting</h2>
+<p>For a user to use a function in your package, you must
+<strong>export</strong> it with <code>@export</code>. If you export a
+function, you must also document it, and since other people will use it,
+you need to be careful if you later change the function interface. We
+usually put <code>@export</code> in between <code>@returns</code> and
+<code>@examples</code>:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="co">#&#39; Add two numbers together</span></span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="co">#&#39;</span></span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="co">#&#39; @param x,y A pair of numbers.</span></span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="co">#&#39; @returns A number.</span></span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a><span class="co">#&#39; @export</span></span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a><span class="co">#&#39; @examples</span></span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a><span class="co">#&#39; 1 + 2</span></span>
+<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a>add <span class="ot">&lt;-</span> <span class="cf">function</span>(x, y) {</span>
+<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a>  x <span class="sc">+</span> y</span>
+<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a>}</span></code></pre></div>
+<p>You’ll learn what all these are pieces are next!</p>
+</div>
+<div id="the-introduction" class="section level2">
+<h2>The introduction</h2>
+<p>Each documentation block starts with some text which defines the
+title, the description, and the details. Here’s an example showing what
+the documentation for <code>sum()</code> might look like if it had been
+written with roxygen:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="co">#&#39; Sum of vector elements</span></span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="co">#&#39;</span></span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="co">#&#39; `sum` returns the sum of all the values present in its arguments.</span></span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a><span class="co">#&#39;</span></span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a><span class="co">#&#39; This is a generic function: methods can be defined for it directly</span></span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a><span class="co">#&#39; or via the [Summary()] group generic. For this to work properly,</span></span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a><span class="co">#&#39; the arguments `...` should be unnamed, and dispatch is on the</span></span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a><span class="co">#&#39; first argument.</span></span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a>sum <span class="ot">&lt;-</span> <span class="cf">function</span>(..., <span class="at">na.rm =</span> <span class="cn">TRUE</span>) {}</span></code></pre></div>
+<p>This introductory block is broken up as follows:</p>
+<ul>
+<li><p>The first sentence is the <strong>title</strong>: that’s what you
+see when you look at <code>help(package = mypackage)</code> and is shown
+at the top of each help file. It should generally fit on one line, be
+written in sentence case, and not end in a full stop.</p></li>
+<li><p>The second paragraph is the <strong>description</strong>: this
+comes first in the documentation and should briefly describe what the
+function does.</p></li>
+<li><p>The third and subsequent paragraphs go into the
+<strong>details</strong>: this is a (often long) section that comes
+after the argument description and should provide any other important
+details of how the function operates. The details are optional.</p></li>
+</ul>
+<div id="title" class="section level3">
+<h3>Title</h3>
+<p>The title appears in package indexes and search results, so think
+about how users will find your function. Use synonyms to describe what
+the function does. For example, dplyr uses titles like:</p>
+<ul>
+<li>“Keep rows that match a condition” (<code>filter()</code>)</li>
+<li>“Create, modify, and delete columns” (<code>mutate()</code>)</li>
+<li>“Summarise each group down to one row”
+(<code>summarise()</code>)</li>
+</ul>
+</div>
+<div id="description" class="section level3">
+<h3>Description</h3>
+<p>The description should briefly summarize the goal of the function,
+usually in one paragraph. This can be challenging for simple functions,
+because it can feel like you’re just repeating the title of the
+function. Try to find a slightly different wording, if you can. It’s
+okay if this feels a little repetitive; it’s often useful for users to
+see the same thing expressed in two different ways. It’s a little extra
+work, but the extra effort is often worth it.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="co">#&#39; Detect the presence/absence of a match</span></span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="co">#&#39;</span></span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="co">#&#39; `str_detect()` returns a logical vector with `TRUE` for each element of</span></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="co">#&#39; `string` that matches `pattern` and `FALSE` otherwise. It&#39;s equivalent to</span></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="co">#&#39; `grepl(pattern, string)`.</span></span></code></pre></div>
+<p>If you need a multi-paragraph description, use an explicit
+<code>@description</code> tag:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co">#&#39; View strings and matches</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="co">#&#39;</span></span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="co">#&#39; @description</span></span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="co">#&#39; `str_view()` is used to print the underlying representation of a string and</span></span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a><span class="co">#&#39; to see how a `pattern` matches.</span></span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="co">#&#39;</span></span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a><span class="co">#&#39; Matches are surrounded by `&lt;&gt;` and unusual whitespace (i.e. all whitespace</span></span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a><span class="co">#&#39; apart from `&quot; &quot;` and `&quot;\n&quot;`) are surrounded by `{}` and escaped.</span></span></code></pre></div>
+<p>Basically, if you’re going to include an empty line in your
+description, you’ll need to use an explicit <code>@description</code>
+tag.</p>
+</div>
+<div id="details" class="section level3">
+<h3>Details</h3>
+<p>The details section is optional and comes after the argument
+description in the rendered help. Use informative markdown headings to
+break up long details.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="co">#&#39; Sum of vector elements</span></span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="co">#&#39;</span></span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a><span class="co">#&#39; @description</span></span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a><span class="co">#&#39; `sum` returns the sum of all the values present in its arguments.</span></span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a><span class="co">#&#39;</span></span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a><span class="co">#&#39; @details</span></span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a><span class="co">#&#39; This is a generic function: methods can be defined for it directly</span></span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a><span class="co">#&#39; or via the [Summary()] group generic. For this to work properly,</span></span>
+<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a><span class="co">#&#39; the arguments `...` should be unnamed, and dispatch is on the</span></span>
+<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a><span class="co">#&#39; first argument.</span></span></code></pre></div>
+</div>
+</div>
+<div id="required-tags" class="section level2">
+<h2>Required tags</h2>
+<p>Functions are the most commonly documented objects. Functions require
+three tags: <code>@param</code>, <code>@returns</code>, and
+<code>@examples</code>.</p>
+<div id="inputs" class="section level3">
+<h3>Inputs</h3>
+<p>Use <code>@param name description</code> to describe each input to
+the function. The description should provide a succinct summary of the
+parameter type (e.g. a string, a numeric vector), and if not obvious
+from the name, what the parameter does. The description is a sentence so
+should start with a capital letter and end with a full stop. It can span
+multiple lines (or even paragraphs) if necessary. All parameters must be
+documented.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="co">#&#39; @param pattern Pattern to look for.</span></span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="co">#&#39;</span></span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a><span class="co">#&#39;   The default interpretation is a regular expression, as described in</span></span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a><span class="co">#&#39;   `vignette(&quot;regular-expressions&quot;)`. Use [regex()] for finer control of the</span></span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a><span class="co">#&#39;   matching behaviour.</span></span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a><span class="co">#&#39;</span></span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a><span class="co">#&#39; @param string Input vector. Either a character vector, or something</span></span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a><span class="co">#&#39;   coercible to one.</span></span></code></pre></div>
+<p>It’s a good idea to describe the default value in the
+<code>@param</code> description, particularly when the default is
+non-obvious or the signature and the rendered argument documentation are
+far apart.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="co">#&#39; @param na.rm Remove missing values? If `FALSE` (the default), the result</span></span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="co">#&#39;   will be `NA` if any element of `string` is `NA`.</span></span></code></pre></div>
+<p>For arguments with a small fixed set of possible values, list them in
+the description:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="co">#&#39; @param side Side on which to remove whitespace: `&quot;left&quot;`, `&quot;right&quot;`, or</span></span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="co">#&#39;   `&quot;both&quot;` (the default).</span></span></code></pre></div>
+<p>If each value needs more explanation, use a bulleted list:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="co">#&#39; @param whitespace_only A boolean.</span></span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="co">#&#39;   * `TRUE` (the default): wrapping will only occur at whitespace.</span></span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="co">#&#39;   * `FALSE`: can break on any non-word character (e.g. `/`, `-`).</span></span></code></pre></div>
+<p>If two or more arguments are tightly coupled, you can document them
+in one place by separating the names with commas (no spaces). For
+example, to document both <code>x</code> and <code>y</code>, you can say
+<code>@param x,y Numeric vectors</code>.</p>
+</div>
+<div id="outputs" class="section level3">
+<h3>Outputs</h3>
+<p><code>@returns description</code> describes the output from the
+function. Briefly describe the type/shape of the output, not the
+details.</p>
+<p>All functions must have a documented return value for initial CRAN
+submission.</p>
+<p>For simple cases, a single sentence suffices:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="co">#&#39; @returns A logical vector the same length as `string`.</span></span></code></pre></div>
+<p>For functions returning data frames, describe how the output relates
+to the input:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="co">#&#39; @returns</span></span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a><span class="co">#&#39; An object of the same type as `.data`. The output has the following</span></span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a><span class="co">#&#39; properties:</span></span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a><span class="co">#&#39;</span></span>
+<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a><span class="co">#&#39; * Rows are a subset of the input, but appear in the same order.</span></span>
+<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a><span class="co">#&#39; * Columns are not modified.</span></span>
+<span id="cb11-7"><a href="#cb11-7" tabindex="-1"></a><span class="co">#&#39; * The number of groups may be reduced (if `.preserve` is not `TRUE`).</span></span>
+<span id="cb11-8"><a href="#cb11-8" tabindex="-1"></a><span class="co">#&#39; * Data frame attributes are preserved.</span></span></code></pre></div>
+</div>
+<div id="examples" class="section level3">
+<h3>Examples</h3>
+<p><code>@examples</code> provides executable R code showing how to use
+the function in practice. This is a very important part of the
+documentation because many people look at the examples before reading
+anything. Example code must work without errors as it is run
+automatically as part of <code>R CMD check</code>.</p>
+<p>Focus on demonstrating the most important features with realistic,
+typical usage. Use comments to break examples into sections:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="co">#&#39; @examples</span></span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a><span class="co">#&#39; fruit &lt;- c(&quot;apple&quot;, &quot;banana&quot;, &quot;pear&quot;, &quot;pineapple&quot;)</span></span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a><span class="co">#&#39; str_detect(fruit, &quot;a&quot;)</span></span>
+<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a><span class="co">#&#39; str_detect(fruit, &quot;^a&quot;)</span></span>
+<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a><span class="co">#&#39; str_detect(fruit, &quot;a$&quot;)</span></span>
+<span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a><span class="co">#&#39;</span></span>
+<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a><span class="co">#&#39; # Also vectorised over pattern</span></span>
+<span id="cb12-8"><a href="#cb12-8" tabindex="-1"></a><span class="co">#&#39; str_detect(&quot;aecfg&quot;, letters)</span></span></code></pre></div>
+<p>Examples must be self-contained and not change the user’s state: if
+you modify <code>options()</code>, reset them; create files in
+<code>tempdir()</code> and delete them; don’t change the working
+directory or write to the clipboard.</p>
+<p>For the purpose of illustration, it’s often useful to include code
+that causes an error. <code>try()</code> is the best way to do this,
+because users will see the error message:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="co">#&#39; @examples</span></span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a><span class="co">#&#39; # Row sizes must be compatible when column-binding</span></span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a><span class="co">#&#39; try(bind_cols(tibble(x = 1:3), tibble(y = 1:2)))</span></span></code></pre></div>
+<p>You can also use <code>\dontrun{}</code> to prevent code from
+executing, but <code>try()</code> is generally preferred.</p>
+<p>For code that only works in certain environments, use
+<code>@examplesIf</code>:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="co">#&#39; @examplesIf interactive()</span></span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a><span class="co">#&#39; browseURL(&quot;https://roxygen2.r-lib.org&quot;)</span></span></code></pre></div>
+<p>This generates</p>
+<pre><code>\examples{
+\dontshow{if (interactive() (if (getRversion() &gt;= &quot;3.4&quot;) withAutoprint else force)(\{ # examplesIf}
+gh_organizations(since = 42)
+\dontshow{\}) # examplesIf}
+}</code></pre>
+<p>This way, the code evaluating whether the example can be run is not
+shown to users reading the help, but it still prevents R CMD check
+failures. <code>@examplesIf</code> is preferred over wrapping code in
+<code>if()</code> because users don’t see the machinery, and unlike
+<code>\dontrun{}</code>, the code still runs when the condition is
+met.</p>
+<p>Instead of including examples directly in the documentation, you can
+put them in separate files and use
+<code>@example path/relative/to/package/root</code> to insert them into
+the documentation.</p>
+<p>All functions must have examples for initial CRAN submission.</p>
+</div>
+<div id="usage" class="section level3">
+<h3>Usage</h3>
+<p>In most cases, the function usage (which appears beneath the
+description in the generated docs) will be automatically derived from
+the function specification. For the cases where it is not, please <a href="https://github.com/r-lib/roxygen2/issues">file an issue</a> and
+use <code>@usage</code> to override the default with what you want. If
+you want to suppress the usage altogether (which is sometimes useful for
+internal or deprecated functions), you can use
+<code>@usage NULL</code>.</p>
+</div>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

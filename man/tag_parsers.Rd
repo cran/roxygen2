@@ -16,17 +16,24 @@
 \alias{tag_markdown_with_sections}
 \title{Parse tags}
 \usage{
-tag_value(x)
+tag_value(x, multiline = FALSE)
 
 tag_inherit(x)
 
 tag_name(x)
 
-tag_two_part(x, first, second, required = TRUE, markdown = TRUE)
+tag_two_part(
+  x,
+  first,
+  second,
+  required = TRUE,
+  markdown = TRUE,
+  multiline = FALSE
+)
 
 tag_name_description(x)
 
-tag_words(x, min = 0, max = Inf)
+tag_words(x, min = 0, max = Inf, multiline = FALSE)
 
 tag_words_line(x)
 
@@ -42,6 +49,10 @@ tag_markdown_with_sections(x)
 }
 \arguments{
 \item{x}{A \link{roxy_tag} object to parse}
+
+\item{multiline}{If \code{FALSE} (the default), tags that span multiple lines
+will generate a warning. Set to \code{TRUE} for tags where multiline content
+is expected (e.g., \verb{@usage}, \verb{@rawRd}).}
 
 \item{first, second}{Name of first and second parts of two part tags}
 
@@ -66,4 +77,16 @@ To create a new \verb{@mytag} define \code{roxy_tag_parse.roxy_tag_mytag()}. It 
 either call one of the functions here, or directly set \code{x$val}.
 }
 
-\keyword{internal}
+\seealso{
+Other extending:
+\code{\link[=load_options]{load_options()}},
+\code{\link[=parse_package]{parse_package()}},
+\code{\link[=rd_section]{rd_section()}},
+\code{\link[=roc_proc_text]{roc_proc_text()}},
+\code{\link[=roclet_find]{roclet_find()}},
+\code{\link[=roxy_block]{roxy_block()}},
+\code{\link[=roxy_tag]{roxy_tag()}},
+\code{\link[=roxy_tag_rd]{roxy_tag_rd()}},
+\code{\link[=tags_list]{tags_list()}}
+}
+\concept{extending}

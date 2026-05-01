@@ -2,7 +2,7 @@
 % Please edit documentation in R/roclet.R
 \name{roc_proc_text}
 \alias{roc_proc_text}
-\title{Process roclet on string and capture results.}
+\title{Process roclet on string and capture results}
 \usage{
 roc_proc_text(roclet, input, wd = NULL)
 }
@@ -16,4 +16,16 @@ roc_proc_text(roclet, input, wd = NULL)
 \description{
 Useful for testing.
 }
-\keyword{internal}
+\seealso{
+Other extending:
+\code{\link[=load_options]{load_options()}},
+\code{\link[=parse_package]{parse_package()}},
+\code{\link[=rd_section]{rd_section()}},
+\code{\link[=roclet_find]{roclet_find()}},
+\code{\link[=roxy_block]{roxy_block()}},
+\code{\link[=roxy_tag]{roxy_tag()}},
+\code{\link[=roxy_tag_rd]{roxy_tag_rd()}},
+\code{\link{tag_parsers}},
+\code{\link[=tags_list]{tags_list()}}
+}
+\concept{extending}

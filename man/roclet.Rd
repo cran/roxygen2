@@ -7,7 +7,7 @@
 \alias{roclet_output}
 \alias{roclet_clean}
 \alias{roclet_tags}
-\title{Build a new roclet.}
+\title{Build a new roclet}
 \usage{
 roclet(subclass, ...)
 
@@ -22,6 +22,8 @@ roclet_clean(x, base_path)
 roclet_tags(x)
 }
 \arguments{
+\item{subclass}{Class of the roclet, character vector.}
+
 \item{x}{A \code{roclet} object.}
 
 \item{blocks}{A list of \link{roxy_block} objects.}
@@ -33,15 +35,20 @@ roclet_tags(x)
 \item{results}{Value returned from your \code{roclet_process()} method.}
 }
 \description{
-To create a new roclet, you will need to create a constructor function
-that wraps \code{roclet}, and then implement the methods described below.
+Roclets are roxygen2's plugin system for producing different types of output,
+like Rd files (\code{\link[=rd_roclet]{rd_roclet()}}) or the \code{NAMESPACE} file (\code{\link[=namespace_roclet]{namespace_roclet()}}).
+
+To create a new roclet, you will need to create a constructor function that
+calls \code{roclet()}, and then implement the methods described below.
+
+See \code{vignette("extending")} for more details.
 }
 \section{Methods}{
 
 \itemize{
 \item \code{roclet_preprocess()} is called after blocks have been parsed but before
 code has been evaluated. This should only be needed if your roclet affects
-how code will evaluated. Should return a roclet.
+how code will be evaluated. Should return a roclet.
 \item \code{roclet_process()} called after blocks have been evaluated; i.e. the
 \verb{@eval} tag has been processed, and the object associated with each block
 has been determined.
@@ -57,4 +64,10 @@ method for each tag.
 }
 }
 
+\examples{
+# Custom roclet
+custom_roclet <- roclet("custom")
+# Roclet that extends the existing Rd roclet.
+supercharged_rd_roclet <- roclet(c("cool", "rd"))
+}
 \keyword{internal}

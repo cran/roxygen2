@@ -16,7 +16,7 @@
 #'   extensions, this should include the package name.
 #' @param value Section data. Only used by `format()` and `merge()` methods.
 #' @export
-#' @keywords internal
+#' @family extending
 rd_section <- function(type, value) {
   if (is.null(value) || identical(value, "NULL")) {
     # NULL is special sentinel value that suppresses output of that field
@@ -39,7 +39,7 @@ print.rd_section <- function(x, ...) {
 
 #' @export
 format.rd_section <- function(x, ...) {
-  cli::cli_abort("`format.{class(x)[[1]]}` method not found")
+  cli::cli_abort("{.fn format.{class(x)[[1]]}} method not found.")
 }
 
 #' @export
@@ -70,13 +70,19 @@ format_collapse <- function(x, ..., indent = 0, exdent = 0) {
 }
 
 rd_section_description <- function(name, dt, dd) {
-  if (length(dt) == 0) return("")
-
-  items <- paste0("\\item{\\code{", dt, "}}{", dd, "}", collapse = "\n\n")
-  paste0("\\section{", name, "}{\n\n",
-    "\\describe{\n",
-    items,
-    "\n}}\n"
-  )
+  if (length(dt) == 0) {
+    return("")
+  }
+  paste0("\\section{", name, "}{\n\n", rd_enumerate(dt, dd), "}\n")
+}
+rd_subsection_description <- function(name, dt, dd) {
+  if (length(dt) == 0) {
+    return("")
+  }
+  paste0("\\subsection{", name, "}{\n\n", rd_enumerate(dt, dd), "\n}\n")
 }
 
+rd_enumerate <- function(dt, dd) {
+  items <- paste0("\\item{\\code{", dt, "}}{", dd, "}", collapse = "\n\n")
+  paste0("\\describe{\n", items, "\n}")
+}

@@ -1,16 +1,15 @@
 #' Load roxygen2 options
 #'
 #' @description
-#' Options can be stored in the `Roxygen` field of the `DESCRIPTION`, or
-#' in `man/roxygen/meta.R`. In either case, the code is parsed and evaluated
-#' in a child of the base environment. Call `roxy_meta_get()` to access
-#' current option values from within tag and roclet methods.
+#' Options can be stored in `DESCRIPTION` using `Config/roxygen2/` fields,
+#' or in `man/roxygen/meta.R`. Call `roxy_meta_get()` to access current
+#' option values from within tag and roclet methods.
 #'
 #' Options in `man/roxygen/meta.R` override those present in `DESCRIPTION`.
 #'
 #' @section Possible options:
 #'
-#' * `roclets` `<character>`: giving names of roclets to run. See
+#' * `roclets` `<character>`: giving names of [roclets][roclet] to run. See
 #'    [roclet_find()] for details.
 #'
 #' * `packages` `<character>`: packages to load that implement new tags.
@@ -26,7 +25,7 @@
 #' * `current_package` `<string>` (read only): name of package being documented.
 #'
 #' * `rd_family_title` `<list>`: overrides for `@family` titles. See the
-#'    _rd_ vignette for details: `vignette("rd", package = "roxygen2")`
+#'    _rd-functions_ vignette for details: `vignette("rd-functions")`
 #'
 #' * `knitr_chunk_options` `<list>`: default chunk options used for knitr.
 #'
@@ -35,26 +34,30 @@
 #'   manual. (This only applies to images supplied via markdown.)
 #'
 #' @section How to set:
-#' Either set in `DESCRIPTION`:
+#' Either set in `DESCRIPTION` using `Config/roxygen2/` fields:
 #'
 #' ```
-#' Roxygen: list(markdown = TRUE, load = "installed")
+#' Config/roxygen2/markdown: TRUE
+#' Config/roxygen2/load: installed
 #' ```
 #'
-#' Or if longer, you can put in `/man/roxygen/meta.R`:
+#' Or if you need more complex options (like `rd_family_title` or
+#' `knitr_chunk_options`), put them in `man/roxygen/meta.R`:
 #'
 #' ```
 #' list(
-#'   markdown = TRUE,
-#'   load = "installed"
+#'   rd_family_title = list(models = "Model functions"),
+#'   knitr_chunk_options = list(fig.width = 7)
 #' )
 #' ```
 #'
 #' @param base_path Path to package.
 #' @export
-#' @keywords internal
+#' @family extending
 load_options <- function(base_path = ".") {
-  desc <- load_options_description(base_path)
+  old <- load_options_roxygen(base_path)
+  config <- load_options_config(base_path)
+  desc <- utils::modifyList(old, config)
   meta <- load_options_meta(base_path)
   opts <- utils::modifyList(desc, meta)
 
@@ -69,23 +72,27 @@ load_options <- function(base_path = ".") {
     current_package_dir = NA_character_,
     rd_family_title = list(),
     knitr_chunk_options = NULL,
-    restrict_image_formats = TRUE
+    restrict_image_formats = TRUE,
+    lazy_data = FALSE
   )
 
   unknown_opts <- setdiff(names(opts), names(defaults))
   if (length(unknown_opts) > 0) {
     warn(paste0(
-      "Unknown Roxygen options ", paste(unknown_opts, collapse = ", "), ".\n",
-      "Supported options: ", paste(names(defaults), collapse = ", ")
+      "Unknown Roxygen options ",
+      paste(unknown_opts, collapse = ", "),
+      ".\n",
+      "Supported options: ",
+      paste(names(defaults), collapse = ", ")
     ))
   }
 
   utils::modifyList(defaults, opts)
 }
 
-load_options_description <- function(base_path = ".") {
+load_options_roxygen <- function(base_path = ".") {
   desc_path <- file.path(base_path, "DESCRIPTION")
-  dcf <- read.dcf(desc_path, fields = c("Roxygen", "Package"))
+  dcf <- read.dcf(desc_path, fields = c("Roxygen", "Package", "LazyData"))
   desc_opts <- dcf[[1, 1]]
 
   if (is.na(desc_opts)) {
@@ -96,7 +103,38 @@ load_options_description <- function(base_path = ".") {
 
   opts$current_package <- dcf[[1, 2]]
   opts$current_package_dir <- normalizePath(base_path)
+  opts$lazy_data <- identical(dcf[[1, 3]], "true")
   opts
+}
+
+config_fields <- c(
+  "markdown",
+  "load",
+  "old_usage",
+  "r6",
+  "restrict_image_formats",
+  "packages",
+  "roclets"
+)
+
+load_options_config <- function(base_path = ".") {
+  fields <- paste0("Config/roxygen2/", config_fields)
+  values <- desc::desc_get(fields, file = base_path)
+  names(values) <- config_fields
+
+  values <- values[!is.na(values)]
+  lapply(values, parse_config_value)
+}
+
+parse_config_value <- function(x) {
+  values <- scan(
+    text = x,
+    what = "character",
+    sep = ",",
+    strip.white = TRUE,
+    quiet = TRUE
+  )
+  utils::type.convert(values, as.is = TRUE)
 }
 
 load_options_meta <- function(base_path = ".", path = "man/roxygen/meta.R") {
@@ -129,6 +167,8 @@ roxy_meta <- new_environment()
 
 #' @export
 #' @rdname load_options
+#' @param key Key of the options, e.g. `"packages"`.
+#' @param default Default value.
 roxy_meta_get <- function(key = NULL, default = NULL) {
   env_get(roxy_meta, key, default = default)
 }

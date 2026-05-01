@@ -17,13 +17,12 @@
 #'    find the code object associated with each block.
 #' @return A list of roxy_block objects
 #' @export
-#' @keywords internal
+#' @family extending
 parse_package <- function(path = ".", env = env_package(path)) {
-
   files <- package_files(path)
   list_of_blocks <- lapply(files, tokenize_file)
 
-  blocks <- purrr::flatten(list_of_blocks)
+  blocks <- unlist(list_of_blocks, recursive = FALSE)
 
   if (!is.null(env)) {
     blocks <- lapply(blocks, block_set_env, env = env)
@@ -35,10 +34,8 @@ parse_package <- function(path = ".", env = env_package(path)) {
 
 #' @export
 #' @rdname parse_package
-parse_file <- function(file,
-                       env = env_file(file),
-                       srcref_path = NULL) {
-
+#' @param srcref_path Path to be used as source ref.
+parse_file <- function(file, env = env_file(file), srcref_path = NULL) {
   blocks <- tokenize_file(file, srcref_path = srcref_path)
 
   if (!is.null(env)) {
@@ -52,7 +49,6 @@ parse_file <- function(file,
 #' @export
 #' @rdname parse_package
 parse_text <- function(text, env = env_file(file)) {
-
   file <- tempfile()
   write_lines(text, file)
   on.exit(unlink(file))
@@ -89,7 +85,7 @@ order_blocks <- function(blocks) {
     }
   }
 
-  ord <- vapply(blocks, block_order, double(1))
+  ord <- map_dbl(blocks, block_order)
   blocks[order(ord)]
 }
 

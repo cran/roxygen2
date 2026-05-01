@@ -16,10 +16,10 @@
       foo1
       }
       \seealso{
-      Other a: 
-      \code{\link{Foo3}()},
-      \code{\link{foo}()},
-      \code{\link{foo2}()}
+      Other a:
+      \code{\link[=Foo3]{Foo3()}},
+      \code{\link[=foo]{foo()}},
+      \code{\link[=foo2]{foo2()}}
       }
       \concept{a}
       
@@ -36,10 +36,10 @@
       foo2
       }
       \seealso{
-      Other a: 
-      \code{\link{Foo3}()},
-      \code{\link{foo}()},
-      \code{\link{foo1}()}
+      Other a:
+      \code{\link[=Foo3]{Foo3()}},
+      \code{\link[=foo]{foo()}},
+      \code{\link[=foo1]{foo1()}}
       }
       \concept{a}
       
@@ -56,10 +56,10 @@
       Foo3
       }
       \seealso{
-      Other a: 
-      \code{\link{foo}()},
-      \code{\link{foo1}()},
-      \code{\link{foo2}()}
+      Other a:
+      \code{\link[=foo]{foo()}},
+      \code{\link[=foo1]{foo1()}},
+      \code{\link[=foo2]{foo2()}}
       }
       \concept{a}
       
@@ -76,10 +76,10 @@
       foo
       }
       \seealso{
-      Other a: 
-      \code{\link{Foo3}()},
-      \code{\link{foo1}()},
-      \code{\link{foo2}()}
+      Other a:
+      \code{\link[=Foo3]{Foo3()}},
+      \code{\link[=foo1]{foo1()}},
+      \code{\link[=foo2]{foo2()}}
       }
       \concept{a}
       

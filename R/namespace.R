@@ -1,9 +1,10 @@
 #' Roclet: make `NAMESPACE`
 #'
 #' @description
-#' This roclet automates the production of a `NAMESPACE` file, which controls
+#' This [roclet] automates the production of a `NAMESPACE` file, which controls
 #' the functions imported and exported by your package, as described in
 #' [Writing R extensions](https://cran.r-project.org/doc/manuals/r-release/R-exts.html).
+#' It is run by default by [roxygenize()].
 #'
 #' The `NAMESPACE` is generated in two passes: the first generates only
 #' import directives (because this can be computed without evaluating package
@@ -20,12 +21,18 @@
 #' #' @export
 #' foofy <- function(x, y, z) {
 #' }
+#' # This results in the following line in `NAMESPACE`:
+#' # export(foofy)
 #'
 #' # You'll also often find global imports living in a file called
 #' # R/{package}-package.R.
-#' #' @@importFrom magrittr %>%
-#' #' @@import rlang
+#' #' @importFrom magrittr %>%
+#' #' @import rlang
 #' NULL
+#'
+#' # This results in the following lines in `NAMESPACE`:
+#' # importFrom(magrittr,"%>%")
+#' # import(rlang)
 namespace_roclet <- function() {
   roclet("namespace")
 }
@@ -86,7 +93,13 @@ namespace_imports <- function(base_path = ".") {
   paths <- package_files(base_path)
   parsed <- lapply(paths, parse, keep.source = TRUE)
   srcrefs <- lapply(parsed, utils::getSrcref)
-  blocks <- unlist(lapply(srcrefs, namespace_imports_blocks), recursive = FALSE)
+  # Ensure parse warnings only fire once during the main parse_package() pass
+  suppressMessages(
+    blocks <- unlist(
+      lapply(srcrefs, namespace_imports_blocks),
+      recursive = FALSE
+    )
+  )
 
   blocks_to_ns(blocks, emptyenv())
 }
@@ -97,7 +110,7 @@ namespace_imports_blocks <- function(srcref) {
 
   import_tags <- c(import_directives, "rawNamespace")
   tokens_filtered <- lapply(tokens, function(tokens) {
-    tokens[map_lgl(tokens, function(x) x$tag %in% import_tags)]
+    tokens[map_lgl(tokens, \(x) x$tag %in% import_tags)]
   })
 
   compact(lapply(tokens_filtered, function(tokens) {
@@ -117,7 +130,7 @@ namespace_exports <- function(path) {
   is_import_directive <- function(x) is_call(x, import_directives)
   export_lines <- attr(parsed, "srcref")[!map_lgl(parsed, is_import_directive)]
   # Each multiline directives are a single element so they're sorted correctly
-  unlist(lapply(export_lines, function(x) paste(as.character(x), collapse = "\n")))
+  unlist(lapply(export_lines, \(x) paste(as.character(x), collapse = "\n")))
 }
 
 # NAMESPACE generation ----------------------------------------------------
@@ -140,9 +153,7 @@ roxy_tag_ns <- function(x, block, env) {
 }
 
 #' @export
-roxy_tag_ns.default <- function(x, block, env) {
-
-}
+roxy_tag_ns.default <- function(x, block, env) {}
 
 #' @export
 roxy_tag_parse.roxy_tag_evalNamespace <- function(x) {
@@ -155,7 +166,7 @@ roxy_tag_ns.roxy_tag_evalNamespace <- function(x, block, env) {
 
 #' @export
 roxy_tag_parse.roxy_tag_export <- function(x) {
-  tag_words_line(x)
+  tag_words(x)
 }
 #' @export
 roxy_tag_ns.roxy_tag_export <- function(x, block, env) {
@@ -208,7 +219,7 @@ roxy_tag_ns.roxy_tag_exportS3Method <- function(x, block, env) {
 
   if (identical(x$val, "")) {
     if (!inherits(obj, "s3method")) {
-      warn_roxy_tag(x, "must be used with an known S3 method")
+      warn_roxy_tag(x, "must be used with a known S3 method")
       return()
     }
 
@@ -219,15 +230,15 @@ roxy_tag_ns.roxy_tag_exportS3Method <- function(x, block, env) {
       return()
     }
 
-    if (!str_detect(x$val, "::")) {
+    if (!grepl("::", x$val, fixed = TRUE)) {
       warn_roxy_tag(x, "must have form package::generic")
       return()
     }
 
-    generic <- str_split(x$val, "::")[[1]]
+    generic <- re_split_half(x$val, "::")
     generic_re <- paste0("^", generic[[2]], "\\.")
 
-    if (!str_detect(obj$alias, generic_re)) {
+    if (!grepl(generic_re, obj$alias)) {
       warn_roxy_tag(
         x,
         "generic ({.str {generic[[2]]}}) doesn't match function ({.str {obj$alias}})",
@@ -235,7 +246,7 @@ roxy_tag_ns.roxy_tag_exportS3Method <- function(x, block, env) {
       return()
     }
 
-    class <- str_remove(obj$alias, generic_re)
+    class <- sub(generic_re, "", obj$alias)
     method <- c(x$val, class)
   } else {
     method <- x$val
@@ -274,7 +285,10 @@ roxy_tag_ns.roxy_tag_importFrom <- function(x, block, env) {
     # be sure to match '%>%', `%>%`, "%>%" all to %>% given by getNamespaceExports, #1570
     unknown_idx <- !strip_quotes(importing) %in% getNamespaceExports(pkg)
     if (any(unknown_idx)) {
-      warn_roxy_tag(x, "Excluding unknown {cli::qty(sum(unknown_idx))} export{?s} from {.package {pkg}}: {.code {importing[unknown_idx]}}")
+      warn_roxy_tag(
+        x,
+        "Excluding unknown {cli::qty(sum(unknown_idx))} export{?s} from {.package {pkg}}: {.code {importing[unknown_idx]}}"
+      )
       if (all(unknown_idx)) {
         return(NULL)
       }
@@ -298,7 +312,7 @@ roxy_tag_parse.roxy_tag_rawNamespace <- function(x) {
   tag_code(x)
 }
 #' @export
-roxy_tag_ns.roxy_tag_rawNamespace  <- function(x, block, env) {
+roxy_tag_ns.roxy_tag_rawNamespace <- function(x, block, env) {
   x$raw
 }
 
@@ -328,7 +342,7 @@ default_export <- function(x, block) {
   UseMethod("default_export")
 }
 #' @export
-default_export.s4class   <- function(x, block) {
+default_export.s4class <- function(x, block) {
   c(
     if (!is.null(block$object$alias)) export(block$object$alias),
     export_class(x$value@className)
@@ -337,20 +351,24 @@ default_export.s4class   <- function(x, block) {
 #' @export
 default_export.s4generic <- function(x, block) export(x$value@generic)
 #' @export
-default_export.s4method  <- function(x, block) export_s4_method(x$value@generic)
+default_export.s4method <- function(x, block) export_s4_method(x$value@generic)
 #' @export
-default_export.s3method  <- function(x, block) export_s3_method(auto_quote(attr(x$value, "s3method")))
+default_export.s3method <- function(x, block) {
+  export_s3_method(auto_quote(attr(x$value, "s3method")))
+}
 #' @export
-default_export.rcclass   <- function(x, block) export_class(x$value@className)
+default_export.rcclass <- function(x, block) export_class(x$value@className)
 #' @export
-default_export.default   <- function(x, block) export(x$alias)
+default_export.default <- function(x, block) export(x$alias)
 #' @export
-default_export.NULL      <- function(x, block) export(block_get_tag_value(block, "name"))
+default_export.NULL <- function(x, block) {
+  export(block_get_tag_value(block, "name"))
+}
 
 # Helpers -----------------------------------------------------------------
 
-export           <- function(x) one_per_line("export", x)
-export_class     <- function(x) one_per_line("exportClasses", x)
+export <- function(x) one_per_line("export", x)
+export_class <- function(x) one_per_line("exportClasses", x)
 export_s4_method <- function(x) one_per_line("exportMethods", x)
 export_s3_method <- function(x) {
   args <- paste0(x, collapse = ",")
@@ -396,8 +414,12 @@ warn_missing_s3_exports <- function(blocks, env) {
   funs <- Filter(is.function, objs)
   methods <- funs[map_lgl(names(funs), is_s3_method, env = env)]
 
-  s3blocks <- blocks[map_lgl(blocks, block_has_tags, c("export", "exportS3Method"))]
-  s3objects <- map(blocks, function(block) block$object$value)
+  s3blocks <- blocks[map_lgl(
+    blocks,
+    block_has_tags,
+    c("export", "exportS3Method")
+  )]
+  s3objects <- map(s3blocks, \(block) block$object$value)
   s3functions <- Filter(is.function, s3objects)
 
   undocumented <- methods[!methods %in% s3functions]
