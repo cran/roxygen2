@@ -427,7 +427,7 @@ forgotten.</p>
 <span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>  letters_rev <span class="ot">&lt;-</span> <span class="fu">lapply</span>(letters, rev)</span>
 <span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>  <span class="fu">vapply</span>(letters_rev, paste, <span class="at">collapse =</span> <span class="st">&quot;&quot;</span>, <span class="at">FUN.VALUE =</span> <span class="fu">character</span>(<span class="dv">1</span>))</span>
 <span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a>}</span></code></pre></div>
-<p>If you are exporting a method in some other way, you can use
+<p>If you are registering a method in some other way, you can use
 <code>@exportS3Method NULL</code> to suppress the warning.</p>
 <p>It’s good practice to document methods that have unique behavior or
 arguments. For example, the clock package documents the methods for <a href="https://clock.r-lib.org/reference/date_group.html"><code>date_group()</code></a>

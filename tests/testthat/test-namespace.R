@@ -19,7 +19,7 @@ test_that("end-to-end NAMESPACE generation works", {
 test_that("parsing warnings only fire once", {
   path <- local_package_copy(test_path("testNamespace"))
   write_lines(
-    c("#' @importFrom stats median", "#'   ave", "NULL"),
+    c("#' @import stats", "#'   utils", "NULL"),
     file.path(path, "R", "multiline.R")
   )
   withr::defer(pkgload::unload("testNamespace"))
@@ -257,14 +257,76 @@ test_that("other namespace tags produce correct output", {
     sort(c(
       "exportPattern(test)",
       "import(test)",
-      "importFrom(test,test1)",
-      "importFrom(test,test2)",
+      "importFrom(test,\n  test1,\n  test2\n)",
       "importClassesFrom(test,test1)",
       "importClassesFrom(test,test2)",
       "importMethodsFrom(test,test1)",
       "importMethodsFrom(test,test2)"
     ))
   )
+})
+
+test_that("ns_format merges importFrom directives per package", {
+  directives <- list(
+    "export(foo)",
+    "import(rlang)",
+    import_from("stats", "median"),
+    import_from("stats", "ave"),
+    import_from("utils", "head"),
+    "importMethodsFrom(pkg,show)"
+  )
+
+  expect_equal(
+    ns_format(directives),
+    c(
+      "export(foo)",
+      "import(rlang)",
+      "importFrom(stats,\n  ave,\n  median\n)",
+      "importFrom(utils,head)",
+      "importMethodsFrom(pkg,show)"
+    )
+  )
+})
+
+test_that("ns_format keeps a single-symbol importFrom inline", {
+  expect_equal(
+    ns_format(list(import_from("stats", "median"))),
+    "importFrom(stats,median)"
+  )
+})
+
+test_that("ns_format leaves directives without imports untouched", {
+  directives <- list("export(foo)", "import(rlang)")
+  expect_equal(ns_format(directives), c("export(foo)", "import(rlang)"))
+})
+
+test_that("@importFrom is merged into one directive per package", {
+  block <- "
+    #' @importFrom stats median sd
+    #' @importFrom stats ave
+    #' @importFrom utils head
+    NULL"
+  out <- roc_proc_text(namespace_roclet(), block)
+
+  expect_equal(
+    out,
+    c(
+      "importFrom(stats,\n  ave,\n  median,\n  sd\n)",
+      "importFrom(utils,head)"
+    )
+  )
+})
+
+test_that("importFrom() from @rawNamespace is not merged with @importFrom", {
+  # Only `@importFrom` tags are merged; an `importFrom()` produced another way
+  # (e.g. via `@rawNamespace`) is left exactly as written.
+  block <- "
+    #' @importFrom stats median
+    #' @rawNamespace importFrom(stats,sd)
+    NULL"
+  out <- roc_proc_text(namespace_roclet(), block)
+
+  expect_equal(out, c("importFrom(stats,median)", "importFrom(stats,sd)"))
 })
 
 test_that("import directives for current package are ignored", {
@@ -298,13 +360,78 @@ test_that("poorly formed importFrom throws error", {
   expect_snapshot(. <- roc_proc_text(namespace_roclet(), block))
 })
 
-test_that("multiline importFrom generates warning", {
-  block <- "
+test_that("multiline importFrom is accepted", {
+  out <- roc_proc_text(
+    namespace_roclet(),
+    "
     #' @importFrom test test1
     #'   test2
     NULL
   "
-  expect_snapshot(. <- roc_proc_text(namespace_roclet(), block))
+  )
+  expect_equal(out, "importFrom(test,\n  test1,\n  test2\n)")
+})
+
+test_that("multiline importClassesFrom is accepted", {
+  out <- roc_proc_text(
+    namespace_roclet(),
+    "
+    #' @importClassesFrom test test1
+    #'   test2
+    NULL
+  "
+  )
+  expect_equal(
+    sort(out),
+    sort(c("importClassesFrom(test,test1)", "importClassesFrom(test,test2)"))
+  )
+})
+
+test_that("multiline importMethodsFrom is accepted", {
+  out <- roc_proc_text(
+    namespace_roclet(),
+    "
+    #' @importMethodsFrom test test1
+    #'   test2
+    NULL
+  "
+  )
+  expect_equal(
+    sort(out),
+    sort(c("importMethodsFrom(test,test1)", "importMethodsFrom(test,test2)"))
+  )
+})
+
+test_that("blank line ends a multiline importFrom", {
+  block <- "
+    #' @importFrom test test1 test2
+    #'
+    #' a <- 1
+    NULL
+  "
+  expect_snapshot(out <- roc_proc_text(namespace_roclet(), block))
+  expect_equal(out, "importFrom(test,\n  test1,\n  test2\n)")
+})
+
+test_that("flush line ends a multiline importFrom", {
+  block <- "
+    #' @importFrom test test1 test2
+    #' a <- 1
+    NULL
+  "
+  expect_snapshot(out <- roc_proc_text(namespace_roclet(), block))
+  expect_equal(out, "importFrom(test,\n  test1,\n  test2\n)")
+})
+
+test_that("import doesn't quote if comma present", {
+  out <- roc_proc_text(
+    namespace_roclet(),
+    "
+    #' @import rlang, except = ':='
+    NULL"
+  )
+
+  expect_equal(sort(out), "import(rlang, except = ':=')")
 })
 
 test_that("useDynLib imports only selected functions", {
@@ -387,6 +514,18 @@ test_that("rawNamespace inserted unchanged", {
 
 test_that("rawNamespace does not break idempotency", {
   test_pkg <- local_package_copy(test_path("testRawNamespace"))
+  NAMESPACE <- file.path(test_pkg, "NAMESPACE")
+
+  lines_orig <- read_lines(NAMESPACE)
+
+  expect_no_error(suppressMessages(roxygenize(test_pkg, "namespace")))
+
+  # contents unchanged
+  expect_equal(read_lines(NAMESPACE), lines_orig)
+})
+
+test_that("merged importFrom blocks survive a re-document unchanged", {
+  test_pkg <- local_package_copy(test_path("testImportFrom"))
   NAMESPACE <- file.path(test_pkg, "NAMESPACE")
 
   lines_orig <- read_lines(NAMESPACE)
@@ -555,11 +694,7 @@ test_that("non-syntactic imports can use multiple quoting forms", {
   import <- expect_no_warning(roc_proc_text(namespace_roclet(), lines))
   expect_equal(
     import,
-    c(
-      "importFrom(stringr,\"%>%\")",
-      "importFrom(stringr,'%>%')",
-      "importFrom(stringr,`%>%`)"
-    )
+    "importFrom(stringr,\n  \"%>%\",\n  '%>%',\n  `%>%`\n)"
   )
 })
 

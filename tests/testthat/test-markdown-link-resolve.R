@@ -47,11 +47,6 @@ test_that("gives useful warning if same name in multiple packages", {
   local_roxy_meta_set("current_package", "testMdLinks")
   local_roxy_meta_set("current_package_dir", test_path("testMdLinks"))
 
-  expect_equal(
-    find_package_lookup("pkg_env", "testMdLinks", test_path("testMdLinks")),
-    c("pkgload", "rlang")
-  )
-
   expect_snapshot(. <- find_package("pkg_env"))
 })
 
@@ -62,24 +57,4 @@ test_that("topic found in multiple base packages doesn't warn", {
 
   # plot is in both base and graphics
   expect_no_message(expect_equal(find_package("plot"), NA_character_))
-})
-
-test_that("find_source handles simple cases", {
-  skip_on_cran() # since depends on other packages
-
-  # in base package
-  expect_equal(find_source("list", "base"), "base")
-  # topic not in namespace
-  expect_equal(find_source("doesnt'exist", "cli"), "cli")
-  # primitive objects are always in base
-  expect_equal(find_source("is_null", "rlang"), "base")
-  # callr re-exports process from processx
-  expect_equal(find_source("process", "callr"), "processx")
-})
-
-test_that("find_source traces re-exported non-function to source package", {
-  # .data is a non-function object exported by rlang, re-exported by others
-  skip_on_cran()
-  skip_if_not_installed("tidyselect")
-  expect_equal(find_source(".data", "tidyselect"), "rlang")
 })

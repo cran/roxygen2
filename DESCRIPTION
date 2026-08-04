@@ -1,6 +1,6 @@
 Package: roxygen2
 Title: In-Line Documentation for R
-Version: 8.0.0
+Version: 8.1.0
 Authors@R: c(
     person("Hadley", "Wickham", , "hadley@posit.co", role = c("aut", "cre", "cph"),
            comment = c(ORCID = "0000-0003-4757-117X")),
@@ -20,8 +20,8 @@ URL: https://roxygen2.r-lib.org/, https://github.com/r-lib/roxygen2
 BugReports: https://github.com/r-lib/roxygen2/issues
 Depends: R (>= 4.1)
 Imports: brew, cli (>= 3.3.0), commonmark, desc (>= 1.2.0), knitr,
-        lifecycle, methods, pkgload (>= 1.5.2), R6 (>= 2.1.2), rlang
-        (>= 1.1.0), utils, withr, xml2
+        lifecycle, methods, pkgload (>= 1.5.2), R6 (>= 2.1.2), rdtools
+        (>= 0.1.0), rlang (>= 1.1.0), utils, withr, xml2
 Suggests: covr, R.methodsS3, S7, R.oo, rmarkdown (>= 2.16), testthat
         (>= 3.1.2), yaml
 LinkingTo: cpp11
@@ -30,13 +30,13 @@ Config/Needs/development: testthat
 Config/Needs/website: tidyverse/tidytemplate
 Config/roxygen2/load: installed
 Config/roxygen2/markdown: TRUE
-Config/roxygen2/version: 7.3.3.9000
+Config/roxygen2/version: 8.0.0.9000
 Config/testthat/edition: 3
 Config/testthat/parallel: TRUE
 Encoding: UTF-8
 Language: en-GB
 NeedsCompilation: yes
-Packaged: 2026-04-30 12:51:23 UTC; hadleywickham
+Packaged: 2026-07-31 13:20:14 UTC; hadleywickham
 Author: Hadley Wickham [aut, cre, cph] (ORCID:
     <https://orcid.org/0000-0003-4757-117X>),
   Peter Danenberg [aut, cph],
@@ -45,4 +45,4 @@ Author: Hadley Wickham [aut, cre, cph] (ORCID:
   Posit Software, PBC [cph, fnd] (ROR: <https://ror.org/03wc8by49>)
 Maintainer: Hadley Wickham <hadley@posit.co>
 Repository: CRAN
-Date/Publication: 2026-05-01 16:50:02 UTC
+Date/Publication: 2026-08-04 20:00:02 UTC

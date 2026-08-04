@@ -96,9 +96,9 @@
 # useful warnings if can't find topics
 
     Code
-      get_rd("not_installed::pkg", source = "source")
+      get_rd("notinstalled::pkg", source = "source")
     Message
-      x In topic 'source': @inherits failed because not_installed is not installed.
+      x In topic 'source': @inherits failed because notinstalled is not installed.
     Output
       NULL
     Code

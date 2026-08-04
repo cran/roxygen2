@@ -119,12 +119,12 @@ merge.rd_section_inherit_dot_params <- function(x, y, ...) {
 }
 
 rd_section_inherit_params_args <- function(source, args) {
-  check_string(source)
-  check_string(args)
+  check_character(source)
+  check_character(args)
+  stopifnot(length(source) == length(args))
 
-  if (!nzchar(args)) {
-    return(NULL)
-  }
+  # Empty args are retained: an unfiltered tag inherits every parameter, even
+  # if another tag filters the same source.
   rd_section("inherit_params_args", list(source = source, args = args))
 }
 
@@ -211,10 +211,14 @@ inherit_params <- function(topic, topics) {
 
     # Apply argument filter if specified via @inheritParams foo args
     params_args <- topic$get_value("inherit_params_args")
-    args_filter <- params_args$args[params_args$source == inheritor]
-    if (length(args_filter) == 1 && args_filter != "") {
+    args_filters <- params_args$args[params_args$source == inheritor]
+    # Each tag selects independently; a source used in multiple tags inherits
+    # the union of their selections, so an unfiltered tag inherits everything.
+    if (length(args_filters) > 0 && all(nzchar(args_filters))) {
       doc_args <- map_chr(inherited_params, "[[", "name")
-      selected <- select_args_text(doc_args, args_filter, topic_name = source)
+      selected <- unlist(lapply(args_filters, function(args_filter) {
+        select_args_text(doc_args, args_filter, topic_name = source)
+      }))
       inherited_params <- Filter(
         function(p) any(p$name %in% selected),
         inherited_params
@@ -566,11 +570,8 @@ tweak_links <- function(x, package) {
 get_rd <- function(name, topics, source, tag = "@inherits") {
   if (is_namespaced(name)) {
     # External package
-    parsed <- parse_expr(name)
-    pkg <- as.character(parsed[[2]])
-    fun <- as.character(parsed[[3]])
-
-    get_rd_from_help(pkg, fun, source, tag = tag)
+    parsed <- rdtools::topic_split(name)
+    get_rd_from_help(parsed$package, parsed$topic, source, tag = tag)
   } else {
     # Current package
     rd_name <- topics$find_filename(name)
@@ -585,21 +586,19 @@ get_rd <- function(name, topics, source, tag = "@inherits") {
 }
 
 get_rd_from_help <- function(package, alias, source, tag = "@inherits") {
-  if (!is_installed(package)) {
-    warn_roxy_topic(
-      source,
-      "{tag} failed because {.pkg {package}} is not installed"
-    )
+  out <- rdtools::topic_rd(alias, package)
+  if (is.null(out)) {
+    if (is_installed(package)) {
+      warn_roxy_topic(source, "{tag} failed to find topic {package}::{alias}")
+    } else {
+      warn_roxy_topic(
+        source,
+        "{tag} failed because {.pkg {package}} is not installed"
+      )
+    }
     return()
   }
 
-  help <- utils::help((alias), (package))
-  if (length(help) == 0) {
-    warn_roxy_topic(source, "{tag} failed to find topic {package}::{alias}")
-    return()
-  }
-
-  out <- internal_f("utils", ".getHelpFile")(help)
   attr(out, "package") <- package
   out
 }

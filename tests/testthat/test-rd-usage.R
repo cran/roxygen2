@@ -286,6 +286,16 @@ test_that("default usage correct for S4 methods", {
   )
 })
 
+test_that("default usage correct for S4 coercion methods", {
+  expect_equal(
+    call_to_usage({
+      setClass("Foo", representation(x = "numeric"))
+      setAs("numeric", "Foo", function(from) new("Foo", x = from))
+    }),
+    r"(\S4method{coerce}{numeric,Foo}(from, to = "Foo", strict = TRUE))"
+  )
+})
+
 test_that("default usage correct for S4 methods with different args to generic", {
   expect_equal(
     call_to_usage({
@@ -539,6 +549,42 @@ test_that("S7 union method usage shows member classes", {
       S7::method(speak, Pet) <- function(x) "hi"
     }),
     "## S7 method for class <Dog>/<Cat>\nspeak(x)"
+  )
+})
+
+test_that("S7 bracket methods use subsetting syntax", {
+  skip_unless_r(">= 4.3.0")
+  expect_equal(
+    call_to_usage({
+      Vec <- S7::new_class("Vec")
+      `[` <- S7::new_generic("[", "x")
+      S7::method(`[`, Vec) <- function(x, i, ...) x
+    }),
+    "## S7 method for class <Vec>\nx[i, ...]"
+  )
+  expect_equal(
+    call_to_usage({
+      Vec <- S7::new_class("Vec")
+      `[<-` <- S7::new_generic("[<-", "x")
+      S7::method(`[<-`, Vec) <- function(x, i, ..., value) x
+    }),
+    "## S7 method for class <Vec>\nx[i, ...] <- value"
+  )
+  expect_equal(
+    call_to_usage({
+      Vec <- S7::new_class("Vec")
+      `[[` <- S7::new_generic("[[", "x")
+      S7::method(`[[`, Vec) <- function(x, i) x
+    }),
+    "## S7 method for class <Vec>\nx[[i]]"
+  )
+  expect_equal(
+    call_to_usage({
+      Vec <- S7::new_class("Vec")
+      `[[<-` <- S7::new_generic("[[<-", "x")
+      S7::method(`[[<-`, Vec) <- function(x, i, value) x
+    }),
+    "## S7 method for class <Vec>\nx[[i]] <- value"
   )
 })
 

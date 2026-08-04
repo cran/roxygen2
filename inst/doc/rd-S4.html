@@ -356,6 +356,15 @@ documented.</li>
 <code>@export</code> a generic if you want users to call it or other
 developers to write methods for it. If the generic is internal, you
 don’t need to export or document it.</p>
+<div id="supported-syntax" class="section level3">
+<h3>Supported syntax</h3>
+<ul>
+<li><p><code>setGeneric(&quot;balance&quot;, function(x) standardGeneric(&quot;balance&quot;))</code></p></li>
+<li><p><code>setGroupGeneric(&quot;Ops2&quot;, function(e1, e2) ...)</code>, which
+defines a group generic and is otherwise documented just like
+<code>setGeneric()</code>.</p></li>
+</ul>
+</div>
 </div>
 <div id="classes" class="section level2">
 <h2>Classes</h2>
@@ -370,6 +379,15 @@ example:</p>
 <span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="co">#&#39; @slot balance A length-one numeric vector</span></span>
 <span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="co">#&#39; @export</span></span>
 <span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>Account <span class="ot">&lt;-</span> <span class="fu">setClass</span>(<span class="st">&quot;Account&quot;</span>, <span class="at">slots =</span> <span class="fu">list</span>(<span class="at">balance =</span> <span class="st">&quot;numeric&quot;</span>))</span></code></pre></div>
+<div id="supported-syntax-1" class="section level3">
+<h3>Supported syntax</h3>
+<ul>
+<li><p><code>setClass(&quot;Account&quot;, slots = list(balance = &quot;numeric&quot;))</code></p></li>
+<li><p><code>setClassUnion(&quot;Number&quot;, c(&quot;numeric&quot;, &quot;integer&quot;))</code>,
+which defines a class and is otherwise documented just like
+<code>setClass()</code>.</p></li>
+</ul>
+</div>
 </div>
 <div id="methods" class="section level2">
 <h2>Methods</h2>
@@ -389,6 +407,23 @@ either two options don’t apply.</p></li>
 <p>Use either <code>@rdname</code> or <code>@describeIn</code> to
 control where method documentation goes. See
 <code>vignette(&quot;reuse&quot;)</code> for more details.</p>
+<div id="supported-syntax-2" class="section level3">
+<h3>Supported syntax</h3>
+<ul>
+<li><p><code>setMethod(&quot;show&quot;, &quot;Account&quot;, function(object) ...)</code></p></li>
+<li><p><code>setReplaceMethod(&quot;balance&quot;, &quot;Account&quot;, function(x, value) ...)</code>,
+which documents the <code>balance&lt;-</code> method, aliased as
+<code>balance&lt;-,Account-method</code>.</p></li>
+<li><p><code>setAs(&quot;numeric&quot;, &quot;Account&quot;, function(from) ...)</code>,
+which documents the <code>coerce()</code> method. The usage comes from
+<code>coerce()</code>, so must you document <code>@param to</code> and
+<code>@param strict</code> even if your definition only takes
+<code>from</code>.</p>
+<p>If you supply <code>replace</code>, only the <code>coerce()</code>
+method is documented; use <code>@aliases</code> if you also want to
+document <code>coerce&lt;-</code>.</p></li>
+</ul>
+</div>
 </div>
 
 

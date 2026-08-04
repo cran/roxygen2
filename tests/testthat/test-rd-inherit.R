@@ -737,6 +737,70 @@ test_that("@inheritParams filtering works with external packages", {
   expect_false("na.rm" %in% names(params))
 })
 
+test_that("multiple @inheritParams can each filter args (#1879)", {
+  out <- roc_proc_text(
+    rd_roclet(),
+    "
+    #' A.
+    #'
+    #' @param x X
+    #' @param y Y
+    a <- function(x, y) {}
+
+    #' B.
+    #'
+    #' @param z Z
+    #' @param w W
+    b <- function(z, w) {}
+
+    #' C
+    #'
+    #' @inheritParams a x
+    #' @inheritParams b -w
+    c <- function(x, y, z, w) {}
+    "
+  )[[3]]
+
+  params <- out$get_value("param")
+  expect_equal(params, c(x = "X", z = "Z"))
+})
+
+test_that("@inheritParams filters are unioned for a repeated source", {
+  filter <- function(...) {
+    tags <- paste0("    #' @inheritParams ", c(...), collapse = "\n")
+    out <- roc_proc_text(
+      rd_roclet(),
+      paste0(
+        "
+    #' A.
+    #'
+    #' @param x X
+    #' @param y Y
+    #' @param z Z
+    a <- function(x, y, z) {}
+
+    #' B
+    #'
+",
+        tags,
+        "
+    b <- function(x, y, z) {}
+    "
+      )
+    )[[2]]
+    out$get_value("param")
+  }
+
+  expect_equal(filter("a x", "a z"), c(x = "X", z = "Z"))
+  expect_equal(filter("a x", "a -y"), c(x = "X", z = "Z"))
+  # Each tag selects independently, so the order of tags doesn't matter
+  expect_equal(filter("a -y", "a x"), c(x = "X", z = "Z"))
+  expect_equal(filter("a x", "a -x"), c(x = "X", y = "Y", z = "Z"))
+  # An unfiltered tag selects everything
+  expect_equal(filter("a x", "a"), c(x = "X", y = "Y", z = "Z"))
+  expect_equal(filter("a", "a x"), c(x = "X", y = "Y", z = "Z"))
+})
+
 test_that("@inheritParams without args still works", {
   out <- roc_proc_text(
     rd_roclet(),
@@ -988,7 +1052,7 @@ test_that("can inherit all from single function", {
 
 test_that("useful warnings if can't find topics", {
   expect_snapshot({
-    get_rd("not_installed::pkg", source = "source")
+    get_rd("notinstalled::pkg", source = "source")
     get_rd("base::doesntexist", source = "source")
     get_rd("doesntexist", RoxyTopics$new(), source = "source")
   })
