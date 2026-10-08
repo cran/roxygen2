@@ -109,6 +109,37 @@ test_that("some options overrides defaults", {
   expect_equal(block_get_tag_value(block, "inherit")$fields, "return")
 })
 
+test_that("returns is accepted as an alias for return", {
+  expect_no_warning(
+    block <- parse_text(
+      "
+      #' @inherit fun returns seealso
+      NULL
+    "
+    )[[1]]
+  )
+  expect_equal(
+    block_get_tag_value(block, "inherit")$fields,
+    c("return", "seealso")
+  )
+
+  out <- roc_proc_text(
+    rd_roclet(),
+    "
+    #' A.
+    #'
+    #' @return ABC
+    a <- function(x) {}
+
+    #' B
+    #'
+    #' @inherit a returns
+    b <- function(y) {}
+  "
+  )[[2]]
+  expect_equal(out$get_value("value"), "ABC")
+})
+
 
 # Inherit return values ---------------------------------------------------
 
@@ -170,6 +201,19 @@ test_that("can inherit return value from external function", {
 
   expect_match(out$get_value("value"), "before the mean is computed.$")
   expect_match(out$get_value("value"), "^If \\\\code")
+})
+
+test_that("can inherit from external topic with backticked name", {
+  out <- roc_proc_text(
+    rd_roclet(),
+    "
+    #' A1
+    #' @inherit base::`+` description
+    a1 <- function(x) {}
+  "
+  )[[1]]
+
+  expect_match(out$get_value("description"), "arithmetic")
 })
 
 
@@ -698,6 +742,27 @@ test_that("@inheritParams can include specific args", {
 
   params <- out$get_value("param")
   expect_equal(params, c(x = "X", z = "Z"))
+})
+
+test_that("@inheritParams filtering works with shared param docs (#1925)", {
+  out <- roc_proc_text(
+    rd_roclet(),
+    "
+    #' A.
+    #'
+    #' @param x X
+    #' @param y,z Y and Z
+    a <- function(x, y, z) {}
+
+    #' B
+    #'
+    #' @inheritParams a x
+    b <- function(x) {}
+    "
+  )[[2]]
+
+  params <- out$get_value("param")
+  expect_equal(params, c(x = "X"))
 })
 
 test_that("@inheritParams can exclude specific args", {

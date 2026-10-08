@@ -215,7 +215,7 @@ inherit_params <- function(topic, topics) {
     # Each tag selects independently; a source used in multiple tags inherits
     # the union of their selections, so an unfiltered tag inherits everything.
     if (length(args_filters) > 0 && all(nzchar(args_filters))) {
-      doc_args <- map_chr(inherited_params, "[[", "name")
+      doc_args <- unlist(lapply(inherited_params, `[[`, "name"))
       selected <- unlist(lapply(args_filters, function(args_filter) {
         select_args_text(doc_args, args_filter, topic_name = source)
       }))
@@ -571,7 +571,8 @@ get_rd <- function(name, topics, source, tag = "@inherits") {
   if (is_namespaced(name)) {
     # External package
     parsed <- rdtools::topic_split(name)
-    get_rd_from_help(parsed$package, parsed$topic, source, tag = tag)
+    topic <- as.character(parse_expr(parsed$topic))
+    get_rd_from_help(parsed$package, topic, source, tag = tag)
   } else {
     # Current package
     rd_name <- topics$find_filename(name)
